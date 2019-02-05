@@ -6,7 +6,7 @@ from typing import List
 from ..settings import parse_settings, settings, get_settings_parser, get_settings_as_str
 from ..log import init_logger
 from .mkp import MKPInstance, MKPSolution
-from ..decision_diag import Node, DecisionDiag
+from ..decision_diag import Node, DecisionDiag, TNum
 
 
 class MKPNode(Node):
@@ -16,13 +16,13 @@ class MKPNode(Node):
         - y: so far used amount of each resource
     """
 
-    def __init__(self, id_, y):
-        """Create new node with given ID and state."""
-        super().__init__(id_)
+    def __init__(self, id_, z_bp: TNum, y: np.array):
+        """Create new node with given ID, z_bp, and state y."""
+        super().__init__(id_, z_bp)
         self.y = y
 
     def __repr__(self):
-            return super().__repr__(True) + f", y={self.y!s})"
+            return super().__repr__() + f", y={self.y!s})"
 
     def __hash__(self):
         return hash(tuple(self.y))
@@ -34,16 +34,19 @@ class MKPNode(Node):
 class MKPDecisionDiag(DecisionDiag):
     """A DD for the MKP."""
 
-    def __init__(self, inst: MKPInstance, r: MKPNode):
-        super().__init__(inst, r)
+    def __init__(self, inst: MKPInstance):
+        super().__init__(inst, MKPNode('0', 0, np.zeros(instance.m, dtype=int)))
 
-    def expand_node(self, node: MKPNode, depth)-> List[MKPNode]:
+    def expand_node(self, node: MKPNode, depth)-> List[Node]:
         assert not node.succ
         successors = [self.create_successor_node(node, 0, 0, node.y.copy())]
         y_new = node.y + self.inst.r[:, depth]
         if np.all(y_new <= self.inst.b):
             successors.append(self.create_successor_node(node, 1, self.inst.p[depth], y_new))
         return successors
+
+    def merge_state(self, node: MKPNode, node2: MKPNode):
+        node.y = min(node.y, node2.y)
 
 
 if __name__ == '__main__':
@@ -68,9 +71,8 @@ if __name__ == '__main__':
     # solution.initialize(0)
     logger.info(f"Solution: {solution}, obj={solution.obj()}\n")
 
-    root = MKPNode('0', np.zeros(instance.m, dtype=int))
-    decision_diag = MKPDecisionDiag(instance, root)
-    new_nodes = decision_diag.expand_node(root, 0)
+    decision_diag = MKPDecisionDiag(instance)
+    new_nodes = decision_diag.expand_node(decision_diag.r, 0)
     decision_diag.layers.append([])
     decision_diag.layers[1] = new_nodes
     print(decision_diag)

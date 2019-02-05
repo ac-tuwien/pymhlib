@@ -1,6 +1,6 @@
 """Generic classes for decision diagrams (DDs)."""
 
-from typing import DefaultDict, List, TypeVar, Optional
+from typing import DefaultDict, List, TypeVar
 from abc import ABC, abstractmethod
 from itertools import count
 from dataclasses import dataclass
@@ -35,20 +35,17 @@ class Node(ABC):
         - succ: dict with outgoing arcs, with values as keys
     """
 
-    def __init__(self, id_):
+    def __init__(self, id_, z_bp: TNum):
         """Create a node.
 
         """
         self.id_ = id_
-        self.z_bp: Optional[TNum] = None
+        self.z_bp = z_bp
         self.pred: List[Arc] = list()
         self.succ: DefaultDict[(int, Arc)] = defaultdict(lambda: None)
 
-    def __repr__(self, detailed=False):
-        if detailed:
+    def __repr__(self):
             return f"Node({self.id_}"
-        else:
-            return f"{self.id_}"
 
     @abstractmethod
     def __hash__(self):
@@ -61,7 +58,7 @@ class Node(ABC):
         return self is other
 
 
-class DecisionDiag:
+class DecisionDiag(ABC):
     """An abstract class for a DD."""
 
     def __init__(self, inst, r: Node):
@@ -91,26 +88,47 @@ class DecisionDiag:
         return s + "\n"
 
     def create_successor_node(self, node: Node, value: int, length: TNum, *args) -> Node:
-        """Creates a successor node for node, connects it with an arc and returns it.
+        """Creates a successor node for node, connects it with an arc, sets z_bp, and returns the successor node.
 
         :param node: source node
         :param value: value of the arc, i.e., value assigned to a corresponding variable
         :param length: arc length
         :param args: parameters passed to the initialization of the node (without id_)
         """
-        succ_node = self.NodeType(next(self.id_generator), *args)
+        succ_node = self.NodeType(next(self.id_generator), node.z_bp + length, *args)
         assert not node.succ[value]
         arc = Arc(node, succ_node, value, length)
         node.succ[value] = arc
         succ_node.pred.append(arc)
         return succ_node
 
+    def merge_nodes(self, nodes: List[Node]):
+        """Merge given list of nodes into the first node.
+
+        All input nodes are not yet expanded.
+        """
+        n1 = nodes[0]
+        for n2 in nodes:
+            n1.pred += n2.pred
+            for arc in n2.pred:
+                arc.v = n1
+                z_bp_new = arc.u.z_bp + arc.length
+                if z_bp_new > n1.z_bp:
+                    n1.z_bp = z_bp_new
+            self.merge_state(n1, n2)
+
     @abstractmethod
-    def expand_node(self, node: Node, depth) -> List[Node]:
+    def expand_node(self, node: Node, depth: int) -> List[Node]:
         """Expand node, creating all successor nodes, and returns them as list.
 
         The successor nodes and the corresponding arcs are added to the graph.
+        z_bp is also set in the successor nodes..
         :param node: the node to be expanded; must not yet have any successors
         :param depth: optional depth of the current node
         """
         return []
+
+    @abstractmethod
+    def merge_state(self, node: Node, node2: Node):
+        """Merge state of second node into state of first node."""
+        pass
