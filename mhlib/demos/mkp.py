@@ -1,7 +1,6 @@
 """Demo application solving the multi-dimensional knapsack problem (MKP)."""
 
 import numpy as np
-import os
 
 from ..subset_solution import SubsetSolution
 
@@ -18,6 +17,7 @@ class MKPInstance:
         - obj_opt: optimal objective value or 0 if not known
         - r_min: minimal resource consumption value over all elements for each resource
     """
+
     def __init__(self, file_name: str):
         """Read an instance from the specified file in Chu and Beasley's format."""
         self.n = 0
@@ -53,11 +53,12 @@ class MKPSolution(SubsetSolution):
     Attributes
         - inst: associated MKPInstance
         - x: binary incidence vector
-        - z: amount of each resource used
+        - y: amount of each resource used
     """
+
     def __init__(self, inst: MKPInstance):
         super().__init__(range(inst.n), inst=inst)
-        self.z = np.zeros([self.inst.m], dtype=int)
+        self.y = np.zeros([self.inst.m], dtype=int)
 
     def copy(self):
         sol = MKPSolution(self.inst)
@@ -67,7 +68,7 @@ class MKPSolution(SubsetSolution):
     def copy_from(self, other: 'MKPSolution'):
         super().copy_from(other)
         self.sel = other.sel
-        self.z[:] = other.z
+        self.y[:] = other.y
 
     def calc_objective(self) -> float:
         return float(np.sum(self.inst.p[self.x[:self.sel]]))
@@ -75,13 +76,13 @@ class MKPSolution(SubsetSolution):
     def check(self, unsorted=False):
         super().check(unsorted)
         z_new = np.sum(self.inst.r[:, self.x[:self.sel]], axis=1)
-        if np.any(z_new != self.z):
+        if np.any(z_new != self.y):
             raise ValueError("Solution has invalid z values")
-        if np.any(self.z > self.inst.b):
+        if np.any(self.y > self.inst.b):
             raise ValueError("Solution exceeds capacity limits")
 
     def clear(self):
-        self.z.fill(0)
+        self.y.fill(0)
         super().clear()
 
     def construct(self, par, result):
@@ -106,22 +107,22 @@ class MKPSolution(SubsetSolution):
         self.check()
 
     def may_be_extendible(self) -> bool:
-        return np.all(self.z + self.inst.r_min <= self.inst.b) and self.sel < len(self.x)
+        return np.all(self.y + self.inst.r_min <= self.inst.b) and self.sel < len(self.x)
 
     def element_removed_delta_eval(self, update_obj_val=True, allow_infeasible=False) -> bool:
         elem = self.x[self.sel]
-        self.z -= self.inst.r[:, elem]
+        self.y -= self.inst.r[:, elem]
         if update_obj_val:
             self.obj_val -= self.inst.p[elem]
         return True
 
     def element_added_delta_eval(self, update_obj_val=True, allow_infeasible=False) -> bool:
         elem = self.x[self.sel-1]
-        z_new = self.z + self.inst.r[:, elem]
-        feasible = np.all(z_new <= self.inst.b)
+        y = self.y + self.inst.r[:, elem]
+        feasible = np.all(y <= self.inst.b)
         if allow_infeasible or feasible:
             # accept
-            self.z = z_new
+            self.y = y
             if update_obj_val:
                 self.obj_val += self.inst.p[elem]
             return feasible
@@ -132,11 +133,11 @@ class MKPSolution(SubsetSolution):
     def two_exchange_delta_eval(self, p1, p2, update_obj_val=True, allow_infeasible=False) -> bool:
         elem_added = self.x[p1]
         elem_removed = self.x[p2]
-        z_new = self.z + self.inst.r[:, elem_added] - self.inst.r[:, elem_removed]
-        feasible = np.all(z_new <= self.inst.b)
+        y_new = self.y + self.inst.r[:, elem_added] - self.inst.r[:, elem_removed]
+        feasible = np.all(y_new <= self.inst.b)
         if allow_infeasible or feasible:
             # accept
-            self.z = z_new
+            self.y = y_new
             if update_obj_val:
                 self.obj_val += self.inst.p[elem_added] - self.inst.p[elem_removed]
             return feasible
@@ -146,5 +147,6 @@ class MKPSolution(SubsetSolution):
 
 
 if __name__ == '__main__':
+    import os
     from .common import run_gvns_demo
     run_gvns_demo('MKP', MKPInstance, MKPSolution, os.path.join('mhlib', 'demos', 'mknapcb5-01.txt'))

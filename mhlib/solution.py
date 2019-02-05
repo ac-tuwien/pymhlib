@@ -25,6 +25,7 @@ class Solution(ABC):
         - inst: optional reference to an problem instance object
         - alg: optional reference to an algorithm object using this solution
     """
+
     def __init__(self, inst=None, alg=None):
         self.obj_val: float = -1
         self.obj_val_valid: bool = False
@@ -155,6 +156,7 @@ class VectorSolution(Solution, ABC):
     Attributes
         - x: vector representing a solution, realized as numpy.array
     """
+
     def __init__(self, length, init=True, dtype=int, init_value=0, **kwargs):
         """Initializes the solution vector with zeros."""
         super().__init__(**kwargs)
@@ -176,6 +178,7 @@ class BoolVectorSolution(VectorSolution, ABC):
     Attributes
         - x: 0/1 vector representing a solution
     """
+
     def __init__(self, length, **kwargs):
         """Initializes the solution vector with zeros."""
         super().__init__(length, dtype=bool, **kwargs)

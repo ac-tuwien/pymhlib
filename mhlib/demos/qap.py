@@ -1,7 +1,6 @@
 """Demo application solving the Quadratic Assignment Problem (QAP)."""
 
 import numpy as np
-import os
 import random
 
 from ..permutation_solution import PermutationSolution
@@ -15,6 +14,7 @@ class QAPInstance:
         - a: distance matrix
         - b: flow matrix
     """
+
     def __init__(self, file_name: str):
         """Read an instance from the specified file."""
         self.n = 0
@@ -47,6 +47,7 @@ class QAPSolution(PermutationSolution):
         - inst: associated QAPInstance
         - x: integer vector representing a permutation
     """
+
     def __init__(self, inst: QAPInstance, **kwargs):
         """Initializes the solution with 0,...,n-1 if init is set."""
         super().__init__(inst.n, inst=inst, **kwargs)
@@ -103,5 +104,6 @@ class QAPSolution(PermutationSolution):
 
 
 if __name__ == '__main__':
+    import os
     from .common import run_gvns_demo
     run_gvns_demo('QAP', QAPInstance, QAPSolution, os.path.join('mhlib', 'demos', 'bur26a.dat'))

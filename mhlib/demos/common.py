@@ -2,9 +2,9 @@
 
 import logging
 
-from mhlib.settings import parse_settings, settings, get_settings_parser, get_settings_as_str
-from mhlib.log import init_logger
-from mhlib.scheduler import GVNS, Method
+from ..settings import parse_settings, settings, get_settings_parser, get_settings_as_str
+from ..log import init_logger
+from ..scheduler import GVNS, Method
 
 
 def run_gvns_demo(problem_name: str, Instance, Solution, default_inst_file: str):

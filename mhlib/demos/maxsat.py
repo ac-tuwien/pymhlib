@@ -1,7 +1,6 @@
 """Demo application solving the MAXSAT problem."""
 
 import numpy as np
-import os
 import random
 
 from ..solution import BoolVectorSolution
@@ -17,6 +16,7 @@ class MAXSATInstance:
             a positive integer v refers to the v-th variable, while a negative integer v refers
             to the negated form of the v-th variable; note that variable indices start with 1 (-1)
     """
+
     def __init__(self, file_name: str):
         """Read an instance from the specified file."""
         self.n = 0
@@ -64,6 +64,7 @@ class MAXSATSolution(BoolVectorSolution):
         - inst: associated MAXSATInstance
         - x: binary incidence vector
     """
+
     def __init__(self, inst: MAXSATInstance):
         super().__init__(inst.n, inst=inst)
 
@@ -161,5 +162,6 @@ class MAXSATSolution(BoolVectorSolution):
 
 
 if __name__ == '__main__':
+    import os
     from .common import run_gvns_demo
     run_gvns_demo('MAXSAT', MAXSATInstance, MAXSATSolution, os.path.join('mhlib', 'demos', 'advanced.cnf'))

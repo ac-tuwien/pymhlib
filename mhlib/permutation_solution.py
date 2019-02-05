@@ -8,6 +8,7 @@ from .solution import VectorSolution
 
 class PermutationSolution(VectorSolution, ABC):
     """Solution that is represented by a permutation of 0,...length-1."""
+
     def __init__(self, length: int, init=True, **kwargs):
         """Initializes the solution with 0,...,length-1 if init is set."""
         super().__init__(length, init=False, **kwargs)

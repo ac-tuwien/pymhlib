@@ -300,6 +300,7 @@ class GVNS(Scheduler):
         - meths_li: list of local improvement methods
         - meths_sh: list of shaking methods
     """
+
     def __init__(self, sol: Solution, meths_ch: List[Method], meths_li: List[Method], meths_sh: List[Method]):
         """Initialization.
 
