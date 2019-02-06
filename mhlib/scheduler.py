@@ -12,8 +12,8 @@ import time
 import logging
 from math import log10
 
-from .settings import settings, get_settings_parser
-from .solution import Solution, TObj
+from mhlib.settings import settings, get_settings_parser
+from mhlib.solution import Solution, TObj
 
 
 parser = get_settings_parser()

@@ -11,7 +11,7 @@ import logging
 import logging.handlers
 import sys
 
-from .settings import settings, get_settings_parser, parse_settings
+from mhlib.settings import settings, get_settings_parser, parse_settings
 
 parser = get_settings_parser()
 parser.add("--mh_out", type=str, default="None",

@@ -6,7 +6,7 @@ from itertools import count
 from dataclasses import dataclass
 from collections import defaultdict
 
-from .solution import VectorSolution, TObj
+from mhlib.solution import VectorSolution, TObj
 
 
 @dataclass

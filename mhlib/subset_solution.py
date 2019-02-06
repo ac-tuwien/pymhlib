@@ -4,7 +4,7 @@ import numpy as np
 import random
 from abc import ABC
 
-from .solution import VectorSolution
+from mhlib.solution import VectorSolution
 
 
 class SubsetSolution(VectorSolution, ABC):

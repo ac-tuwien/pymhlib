@@ -3,7 +3,7 @@
 import numpy as np
 import random
 
-from ..solution import BoolVectorSolution
+from mhlib.solution import BoolVectorSolution
 
 
 class MAXSATInstance:
@@ -163,5 +163,7 @@ class MAXSATSolution(BoolVectorSolution):
 
 if __name__ == '__main__':
     import os
-    from .common import run_gvns_demo
-    run_gvns_demo('MAXSAT', MAXSATInstance, MAXSATSolution, os.path.join('mhlib', 'demos', 'advanced.cnf'))
+    from pkg_resources import resource_filename
+    from mhlib.demos.common import run_gvns_demo
+    run_gvns_demo('MAXSAT', MAXSATInstance, MAXSATSolution,
+                  resource_filename("mhlib", os.path.join("demos", "advanced.cnf")))

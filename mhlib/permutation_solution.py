@@ -3,7 +3,7 @@
 import numpy as np
 from abc import ABC
 
-from .solution import VectorSolution
+from mhlib.solution import VectorSolution
 
 
 class PermutationSolution(VectorSolution, ABC):

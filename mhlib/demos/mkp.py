@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from ..subset_solution import SubsetSolution
+from mhlib.subset_solution import SubsetSolution
 
 
 class MKPInstance:
@@ -153,5 +153,7 @@ class MKPSolution(SubsetSolution):
 
 if __name__ == '__main__':
     import os
-    from .common import run_gvns_demo
-    run_gvns_demo('MKP', MKPInstance, MKPSolution, os.path.join('mhlib', 'demos', 'mknapcb5-01.txt'))
+    from pkg_resources import resource_filename
+    from mhlib.demos.common import run_gvns_demo
+    run_gvns_demo('MKP', MKPInstance, MKPSolution,
+                  resource_filename("mhlib", os.path.join('demos', 'mknapcb5-01.txt')))

@@ -4,10 +4,10 @@ import numpy as np
 from typing import DefaultDict
 from itertools import count
 
-from ..settings import parse_settings, settings, get_settings_parser, get_settings_as_str
-from ..log import init_logger
-from .mkp import MKPInstance, MKPSolution
-from ..decision_diag import State, Node, DecisionDiag
+from mhlib.settings import parse_settings, settings, get_settings_parser, get_settings_as_str
+from mhlib.log import init_logger
+from mhlib.demos.mkp import MKPInstance, MKPSolution
+from mhlib.decision_diag import State, Node, DecisionDiag
 
 
 class MKPState(State, tuple):
@@ -75,10 +75,12 @@ class MKPDecisionDiag(DecisionDiag):
 def main():
     """Test for the DD classes."""
     import os
+    from pkg_resources import resource_filename
     import logging
 
     parser = get_settings_parser()
-    parser.add("--inst_file", type=str, default=os.path.join('mhlib', 'demos', 'mknap-small.txt'),
+    parser.add("--inst_file", type=str,
+               default=resource_filename("mhlib", os.path.join('demos', 'mknap-small.txt')),
                help='problem instance file')
     # parser.set_defaults(seed=3)
 

@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from typing import TypeVar
 
-from .settings import settings, get_settings_parser
+from mhlib.settings import settings, get_settings_parser
 
 
 parser = get_settings_parser()

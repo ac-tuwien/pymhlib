@@ -3,7 +3,7 @@
 import numpy as np
 import random
 
-from ..permutation_solution import PermutationSolution
+from mhlib.permutation_solution import PermutationSolution
 
 
 class QAPInstance:
@@ -105,5 +105,7 @@ class QAPSolution(PermutationSolution):
 
 if __name__ == '__main__':
     import os
-    from .common import run_gvns_demo
-    run_gvns_demo('QAP', QAPInstance, QAPSolution, os.path.join('mhlib', 'demos', 'bur26a.dat'))
+    from pkg_resources import resource_filename
+    from mhlib.demos.common import run_gvns_demo
+    run_gvns_demo('QAP', QAPInstance, QAPSolution,
+                  resource_filename("mhlib", os.path.join('demos', 'bur26a.dat')))
