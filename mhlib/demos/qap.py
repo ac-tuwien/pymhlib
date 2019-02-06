@@ -60,9 +60,9 @@ class QAPSolution(PermutationSolution):
     def copy_from(self, other: 'QAPSolution'):
         super().copy_from(other)
 
-    def calc_objective(self) -> float:
+    def calc_objective(self):
         obj = np.einsum('ij,ij', self.inst.a, self.inst.b[self.x][:, self.x])
-        return float(obj)
+        return obj
 
     def construct(self, par, result):
         """Scheduler method that constructs a new solution.

@@ -6,6 +6,7 @@ For an optimization problem to solve you have to derive from this class.
 
 from abc import ABC, abstractmethod
 import numpy as np
+from typing import TypeVar
 
 from .settings import settings, get_settings_parser
 
@@ -14,6 +15,9 @@ parser = get_settings_parser()
 parser.add("--mh_maxi", default=True, action='store_true',
            help='maximize the objective function, else minimize')
 parser.add("--no_mh_maxi", dest='mh_maxi', action='store_false')
+
+
+TObj = TypeVar('TObj', int, float)  # Type of objective value
 
 
 class Solution(ABC):
@@ -27,7 +31,7 @@ class Solution(ABC):
     """
 
     def __init__(self, inst=None, alg=None):
-        self.obj_val: float = -1
+        self.obj_val: TObj = -1
         self.obj_val_valid: bool = False
         self.inst = inst
         self.alg = alg
@@ -49,11 +53,11 @@ class Solution(ABC):
         return str(self.obj())
 
     @abstractmethod
-    def calc_objective(self) -> float:
+    def calc_objective(self) -> TObj:
         """Determine the objective value and return it."""
         raise NotImplementedError
 
-    def obj(self) -> float:
+    def obj(self) -> TObj:
         """Return objective value.
 
         Returns stored value if already known or calls calc_objective() otherwise.
@@ -102,25 +106,27 @@ class Solution(ABC):
         else:
             return self.obj() > other.obj()
 
-    def has_better_obj(self, obj: float) -> bool:
-        """Returns True if the current solution has a better objective value than obj.
+    @classmethod
+    def is_better_obj(cls, obj1: TObj, obj2: TObj) -> bool:
+        """Return True if the obj1 is a better objective value than obj2.
 
         Considers parameter settings.mh_maxi.
         """
         if settings.mh_maxi:
-            return self.obj() > obj
+            return obj1 > obj2
         else:
-            return self.obj() < obj
+            return obj1 < obj2
 
-    def has_worse_obj(self, obj: float) -> bool:
-        """Returns True if the current solution has a worse objective value than obj.
+    @classmethod
+    def is_worse_obj(cls, obj1: TObj, obj2: TObj) -> bool:
+        """Return True if obj1 is a worse objective value than obj2.
 
         Considers parameter settings.mh_maxi.
         """
         if settings.mh_maxi:
-            return self.obj() < obj
+            return obj1 < obj2
         else:
-            return self.obj() > obj
+            return obj1 > obj2
 
     def dist(self, other):
         """Return distance of current solution to other solution.

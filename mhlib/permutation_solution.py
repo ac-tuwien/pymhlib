@@ -54,7 +54,7 @@ class PermutationSolution(VectorSolution, ABC):
             for p2 in order[idx+1:]:
                 self.x[p1], self.x[p2] = self.x[p2], self.x[p1]
                 if self.two_exchange_delta_eval(p1, p2):
-                    if self.has_better_obj(best_obj):
+                    if self.is_better_obj(self.obj(), best_obj):
                         if not best_improvement:
                             return True
                         best_obj = self.obj()

@@ -73,7 +73,7 @@ class MAXSATSolution(BoolVectorSolution):
         sol.copy_from(self)
         return sol
 
-    def calc_objective(self) -> float:
+    def calc_objective(self):
         fulfilled_clauses = 0
         for clause in self.inst.clauses:
             for v in clause:

@@ -13,7 +13,7 @@ import logging
 from math import log10
 
 from .settings import settings, get_settings_parser
-from .solution import Solution
+from .solution import Solution, TObj
 
 
 parser = get_settings_parser()
@@ -162,7 +162,7 @@ class Scheduler(ABC):
         obj_new = sol.obj()
         if not delayed_success:
             ms.brutto_time += t_end - t_start
-            if sol.has_better_obj(obj_old):
+            if sol.is_better_obj(sol.obj(), obj_old):
                 ms.successes += 1
                 ms.obj_gain += obj_new - obj_old
         self.iteration += 1
@@ -174,7 +174,7 @@ class Scheduler(ABC):
             res.terminate = True
         return res
 
-    def delayed_success_update(self, method: Method, obj_old: float, t_start: float, sol: Solution):
+    def delayed_success_update(self, method: Method, obj_old: TObj, t_start: TObj, sol: Solution):
         """Update an earlier performed method's success information in method_stats.
 
         Parameters
@@ -187,7 +187,7 @@ class Scheduler(ABC):
         ms = self.method_stats[method.name]
         ms.brutto_time += t_end - t_start
         obj_new = sol.obj()
-        if sol.has_better_obj(obj_old):
+        if sol.is_better_obj(sol.obj(), obj_old):
             ms.successes += 1
             ms.obj_gain += obj_new - obj_old
 
@@ -196,7 +196,7 @@ class Scheduler(ABC):
         if 0 <= settings.mh_titer <= self.iteration or \
                 0 <= settings.mh_tciter <= self.iteration - self.incumbent_iteration or \
                 0 <= settings.mh_ttime <= time.process_time() - self.time_start or \
-                0 <= settings.mh_tobj and not self.incumbent.has_worse_obj(settings.mh_tobj):
+                0 <= settings.mh_tobj and not self.incumbent.is_worse_obj(self.incumbent.obj(), settings.mh_tobj):
             return True
 
     def log_iteration_header(self):

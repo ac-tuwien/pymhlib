@@ -44,7 +44,7 @@ class MKPInstance:
 
     def __repr__(self):
         """Write out the instance data."""
-        return f"n={self.n} m={self.m},\np={self.p}\n,\nr={self.r},\nb={self.b}"
+        return f"n={self.n} m={self.m},\np={self.p},\nr={self.r},\nb={self.b}"
 
 
 class MKPSolution(SubsetSolution):
@@ -70,16 +70,21 @@ class MKPSolution(SubsetSolution):
         self.sel = other.sel
         self.y[:] = other.y
 
-    def calc_objective(self) -> float:
-        return float(np.sum(self.inst.p[self.x[:self.sel]]))
+    def calc_objective(self):
+        return np.sum(self.inst.p[self.x[:self.sel]])
+
+    def calc_y(self):
+        """Calculates z from scratch."""
+        self.y = np.sum(self.inst.r[:, self.x[:self.sel]], axis=1)
 
     def check(self, unsorted=False):
         super().check(unsorted)
-        z_new = np.sum(self.inst.r[:, self.x[:self.sel]], axis=1)
-        if np.any(z_new != self.y):
-            raise ValueError("Solution has invalid z values")
+        y_old = self.y
+        self.calc_y()
+        if np.any(y_old != self.y):
+            raise ValueError(f"Solution had invalid y values: {self.y!s} {y_old!s}")
         if np.any(self.y > self.inst.b):
-            raise ValueError("Solution exceeds capacity limits")
+            raise ValueError(f"Solution exceeds capacity limits:  {self.y}, {self.inst.b}")
 
     def clear(self):
         self.y.fill(0)
