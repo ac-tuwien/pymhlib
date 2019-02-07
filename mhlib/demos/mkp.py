@@ -44,7 +44,7 @@ class MKPInstance:
 
     def __repr__(self):
         """Write out the instance data."""
-        return f"n={self.n} m={self.m},\np={self.p},\nr={self.r},\nb={self.b}"
+        return f"n={self.n} m={self.m},\np={self.p},\nr={self.r},\nb={self.b}\n"
 
 
 class MKPSolution(SubsetSolution):

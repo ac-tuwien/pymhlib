@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from collections import defaultdict
 
 from mhlib.solution import VectorSolution, TObj
+from mhlib.settings import settings
 
 
 @dataclass
@@ -60,7 +61,7 @@ class Node(State, ABC):
         self.state = state
         self.z_bp = z_bp
         self.pred: List[Arc] = list()
-        self.succ: Dict[(int, Arc)] = dict()
+        self.succ: Dict[int, Arc] = dict()
 
     def __repr__(self):
         return f"Node {self.id_}: z_bp={self.z_bp}, state={self.state}"
@@ -72,6 +73,9 @@ class Node(State, ABC):
     def __eq__(self, other: 'Node'):
         """Return True if the nodes represent the same states."""
         return self.state == other.state
+
+
+NodePool = Dict[State, Node]
 
 
 class DecisionDiag(ABC):
@@ -97,7 +101,7 @@ class DecisionDiag(ABC):
         self.t: Optional[Node, None] = None
         self.sol = sol
         self.NodeType = r.__class__
-        self.layers: DefaultDict[(int, Dict[(State, Node)])] = defaultdict(dict)
+        self.layers: DefaultDict[int, NodePool] = defaultdict(dict)
         self.layers[0][r.state] = r
 
     def __repr__(self):
@@ -108,8 +112,7 @@ class DecisionDiag(ABC):
                 s += f" {node!s}\n"
         return s
 
-    def get_successor_node(self, node_pool: Dict[(State, Node)], node: Node, value: int, length: TObj,
-                           state: State) -> Node:
+    def get_successor_node(self, node_pool: NodePool, node: Node, value: int, length: TObj, state: State) -> Node:
         """Look up or create a successor for a node, connect them with an arc, set z_bp, and return the successor.
 
         :param node_pool: node pool in which to either find already existing node or add new node
@@ -150,11 +153,50 @@ class DecisionDiag(ABC):
                 further_nodes_remaining = True
         return further_nodes_remaining
 
-    def expand_all(self):
-        """Expand nodes layer-wise until no unexpanded nodes remain, i.e., create complete DD."""
+    def expand_all(self, dd_type: str, max_width: int = 1):
+        """Expand nodes layer-wise until no unexpanded nodes remain, i.e., create complete DD.
+
+        :param dd_type: of DD to create: 'exact', 'relaxed', or 'restricted'
+        :param max_width: maximum with in case of type 'relaxed' or 'restricted'
+        """
         for depth in count(0):
             if not self.expand_layer(depth):
                 break
+            if dd_type == 'relaxed':
+                self.relax_layer(self.layers[depth+1], max_width)
+            elif dd_type == 'restricted':
+                self.restrict_layer(self.layers[depth+1], max_width)
+            elif dd_type != 'exact':
+                raise ValueError(f"Invalid dd_type: {dd_type}")
+
+    @classmethod
+    def get_sorted_nodes(cls, node_pool):
+        """Return a sorted list of the nodes in the given node_pool, with the most promising node first."""
+        return sorted(node_pool.values(), key=lambda n: n.z_bp, reverse=settings.mh_maxi)
+
+    def relax_layer(self, node_pool: NodePool, max_width: int = 1):
+        """Relax the last created layer at the given depth to the given maximum width."""
+        if len(node_pool) > max_width:
+            nodes_sorted = self.get_sorted_nodes(node_pool)
+            self.merge_nodes(nodes_sorted[max_width-1:], node_pool)
+
+    def restrict_layer(self, node_pool: NodePool, max_width: int = 1):
+        """Restrict the last created layer at the given depth to the given maximum width."""
+        if len(node_pool) > max_width:
+            nodes_sorted = self.get_sorted_nodes(node_pool)
+            for node in nodes_sorted[-1:max_width-1:-1]:
+                self.delete_node(node, node_pool)
+
+    @staticmethod
+    def delete_node(node: Node, node_pool: NodePool):
+        """Deletes the specified node from the DD and node_pool, together with all its arcs.
+
+        The nodes must not have any successors yet and must not be the r or t.
+        """
+        assert not node.succ  # node must not have successors
+        del node_pool[node.state]
+        for arc in node.pred:
+            del arc.u.succ[arc.value]
 
     def derive_best_path(self) -> List[int]:
         """Derives from a completely constructed DD a best path and returns it as list of arc values."""
@@ -172,7 +214,7 @@ class DecisionDiag(ABC):
                 raise ValueError(f"Invalid z_bp value at node {node!s}")
         return path[::-1]
 
-    def merge_nodes(self, nodes: List[Node], node_pool: DefaultDict[(State, Node)]):
+    def merge_nodes(self, nodes: List[Node], node_pool: NodePool):
         """Merge given list of nodes into the first node.
 
         All input nodes are not yet expanded and are assumed to be in the given node_pool.
@@ -206,7 +248,7 @@ class DecisionDiag(ABC):
     # Problem-specific abstract methods
 
     @abstractmethod
-    def expand_node(self, node: Node, depth: int, node_pool: DefaultDict[(State, Node)]) -> bool:
+    def expand_node(self, node: Node, depth: int, node_pool: NodePool) -> bool:
         """Expand node, creating all successor nodes in node_pool.
 
         The successor nodes and the corresponding arcs are added to the graph.

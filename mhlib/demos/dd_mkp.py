@@ -91,10 +91,10 @@ def main():
     # solution = MKPSolution(instance)
     # solution.initialize(0)
     dd = MKPDecisionDiag(instance)
-    dd.expand_all()
+    dd.expand_all('relaxed')
     logger.info(dd)
     sol = dd.derive_solution()
-    sol.check()
+    # sol.check()
     logger.info(f"Solution: {sol}, obj={sol.obj()}")
 
 

@@ -52,7 +52,7 @@ class SubsetSolution(VectorSolution, ABC):
         """
         all_elements_set = set(self.all_elements)
         length = len(all_elements_set)
-        if not 0 <= self.sel < length:
+        if not 0 <= self.sel <= length:
             raise ValueError(f"Invalid attribute sel in solution: {self.sel}")
         if len(self.x) != length:
             raise ValueError(f"Invalid length of solution array x: {self.x}")
