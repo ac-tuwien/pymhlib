@@ -74,14 +74,10 @@ class MKPDecisionDiag(DecisionDiag):
 
 def main():
     """Test for the DD classes."""
-    import os
-    from pkg_resources import resource_filename
     import logging
-
+    from mhlib.demos.common import data_dir
     parser = get_settings_parser()
-    parser.add("--inst_file", type=str,
-               default=resource_filename("mhlib", os.path.join('demos', 'mknap-small.txt')),
-               help='problem instance file')
+    parser.add("--inst_file", type=str, default=data_dir+'mknap-small.txt', help='problem instance file')
     # parser.set_defaults(seed=3)
 
     parse_settings()

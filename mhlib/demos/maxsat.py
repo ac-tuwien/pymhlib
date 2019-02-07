@@ -162,8 +162,5 @@ class MAXSATSolution(BoolVectorSolution):
 
 
 if __name__ == '__main__':
-    import os
-    from pkg_resources import resource_filename
-    from mhlib.demos.common import run_gvns_demo
-    run_gvns_demo('MAXSAT', MAXSATInstance, MAXSATSolution,
-                  resource_filename("mhlib", os.path.join("demos", "advanced.cnf")))
+    from mhlib.demos.common import run_gvns_demo, data_dir
+    run_gvns_demo('MAXSAT', MAXSATInstance, MAXSATSolution, data_dir+"advanced.cnf")

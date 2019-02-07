@@ -152,8 +152,5 @@ class MKPSolution(SubsetSolution):
 
 
 if __name__ == '__main__':
-    import os
-    from pkg_resources import resource_filename
-    from mhlib.demos.common import run_gvns_demo
-    run_gvns_demo('MKP', MKPInstance, MKPSolution,
-                  resource_filename("mhlib", os.path.join('demos', 'mknapcb5-01.txt')))
+    from mhlib.demos.common import run_gvns_demo, data_dir
+    run_gvns_demo('MKP', MKPInstance, MKPSolution, data_dir + "mknapcb5-01.txt")
