@@ -4,7 +4,7 @@ import numpy as np
 import random
 from abc import ABC
 
-from mhlib.solution import VectorSolution
+from mhlib.solution import VectorSolution, Solution
 
 
 class SubsetSolution(VectorSolution, ABC):
@@ -13,22 +13,39 @@ class SubsetSolution(VectorSolution, ABC):
     Attributes
         - all_elements: complete set of which a subset shall be selected
         - sel: number of selected elements
-        - x: array with all elements, where the first sel are the sorted selected ones
+        - x: array with elements, where x[:sel] are the sorted selected ones;
+            if unselected_elems_in_x returns True, all not selected elements are maintained in x[sel:]
     """
     def __init__(self, all_elements, inst=None, alg=None, init=True):
         """Initialize empty solution.
 
+        :param all_elements: complete set of elements, may be a generator
+        :param inst: associated problem instance to store
+        :param alg: associated algorithm object to store
         :param init: if False the solution is not initialized
         """
-        super().__init__(len(all_elements), dtype=type(next(iter(all_elements))), inst=inst, alg=alg, init=False)
+        dtype = type(next(iter(all_elements)))
+        super().__init__(len(all_elements), dtype=dtype, inst=inst, alg=alg, init=False)
         self.all_elements = all_elements
         self.sel = 0
         if init:
-            self.x = np.array(all_elements)
+            if self.unselected_elems_in_x():
+                self.x = np.array(all_elements)
+            else:
+                self.x = np.empty(len(all_elements), dtype=dtype)
+
+    @classmethod
+    def unselected_elems_in_x(cls) -> bool:
+        """Return True if the unselected elements are maintained in x[sel:], i.e., behind the selected ones."""
+        return True
 
     def copy_from(self, other: 'SubsetSolution'):
-        super().copy_from(other)
         self.sel = other.sel
+        if self.unselected_elems_in_x():
+            super().copy_from(other)
+        else:
+            self.x[:self.sel] = other.x[:self.sel]
+            Solution.copy_from(self, other)
 
     def __repr__(self):
         return str(self.x[:self.sel])
@@ -43,7 +60,8 @@ class SubsetSolution(VectorSolution, ABC):
     def initialize(self, k):
         """Random construction of a new solution by applying random_fill to an initially empty solution."""
         self.clear()
-        self.random_fill()
+        self.random_fill(self.x if self.unselected_elems_in_x() else list(self.all_elements))
+        self.check()  # TODO finally remove
 
     def check(self, unsorted=False):
         """Check correctness of solution; throw an exception if error detected.
@@ -57,8 +75,14 @@ class SubsetSolution(VectorSolution, ABC):
         if len(self.x) != length:
             raise ValueError(f"Invalid length of solution array x: {self.x}")
         if unsorted:
-            if set(self.x) != all_elements_set:
-                raise ValueError(f"Invalid solution - x is not a permutation of V: {self.x} (sorted: {sorted(self.x)})")
+            if self.unselected_elems_in_x():
+                if set(self.x) != all_elements_set:
+                    raise ValueError(f"Invalid solution - x is not a permutation of V: {self.x}"
+                                     " (sorted: {sorted(self.x)})")
+            else:
+                sol_set = set(self.x[:self.sel])
+                if not sol_set.issubset(set(self.all_elements)) or len(sol_set) != self.sel:
+                    raise ValueError(f"Solution not simple subset of V: {self.x[:self.sel]}, {self.all_elements}")
         if not unsorted:
             old_v = self.x[0]
             for v in self.x[1:self.sel]:
@@ -71,25 +95,31 @@ class SubsetSolution(VectorSolution, ABC):
         """Sort selected elements in x."""
         self.x[:self.sel].sort()
 
-    def random_fill(self):
-        """Scans all not yet chosen elements in random order and selects those whose inclusion is feasible.
+    def random_fill(self, pool: list) -> int:
+        """Scans elements from pool in random order and selects those whose inclusion is feasible.
 
+        The pool may be x[sel:].
+        Elements in pool must not yet be selected.
         Uses element_added_delta_eval() which should be properly overloaded.
+        Reorders elements in pool so that the selected ones appear in pool[: return-value].
         """
         if not self.may_be_extendible():
-            return
+            return 0
         x = self.x
-        orig_sel = self.sel
-        for i in range(orig_sel, len(x)):
-            ir = random.randrange(i, len(x))
-            if self.sel != ir:
-                x[self.sel], x[ir] = x[ir], x[self.sel]
+        selected = 0
+        for i in range(len(pool)):
+            ir = random.randrange(i, len(pool))
+            if selected != ir:
+                pool[selected], pool[ir] = pool[ir], pool[selected]
+            x[self.sel] = pool[selected]
             self.sel += 1
             if self.element_added_delta_eval():
+                selected += 1
                 if not self.may_be_extendible():
                     break
-        if self.sel != orig_sel:
+        if selected:
             self.sort_sel()
+        return selected
 
     def remove_some(self, k):
         """Removes min(k,sel) randomly selected elements from the solution.
@@ -132,7 +162,8 @@ class SubsetSolution(VectorSolution, ABC):
                     # neighbor is feasible
                     random_fill_applied = False
                     if self.may_be_extendible():
-                        self.random_fill()
+                        assert self.unselected_elems_in_x()  # TODO update to work with external pool
+                        self.random_fill(self.x[sel:])
                         random_fill_applied = True
                     if self.is_better(best):
                         # new best solution found

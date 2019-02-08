@@ -9,7 +9,7 @@ class MKPInstance:
     """MKP problem instance.
 
     Attributes
-        - n: number of items, i.e., size of incidence vector
+        - n: number of items
         - m: number of resources, i.e., constraints
         - p: prices of items
         - r: resource consumption values
@@ -50,9 +50,7 @@ class MKPInstance:
 class MKPSolution(SubsetSolution):
     """Solution to an MKP instance.
 
-    Attributes
-        - inst: associated MKPInstance
-        - x: binary incidence vector
+    Additional attributes
         - y: amount of each resource used
     """
 
@@ -67,7 +65,6 @@ class MKPSolution(SubsetSolution):
 
     def copy_from(self, other: 'MKPSolution'):
         super().copy_from(other)
-        self.sel = other.sel
         self.y[:] = other.y
 
     def calc_objective(self):
@@ -108,8 +105,8 @@ class MKPSolution(SubsetSolution):
         """Scheduler method that performs shaking by remove_some(par) and random_fill()."""
         del result
         self.remove_some(par)
-        self.random_fill()
-        self.check()
+        self.random_fill(self.x[self.sel:])
+        # self.check()
 
     def may_be_extendible(self) -> bool:
         return np.all(self.y + self.inst.r_min <= self.inst.b) and self.sel < len(self.x)

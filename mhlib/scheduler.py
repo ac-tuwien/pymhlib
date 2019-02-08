@@ -22,7 +22,9 @@ parser.add("--mh_titer", type=int, default=100,
 parser.add("--mh_tciter", type=int, default=-1,
            help='maximum number of iterations without improvement (<0: turned off)')
 parser.add("--mh_ttime", type=int, default=-1,
-           help='maximum number of iterations without improvement (<0: turned off)')
+           help='time limit [s] (<0: turned off)')
+parser.add("--mh_tctime", type=int, default=-1,
+           help='maximum time [s] without improvement (<0: turned off)')
 parser.add("--mh_tobj", type=float, default=-1,
            help='objective value at which should be terminated when reached (<0: turned off)')
 parser.add("--mh_lnewinc", default=True, action='store_true',
@@ -193,9 +195,11 @@ class Scheduler(ABC):
 
     def check_termination(self):
         """Check termination conditions and return True when to terminate."""
+        t = time.process_time()
         if 0 <= settings.mh_titer <= self.iteration or \
                 0 <= settings.mh_tciter <= self.iteration - self.incumbent_iteration or \
-                0 <= settings.mh_ttime <= time.process_time() - self.time_start or \
+                0 <= settings.mh_ttime <= t - self.time_start or \
+                0 <= settings.mh_tctime <= t - self.incumbent_time or \
                 0 <= settings.mh_tobj and not self.incumbent.is_worse_obj(self.incumbent.obj(), settings.mh_tobj):
             return True
 

@@ -43,8 +43,8 @@ class Solution(ABC):
     @abstractmethod
     def copy_from(self, other: 'Solution'):
         """Make the current solution a (deep) copy of the other."""
-        self.inst = other.inst
-        self.alg = other.alg
+        # self.inst = other.inst
+        # self.alg = other.alg
         self.obj_val = other.obj_val
         self.obj_val_valid = other.obj_val_valid
 
@@ -64,6 +64,7 @@ class Solution(ABC):
         """
         if not self.obj_val_valid:
             self.obj_val = self.calc_objective()
+            self.obj_val_valid = True
         return self.obj_val
 
     def invalidate(self):
@@ -169,6 +170,7 @@ class VectorSolution(Solution, ABC):
         self.x = np.full([length], init_value, dtype=dtype) if init else np.empty([length], dtype=dtype)
 
     def copy_from(self, other: 'VectorSolution'):
+        super().copy_from(other)
         self.x[:] = other.x
 
     def __repr__(self):
