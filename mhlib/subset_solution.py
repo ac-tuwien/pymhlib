@@ -61,7 +61,6 @@ class SubsetSolution(VectorSolution, ABC):
         """Random construction of a new solution by applying random_fill to an initially empty solution."""
         self.clear()
         self.random_fill(self.x if self.unselected_elems_in_x() else list(self.all_elements))
-        self.check()  # TODO finally remove
 
     def check(self, unsorted=False):
         """Check correctness of solution; throw an exception if error detected.
@@ -144,26 +143,38 @@ class SubsetSolution(VectorSolution, ABC):
         Each selected location is tried to be exchanged with each unselected one followed by a random_fill().
 
         The neighborhood is searched in a randomized fashion.
-        Overload two_exchange_delta_eval for problem-specific efficient delta evaluation.
+        Overload delta_eval-methods for problem-specific efficient delta evaluation.
         Returns True if the solution could be improved, otherwise the solution remains unchanged.
         """
         sel = self.sel
         x = self.x
-        num_neighbors = 0
+        orig_obj = self.obj()
+        self_backup = None
+        x_sel_orig = x[:sel].copy()
         random.shuffle(x[:sel])
-        random.shuffle(x[sel:])
-        orig = self.copy()
         best = self.copy()
+        num_neighbors = 0
         for i, v in enumerate(x[:sel]):
-            for j, vu in enumerate(x[sel:]):
-                x[i], x[sel+j] = vu, v
+            if i != sel-1:
+                x[i], x[sel-1] = x[sel-1], x[i]
+            self.sel -= 1
+            self.element_removed_delta_eval(allow_infeasible=True)
+            obj1 = self.obj()
+            pool = self.get_extension_pool()
+            random.shuffle(pool)
+            v_pos = np.nonzero(pool == v)[0][0]
+            if v_pos:
+                pool[0], pool[v_pos] = pool[v_pos], pool[0]
+            for j, vu in enumerate(pool[1:]):
+                x[sel-1], pool[j+1] = vu, x[sel-1]
+                self.sel += 1
                 num_neighbors += 1
-                if self.two_exchange_delta_eval(i, sel+j):
+                if self.element_added_delta_eval():
                     # neighbor is feasible
                     random_fill_applied = False
                     if self.may_be_extendible():
-                        assert self.unselected_elems_in_x()  # TODO update to work with external pool
-                        self.random_fill(self.x[sel:])
+                        self_backup = self.copy()
+                        self.random_fill(self.get_extension_pool())
                         random_fill_applied = True
                     if self.is_better(best):
                         # new best solution found
@@ -172,19 +183,34 @@ class SubsetSolution(VectorSolution, ABC):
                             return True
                         best.copy_from(self)
                     if random_fill_applied:
-                        self.copy_from(orig)
-                    else:
-                        x[i], x[sel+j] = v, vu
-                        assert self.two_exchange_delta_eval(i, sel+j, False)
-                        self.obj_val = orig.obj()
-        if best.is_better(orig):
+                        if i != self.sel:
+                            x[i], x[sel-1] = x[sel-1], x[i]
+                        self.copy_from(self_backup)
+                    self.sel -= 1
+                    self.element_removed_delta_eval(update_obj_val=False, allow_infeasible=True)
+                    self.obj_val = obj1
+                x[sel-1], pool[j+1] = pool[j+1], vu
+            self.sel += 1
+            self.element_added_delta_eval(update_obj_val=False, allow_infeasible=True)
+            self.obj_val = orig_obj
+            if i != sel-1:
+                x[i], x[sel-1] = x[sel-1], x[i]
+        if self.is_better_obj(best.obj(), orig_obj):
             # return new best solution
             self.copy_from(best)
             self.sort_sel()
             return True
+        x[:sel] = x_sel_orig
         return False
 
     # Methods to be specialized for efficient move calculations
+
+    def get_extension_pool(self):
+        """Return a list of yet unselected elements that may possibly be added."""
+        if self.unselected_elems_in_x():
+            return self.x[self.sel:]
+        else:
+            return list(set(self.all_elements) - set(self.x[:self.sel]))
 
     def may_be_extendible(self) -> bool:
         """Quick check if the solution has chances to be extended by adding further elements."""
@@ -209,22 +235,6 @@ class SubsetSolution(VectorSolution, ABC):
 
         It can be assumed that the solution was in a correct state with a valid objective value before the move.
         The default implementation just calls invalidate() and returns True.
-        :param update_obj_val: if set, the objective value should also be updated or invalidate needs to be called
-        :param allow_infeasible: if set and the solution is infeasible, the move is nevertheless accepted and
-            the update of other data done
-        :return: True if feasible, False if infeasible
-        """
-        if update_obj_val:
-            self.invalidate()
-        return True
-
-    def two_exchange_delta_eval(self, p1, p2, update_obj_val=True, allow_infeasible=False) -> bool:
-        """A 2-exchange move has been performed, if feasible update other solution data accordingly, else revert.
-
-        It can be assumed that the solution was in a correct state with a valid objective value before the move.
-        The default implementation just calls invalidate() and returns True.
-        :param p1: first exchanged position; x[p1] was added
-        :param p2: second exchanged position; x[p2] was removed
         :param update_obj_val: if set, the objective value should also be updated or invalidate needs to be called
         :param allow_infeasible: if set and the solution is infeasible, the move is nevertheless accepted and
             the update of other data done

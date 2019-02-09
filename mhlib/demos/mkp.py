@@ -106,7 +106,6 @@ class MKPSolution(SubsetSolution):
         del result
         self.remove_some(par)
         self.random_fill(self.x[self.sel:])
-        # self.check()
 
     def may_be_extendible(self) -> bool:
         return np.all(self.y + self.inst.r_min <= self.inst.b) and self.sel < len(self.x)
@@ -120,31 +119,16 @@ class MKPSolution(SubsetSolution):
 
     def element_added_delta_eval(self, update_obj_val=True, allow_infeasible=False) -> bool:
         elem = self.x[self.sel-1]
-        y = self.y + self.inst.r[:, elem]
-        feasible = np.all(y <= self.inst.b)
-        if allow_infeasible or feasible:
-            # accept
-            self.y = y
-            if update_obj_val:
-                self.obj_val += self.inst.p[elem]
-            return feasible
-        # revert
-        self.sel -= 1
-        return False
-
-    def two_exchange_delta_eval(self, p1, p2, update_obj_val=True, allow_infeasible=False) -> bool:
-        elem_added = self.x[p1]
-        elem_removed = self.x[p2]
-        y_new = self.y + self.inst.r[:, elem_added] - self.inst.r[:, elem_removed]
+        y_new = self.y + self.inst.r[:, elem]
         feasible = np.all(y_new <= self.inst.b)
         if allow_infeasible or feasible:
             # accept
             self.y = y_new
             if update_obj_val:
-                self.obj_val += self.inst.p[elem_added] - self.inst.p[elem_removed]
+                self.obj_val += self.inst.p[elem]
             return feasible
         # revert
-        self.x[p1], self.x[p2] = elem_removed, elem_added
+        self.sel -= 1
         return False
 
 

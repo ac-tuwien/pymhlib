@@ -102,11 +102,8 @@ class MISPSolution(SubsetSolution):
     def shaking(self, par, result):
         """Scheduler method that performs shaking by remove_some(par) and random_fill()."""
         del result
-        self.check()  # TODO finally remove
         self.remove_some(par)
-        self.check()  # TODO finally remove
         self.random_fill(list(np.nonzero(self.covered == 0)[0]))
-        self.check()  # TODO finally remove
 
     def may_be_extendible(self) -> bool:
         return np.any(self.covered == 0)
@@ -134,25 +131,9 @@ class MISPSolution(SubsetSolution):
         self.sel -= 1
         return False
 
-    # def two_exchange_delta_eval(self, p1, p2, update_obj_val=True, allow_infeasible=False) -> bool:
-    #     # TODO adapt from MKP
-    #     elem_added = self.x[p1]
-    #     elem_removed = self.x[p2]
-    #     y_new = self.y + self.inst.r[:, elem_added] - self.inst.r[:, elem_removed]
-    #     feasible = np.all(y_new <= self.inst.b)
-    #     if allow_infeasible or feasible:
-    #         # accept
-    #         self.y = y_new
-    #         if update_obj_val:
-    #             self.obj_val += self.inst.p[elem_added] - self.inst.p[elem_removed]
-    #         return feasible
-    #     # revert
-    #     self.x[p1], self.x[p2] = elem_removed, elem_added
-    #     return False
-
 
 if __name__ == '__main__':
     from mhlib.demos.common import run_gvns_demo, data_dir
-    from mhlib.settings import settings
-    settings.meths_li = 0  # TODO finally remove
+    # from mhlib.settings import settings
+    # settings.meths_li = 0
     run_gvns_demo('MISP', MISPInstance, MISPSolution, data_dir + "misp-simple.clq")

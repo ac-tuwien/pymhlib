@@ -158,6 +158,7 @@ class Scheduler(ABC):
         t_start = time.process_time()
         method.func(sol, method.par, res)
         t_end = time.process_time()
+        sol.check()
         ms = self.method_stats[method.name]
         ms.applications += 1
         ms.netto_time += t_end - t_start
@@ -293,6 +294,7 @@ class Scheduler(ABC):
             f"best time [s]: {self.incumbent_time:.3f}\n" \
             f"total time [s]: {self.run_time:.4f}\n"
         self.logger.info(s)
+        self.incumbent.check()
 
 
 class GVNS(Scheduler):
