@@ -32,6 +32,9 @@ parser.add("--mh_lnewinc", default=True, action='store_true',
 parser.add("--no_mh_lnewinc", dest='mh_lnewinc', action='store_false')
 parser.add("--mh_lfreq", type=int, default=0,
            help='frequency of writing iteration logs (0: none, >0: number of iterations, -1: iteration 1,2,5,10,20,...')
+parser.add("--mh_checkit", default=False, action='store_true',
+           help='call check() for each solution after each method application')
+parser.add("--no_mh_checkit", dest='mh_checkit', action='store_false')
 
 
 @dataclass
@@ -158,7 +161,8 @@ class Scheduler(ABC):
         t_start = time.process_time()
         method.func(sol, method.par, res)
         t_end = time.process_time()
-        sol.check()
+        if __debug__ and settings.mh_checkit:
+            sol.check()
         ms = self.method_stats[method.name]
         ms.applications += 1
         ms.netto_time += t_end - t_start
