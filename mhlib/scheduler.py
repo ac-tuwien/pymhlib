@@ -12,7 +12,7 @@ import time
 import logging
 from math import log10
 
-from mhlib.settings import settings, get_settings_parser
+from mhlib.settings import settings, get_settings_parser, OwnSettings
 from mhlib.solution import Solution, TObj
 
 
@@ -95,12 +95,13 @@ class Scheduler(ABC):
         - run_time: overall runtime (set when terminating)
         - logger: mhlib's logger for logging general info
         - iter_logger: mhlib's logger for logging iteration info
+        - own_settings: own settings object with possibly individualized parameter values
     """
     eps = 1e-12  # epsilon value for is_logarithmic_number()
     log10_2 = log10(2)  # log10(2)
     log10_5 = log10(5)  # log10(5)
 
-    def __init__(self, sol: Solution, methods: List[Method]):
+    def __init__(self, sol: Solution, methods: List[Method], own_settings: dict = None):
         self.incumbent = sol
         self.incumbent_iteration = 0
         self.incumbent_time = 0.0
@@ -113,6 +114,7 @@ class Scheduler(ABC):
         self.iter_logger = logging.getLogger("mhlib_iter")
         self.log_iteration_header()
         self.log_iteration(None, sol, True, True)
+        self.own_settings = OwnSettings(own_settings) if own_settings else settings
 
     def update_incumbent(self, sol, current_time):
         """If the given solution is better than incumbent (or we do not have an incumbent yet) update it."""
@@ -161,7 +163,7 @@ class Scheduler(ABC):
         t_start = time.process_time()
         method.func(sol, method.par, res)
         t_end = time.process_time()
-        if __debug__ and settings.mh_checkit:
+        if __debug__ and self.own_settings.mh_checkit:
             sol.check()
         ms = self.method_stats[method.name]
         ms.applications += 1
@@ -201,11 +203,12 @@ class Scheduler(ABC):
     def check_termination(self):
         """Check termination conditions and return True when to terminate."""
         t = time.process_time()
-        if 0 <= settings.mh_titer <= self.iteration or \
-                0 <= settings.mh_tciter <= self.iteration - self.incumbent_iteration or \
-                0 <= settings.mh_ttime <= t - self.time_start or \
-                0 <= settings.mh_tctime <= t - self.incumbent_time or \
-                0 <= settings.mh_tobj and not self.incumbent.is_worse_obj(self.incumbent.obj(), settings.mh_tobj):
+        if 0 <= self.own_settings.mh_titer <= self.iteration or \
+                0 <= self.own_settings.mh_tciter <= self.iteration - self.incumbent_iteration or \
+                0 <= self.own_settings.mh_ttime <= t - self.time_start or \
+                0 <= self.own_settings.mh_tctime <= t - self.incumbent_time or \
+                0 <= self.own_settings.mh_tobj and not self.incumbent.is_worse_obj(self.incumbent.obj(),
+                                                                                   self.own_settings.mh_tobj):
             return True
 
     def log_iteration_header(self):
@@ -230,9 +233,9 @@ class Scheduler(ABC):
             - new_incumbent: true if the method yielded a new incumbent solution
             - in_any_case: turns filtering of iteration logs off
         """
-        log = in_any_case or new_incumbent and settings.mh_lnewinc
+        log = in_any_case or new_incumbent and self.own_settings.mh_lnewinc
         if not log:
-            lfreq = settings.mh_lfreq
+            lfreq = self.own_settings.mh_lfreq
             if lfreq > 0 and self.iteration % lfreq == 0:
                 log = True
             elif lfreq < 0 and self.is_logarithmic_number(self.iteration):
@@ -311,7 +314,8 @@ class GVNS(Scheduler):
         - meths_sh: list of shaking methods
     """
 
-    def __init__(self, sol: Solution, meths_ch: List[Method], meths_li: List[Method], meths_sh: List[Method]):
+    def __init__(self, sol: Solution, meths_ch: List[Method], meths_li: List[Method], meths_sh: List[Method],
+                 own_settings: dict = None):
         """Initialization.
 
         Parameters
@@ -320,7 +324,7 @@ class GVNS(Scheduler):
             - meths_sh: list of shaking methods
             - incumbent: incumbent solution, i.e., best solution so far
         """
-        super().__init__(sol, meths_ch+meths_li+meths_sh)
+        super().__init__(sol, meths_ch+meths_li+meths_sh, own_settings)
         self.meths_ch = meths_ch
         self.meths_li = meths_li
         self.meths_sh = meths_sh
@@ -328,7 +332,7 @@ class GVNS(Scheduler):
     def vnd(self, sol: Solution) -> bool:
         """Perform variable neighborhood descent (VND) on given solution.
 
-        Returns true if a global  termination condition is fulfilled, else False.
+        Returns true if a global termination condition is fulfilled, else False.
         """
         sol2 = sol.copy()
         while True:
@@ -350,7 +354,8 @@ class GVNS(Scheduler):
     def gvns(self, sol: Solution):
         """Perform general variable neighborhood search (GVNS) to given solution."""
         sol2 = sol.copy()
-        self.vnd(sol2)
+        if self.vnd(sol2):
+            return
         use_vnd = bool(self.meths_li)
         while True:
             for m in self.next_method(self.meths_sh, False, True):

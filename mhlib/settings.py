@@ -80,3 +80,19 @@ def get_settings_as_str():
     for key, value in sorted(vars(settings).items()):
         s += f"{key}={value}\n"
     return s
+
+
+class OwnSettings:
+    """An individualized settings storage, which falls back to the default setting for not provided parameters."""
+
+    def __init__(self, own_settings: dict = None):
+        self.__dict__ = own_settings if own_settings else dict()
+
+    def __getattr__(self, item):
+        try:
+            return self.__dict__[item]
+        except KeyError:
+            val = settings.__getattribute__(item)
+            self.__setattr__(item, val)
+            return val
+

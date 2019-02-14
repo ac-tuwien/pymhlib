@@ -8,7 +8,7 @@ from mhlib.scheduler import GVNS, Method
 from pkg_resources import resource_filename
 
 
-def run_gvns_demo(problem_name: str, Instance, Solution, default_inst_file: str):
+def run_gvns_demo(problem_name: str, Instance, Solution, default_inst_file: str, own_settings=None):
     """Run GVNS for any of the demo problems specified by the parameters."""
     parser = get_settings_parser()
     parser.add("--inst_file", type=str, default=default_inst_file,
@@ -36,7 +36,8 @@ def run_gvns_demo(problem_name: str, Instance, Solution, default_inst_file: str)
     gvns = GVNS(solution,
                 [Method(f"ch{i}", Solution.construct, i) for i in range(settings.meths_ch)],
                 [Method(f"li{i}", Solution.local_improve, i) for i in range(1, settings.meths_li + 1)],
-                [Method(f"sh{i}", Solution.shaking, i) for i in range(1, settings.meths_sh + 1)])
+                [Method(f"sh{i}", Solution.shaking, i) for i in range(1, settings.meths_sh + 1)],
+                own_settings)
     gvns.run()
     logger.info("")
     gvns.method_statistics()
