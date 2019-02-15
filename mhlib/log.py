@@ -53,6 +53,41 @@ def init_logger():
     iter_logger.setLevel(logging.INFO)
 
 
+class IndentLevel:
+    """Manage indentation of log messages according to specified levels."""
+    level = 0
+    indent_str = "  > "
+    format_str = "%(message)s"
+
+    @classmethod
+    def reset(cls, value=0):
+        """Reset indentation level to the given value."""
+        cls.level = value
+        cls.set_format()
+
+    @classmethod
+    def increase(cls):
+        """Increase indentation level by one."""
+        cls.level += 1
+        cls.set_format()
+
+    @classmethod
+    def decrease(cls):
+        """Decrease indentation level by one."""
+        cls.level -= 1
+        assert(cls.level >= 0)
+        cls.set_format()
+
+    @classmethod
+    def set_format(cls):
+        format_str = cls.indent_str * cls.level + cls.format_str
+        formatter = logging.Formatter(format_str)
+        for name in ['mhlib', 'mhlib_iter']:
+            logger = logging.getLogger(name)
+            for h in logger.handlers:
+                h.setFormatter(formatter)
+
+
 def test():
     """Some basic module tests."""
     init_logger()
@@ -62,6 +97,13 @@ def test():
     iter_logger = logging.getLogger("mhlib_iter")
     iter_logger.info('This is an info to iter_logger')
     iter_logger.error('This is an error to iter_logger')
+    IndentLevel.increase()
+    logger.info('This is an info to logger at level 1')
+    IndentLevel.increase()
+    logger.info('This is an info to iter_logger at level 2')
+    IndentLevel.decrease()
+    IndentLevel.decrease()
+    logger.info('This is an info to logger at level 0')
 
 
 if __name__ == "__main__":
