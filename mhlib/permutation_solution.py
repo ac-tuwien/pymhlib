@@ -25,7 +25,7 @@ class PermutationSolution(VectorSolution, ABC):
     def check(self):
         """Check if valid solution.
 
-        Raises ValueError if problem detected.
+        :raises ValueError: if problem detected.
         """
         super().check()
         if set(self.x) != set(range(len(self.x))):
@@ -38,7 +38,7 @@ class PermutationSolution(VectorSolution, ABC):
         Note that frequently, a more problem-specific neighborhood search with delta-evaluation is
         much more efficient!
 
-        :arg best_improvement:  if set, the neighborhood is completely searched and a best neighbor is kept;
+        :param best_improvement:  if set, the neighborhood is completely searched and a best neighbor is kept;
             otherwise the search terminates in a first-improvement manner, i.e., keeping a first encountered
             better solution.
 
@@ -75,6 +75,7 @@ class PermutationSolution(VectorSolution, ABC):
 
         It can be assumed that the solution was in a correct state with a valid objective value before the move.
         The default implementation just calls invalidate() and returns True.
+
         :param p1: first position
         :param p2: second position
         :param update_obj_val: if set, the objective value should also be updated or invalidate needs to be called

@@ -78,7 +78,7 @@ class Solution(ABC):
     def initialize(self, k):
         """Construct an initial solution.
 
-        Parameter k is increased from 0 onwards for each call of this method.
+        :param k: is increased from 0 onwards for each call of this method
         """
         raise NotImplementedError
 

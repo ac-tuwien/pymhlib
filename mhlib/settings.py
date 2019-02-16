@@ -40,9 +40,8 @@ def parse_settings(return_unknown=False, default_config_files=None):
     Needs to be called once in the main program (or more generally after all arguments have been added to the parser.
     Also seeds the random number generators based on parameter seed.
 
-    Parameters
-        - return_unknown: return unknown parameters as list in global variable unknown_args; otherwise raise exception
-        - default_config_files: list of default config files to read
+    :param return_unknown: return unknown parameters as list in global variable unknown_args; otherwise raise exception
+    :param default_config_files: list of default config files to read
     """
     global settings, unknown_args
     p = get_settings_parser()
@@ -95,4 +94,3 @@ class OwnSettings:
             val = settings.__getattribute__(item)
             self.__setattr__(item, val)
             return val
-

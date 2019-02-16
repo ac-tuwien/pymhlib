@@ -128,10 +128,9 @@ class Scheduler(ABC):
     def next_method(meths: List, randomize: bool, repeat: bool):
         """Generator for obtaining a next method from a given list of methods.
 
-        Parameters
-            - meths: List of methods
-            - randomize: random order, otherwise consider given order
-            - repeat: repeat infinitely, otherwise just do one pass
+        :param meths: List of methods
+        :param randomize: random order, otherwise consider given order
+        :param repeat: repeat infinitely, otherwise just do one pass
         """
         if randomize:
             meths = meths.copy()
@@ -149,14 +148,11 @@ class Scheduler(ABC):
         Also updates incumbent, iteration and the method's statistics in method_stats.
         Furthermore checks the termination condition and eventually sets terminate in the returned Results object.
 
-        Parameters
-            - method: method to be performed
-            - sol: solution to which the method is applied
-            - delayed_success: if set the success is not immediately determined and updated but at some later
+        :param method: method to be performed
+        :param sol: solution to which the method is applied
+        :param delayed_success: if set the success is not immediately determined and updated but at some later
                 call of delayed_success_update()
-
-        Returns
-            - Results object
+        :returns: Results object
         """
         res = Result()
         obj_old = sol.obj()
@@ -186,11 +182,10 @@ class Scheduler(ABC):
     def delayed_success_update(self, method: Method, obj_old: TObj, t_start: TObj, sol: Solution):
         """Update an earlier performed method's success information in method_stats.
 
-        Parameters
-            - method: earlier performed method
-            - old_obj: objective value of solution to which method had been applied
-            - t_start: time when the application of method dad started
-            - sol: current solution considered the final result of the method
+        :param method: earlier performed method
+        :param obj_old: objective value of solution to which method had been applied
+        :param t_start: time when the application of method dad started
+        :param sol: current solution considered the final result of the method
         """
         t_end = time.process_time()
         ms = self.method_stats[method.name]
@@ -227,11 +222,10 @@ class Scheduler(ABC):
 
         A line is written if in_any_case is set or in dependence of settings.mh_lfreq and settings.mh_lnewinc.
 
-        Parameters
-            - method: applied method or None (if initially given solution)
-            - sol: current solution
-            - new_incumbent: true if the method yielded a new incumbent solution
-            - in_any_case: turns filtering of iteration logs off
+        :param method: applied method or None (if initially given solution)
+        :param sol: current solution
+        :param new_incumbent: true if the method yielded a new incumbent solution
+        :param in_any_case: turns filtering of iteration logs off
         """
         log = in_any_case or new_incumbent and self.own_settings.mh_lnewinc
         if not log:
@@ -318,11 +312,11 @@ class GVNS(Scheduler):
                  own_settings: dict = None):
         """Initialization.
 
-        Parameters
-            - meths_ch: list of construction heuristic methods
-            - meths_li: list of local improvement methods
-            - meths_sh: list of shaking methods
-            - incumbent: incumbent solution, i.e., best solution so far
+        :param sol: solution to be improved
+        :param meths_ch: list of construction heuristic methods
+        :param meths_li: list of local improvement methods
+        :param meths_sh: list of shaking methods
+        :param own_settings: optional dictionary with specific settings
         """
         super().__init__(sol, meths_ch+meths_li+meths_sh, own_settings)
         self.meths_ch = meths_ch
@@ -332,7 +326,7 @@ class GVNS(Scheduler):
     def vnd(self, sol: Solution) -> bool:
         """Perform variable neighborhood descent (VND) on given solution.
 
-        Returns true if a global termination condition is fulfilled, else False.
+        :returns: true if a global termination condition is fulfilled, else False.
         """
         sol2 = sol.copy()
         while True:

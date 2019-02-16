@@ -221,6 +221,7 @@ class SubsetSolution(VectorSolution, ABC):
 
         It can be assumed that the solution was in a correct state with a valid objective value before the move.
         The default implementation just calls invalidate() and returns True.
+
         :param update_obj_val: if set, the objective value should also be updated or invalidate needs to be called
         :param allow_infeasible: if set and the solution is infeasible, the move is nevertheless accepted and
             the update of other data done
@@ -235,6 +236,7 @@ class SubsetSolution(VectorSolution, ABC):
 
         It can be assumed that the solution was in a correct state with a valid objective value before the move.
         The default implementation just calls invalidate() and returns True.
+
         :param update_obj_val: if set, the objective value should also be updated or invalidate needs to be called
         :param allow_infeasible: if set and the solution is infeasible, the move is nevertheless accepted and
             the update of other data done

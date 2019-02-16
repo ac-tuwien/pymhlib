@@ -1,8 +1,8 @@
 """mhlib specific logging objects.
 
 Two logging objects are maintained specifically for the mhlib:
-- logger with name "mhlib" for the general information and
-- iter_logger with name "mhlib_iter" for the iteration-wise logging.
+    - logger with name "mhlib" for the general information and
+    - iter_logger with name "mhlib_iter" for the iteration-wise logging.
 
 init() must be called to initialize this module, i.e., create these objects.
 """
@@ -54,7 +54,13 @@ def init_logger():
 
 
 class IndentLevel:
-    """Manage indentation of log messages according to specified levels."""
+    """Manage indentation of log messages according to specified levels.
+
+    Class attributes
+        - level: level of indentation
+        - indent_str: prefix used for each indentation
+        - format_str: unindented format string
+    """
     level = 0
     indent_str = "  > "
     format_str = "%(message)s"
