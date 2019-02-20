@@ -85,7 +85,7 @@ class MAXSATSolution(BoolVectorSolution):
     def check(self):
         """Check if valid solution.
 
-        Raises ValueError if problem detected.
+        :raises ValueError: if problem detected.
         """
         if len(self.x) != self.inst.n:
             raise ValueError("Invalid length of solution")
@@ -119,7 +119,7 @@ class MAXSATSolution(BoolVectorSolution):
         otherwise the search terminates in a first-improvement manner, i.e., keeping a first encountered
         better solution.
 
-        Returns True if an improved solution has been found.
+        :returns: True if an improved solution has been found.
         """
         x = self.x
         assert 0 < k <= len(x)
