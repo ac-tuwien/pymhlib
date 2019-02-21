@@ -85,3 +85,37 @@ class PermutationSolution(VectorSolution, ABC):
         if update_obj_val:
             self.invalidate()
         return True
+
+def cycle_crossover(parent_a : PermutationSolution, parent_b : PermutationSolution):
+    posa = {}
+    for i in range(0,len(parent_a.x)):
+        posa[parent_a.x[i]] = i
+
+    group = np.full(len(parent_a.x), -1)
+
+    group_id = 0
+    for i in range(0, len(parent_a.x)):
+        if group[i] != -1:
+            # Position already in a cycle
+            continue
+
+        # Create a new cycle
+        pos = i
+        while group[pos] == -1:
+            # Element at pos i is not yet assigned to a group
+            group[pos] = group_id
+            sym = parent_b.x[pos]
+            pos = posa[sym]
+
+        # sanity check
+        assert(pos == i)
+        group_id += 1
+
+    for pos in range(0, len(parent_a.x)):
+        if group[pos] % 2 == 0:
+            continue
+
+        parent_a.x[pos], parent_b.x[pos] = parent_b.x[pos], parent_a.x[pos]
+
+    return parent_a, parent_b
+
