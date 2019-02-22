@@ -12,7 +12,7 @@ class TestSolution(PermutationSolution):
     """
 
     def copy(self):
-        sol = TestSolution(init=False)
+        sol = TestSolution(len(self.x), init=False)
         sol.copy_from(self)
         return sol
 
@@ -21,6 +21,7 @@ class TestSolution(PermutationSolution):
 
     def calc_objective(self):
         return 0
+
     def change(self, values):
         self.x = values
 
@@ -32,21 +33,22 @@ class TestSolution(PermutationSolution):
         del result
         self.initialize(par)
 
+
 class CycleCrossoverTestCase(unittest.TestCase):
 
     def no_change(self):
         a = TestSolution(7)
         b = TestSolution(7)
 
-        a.change([1,4,6,  2,  0,3,5])
-        b.change([6,1,4,  2,  5,0,3])
+        a.change([1, 4, 6, 2, 0, 3, 5])
+        b.change([6, 1, 4, 2, 5, 0, 3])
 
-        cycle_crossover(a,b)
+        cycle_crossover(a, b)
 
-        anew = [1,4,6, 2, 0,3,5]
-        bnew = [6,1,4, 2, 5,0,3]
+        anew = [1, 4, 6, 2, 0, 3, 5]
+        bnew = [6, 1, 4, 2, 5, 0, 3]
 
-        for i in range(0,7):
+        for i in range(0, 7):
             self.assertEqual(a.x[i], anew[i])
             self.assertEqual(b.x[i], bnew[i])
 
@@ -54,17 +56,18 @@ class CycleCrossoverTestCase(unittest.TestCase):
         a = TestSolution(7)
         b = TestSolution(7)
 
-        a.change([1,4,6,  2,0, 3,5])
-        b.change([6,1,4,  0,2, 5,3])
+        a.change([1, 4, 6, 2, 0, 3, 5])
+        b.change([6, 1, 4, 0, 2, 5, 3])
 
-        cycle_crossover(a,b)
+        cycle_crossover(a, b)
 
-        anew = [1,4,6, 0,2, 3,5]
-        bnew = [6,1,4, 2,0, 5,3]
+        anew = [1, 4, 6, 0, 2, 3, 5]
+        bnew = [6, 1, 4, 2, 0, 5, 3]
 
-        for i in range(0,7):
+        for i in range(0, 7):
             self.assertEqual(a.x[i], anew[i])
             self.assertEqual(b.x[i], bnew[i])
+
 
 if __name__ == '__main__':
     unittest.main()
