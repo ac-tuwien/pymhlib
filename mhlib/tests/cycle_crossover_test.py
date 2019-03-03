@@ -36,7 +36,7 @@ class TestSolution(PermutationSolution):
 
 class CycleCrossoverTestCase(unittest.TestCase):
 
-    def no_change(self):
+    def test_no_change(self):
         a = TestSolution(7)
         b = TestSolution(7)
 
@@ -52,7 +52,7 @@ class CycleCrossoverTestCase(unittest.TestCase):
             self.assertEqual(a.x[i], anew[i])
             self.assertEqual(b.x[i], bnew[i])
 
-    def change(self):
+    def test_change(self):
         a = TestSolution(7)
         b = TestSolution(7)
 
