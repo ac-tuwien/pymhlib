@@ -37,7 +37,6 @@ parser.add("--mh_checkit", default=False, action='store_true',
 parser.add("--no_mh_checkit", dest='mh_checkit', action='store_false')
 
 
-@dataclass
 class Result:
     """Data in conjunction with a method application's result.
 
@@ -45,8 +44,14 @@ class Result:
         - changed: if false, the solution has not been changed by the method application
         - terminate: if true, a termination condition has been fulfilled
     """
-    changed: bool = True
-    terminate: bool = False
+    __slots__ = ('changed', 'terminate')
+
+    def __init__(self):
+        self.changed = True
+        self.terminate = False
+
+    def __repr__(self):
+        return f"(changed={self.changed}, terminate={self.terminate})"
 
 
 @dataclass
@@ -58,6 +63,7 @@ class Method:
         - method: a function called for a Solution object
         - par: a parameter provided when calling the method
     """
+    __slots__ = ('name', 'func', 'par')
     name: str
     func: Callable[[Solution, Any, Result], None]
     par: Any
