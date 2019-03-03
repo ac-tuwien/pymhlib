@@ -1,6 +1,5 @@
 """Demo application solving the traveling salesman problem."""
 
-import numpy as np
 import random
 
 from mhlib.permutation_solution import PermutationSolution
@@ -39,7 +38,7 @@ class TSPSolution(PermutationSolution):
 
     Attributes
         - inst: associated TSPInstance
-        - x: order cities are visited
+        - x: order in which cities are visited
     """
 
     def __init__(self, inst: TSPInstance):
@@ -80,10 +79,17 @@ class TSPSolution(PermutationSolution):
     def shaking(self, par, result):
         """Scheduler method that performs shaking by flipping par random positions."""
         del result
-        for i in range(par):
-            p = random.randrange(0, self.inst.n)
-            self.x[p] = not self.x[p]
+        a = random.randint(0, self.inst.n -1)
+        b = random.randint(0, self.inst.n -1)
+
+        self.x[a], self.x[b] = self.x[b], self.x[a]
         self.invalidate()
+
+
+
+    def local_improve(self, par, result):
+        del par, result
+        self.two_exchange_neighborhood_search(True)
 
 
 if __name__ == '__main__':
