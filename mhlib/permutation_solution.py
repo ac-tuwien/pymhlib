@@ -121,3 +121,53 @@ def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution
         parent_a.x[pos], parent_b.x[pos] = parent_b.x[pos], parent_a.x[pos]
 
     return parent_a, parent_b
+
+def partial_matched_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution, swath):
+    """A partial-matched-crossover (PMX) exchange.
+
+    Generates the child individual generated from the first parent crossed with the second one
+
+    :param parent_a: first parent
+    :param parent_b: second parent
+    :param swath: fixed range for exchange
+    """
+
+    x = parent_a.x
+    y = parent_b.x
+
+    posy = {} # holds the position of every value in solution y
+    for i in range(0, len(x)):
+        posy[y[i]] = i
+
+    # element with value v in parent x is at position posxy[v] in y
+    posxy = {}
+    for i in range(0, len(x)):
+        posxy[x[i]] = posy[x[i]]
+
+    childx = y.copy()
+
+    done = []
+
+    for i in swath:
+        # transfer from fixed range to child
+        childx[i] = x[i]
+
+        # begin position calculation
+        val = y[i]
+        pos = posxy[x[i]]
+
+        if pos == i or i in done:
+            continue
+
+        done.append(pos)
+
+        while pos in swath:
+            pos = posxy[x[pos]]
+            done.append(pos)
+
+        # move val to position
+        childx[pos] = val
+
+    parent_a.x = childx
+
+    return parent_a
