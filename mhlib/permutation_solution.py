@@ -139,11 +139,6 @@ def partial_matched_crossover(parent_a: PermutationSolution, parent_b: Permutati
     for i in range(0, len(x)):
         posy[y[i]] = i
 
-    # element with value v in parent x is at position posxy[v] in y
-    posxy = {}
-    for i in range(0, len(x)):
-        posxy[x[i]] = posy[x[i]]
-
     childx = y.copy()
 
     done = []
@@ -154,7 +149,7 @@ def partial_matched_crossover(parent_a: PermutationSolution, parent_b: Permutati
 
         # begin position calculation
         val = y[i]
-        pos = posxy[x[i]]
+        pos = posy[x[i]]
 
         if pos == i or i in done:
             continue
@@ -162,7 +157,7 @@ def partial_matched_crossover(parent_a: PermutationSolution, parent_b: Permutati
         done.append(pos)
 
         while pos in swath:
-            pos = posxy[x[pos]]
+            pos = posy[x[pos]]
             done.append(pos)
 
         # move val to position
