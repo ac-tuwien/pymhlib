@@ -6,8 +6,9 @@ For an optimization problem to solve you have to derive from this class.
 
 from abc import ABC, abstractmethod
 import numpy as np
+from typing import TypeVar
 
-from .settings import settings, get_settings_parser
+from mhlib.settings import settings, get_settings_parser
 
 
 parser = get_settings_parser()
@@ -16,17 +17,21 @@ parser.add("--mh_maxi", default=True, action='store_true',
 parser.add("--no_mh_maxi", dest='mh_maxi', action='store_false')
 
 
+TObj = TypeVar('TObj', int, float)  # Type of objective value
+
+
 class Solution(ABC):
     """Abstract base class for a candidate solution.
 
     Attributes
-        - objval: objective value; valid if obj_val_valid is set
-        - objval_valid: indicates if obj_val has been calculated and is valid
+        - obj_val: objective value; valid if obj_val_valid is set
+        - obj_val_valid: indicates if obj_val has been calculated and is valid
         - inst: optional reference to an problem instance object
         - alg: optional reference to an algorithm object using this solution
     """
+
     def __init__(self, inst=None, alg=None):
-        self.obj_val: float = -1
+        self.obj_val: TObj = -1
         self.obj_val_valid: bool = False
         self.inst = inst
         self.alg = alg
@@ -38,8 +43,8 @@ class Solution(ABC):
     @abstractmethod
     def copy_from(self, other: 'Solution'):
         """Make the current solution a (deep) copy of the other."""
-        self.inst = other.inst
-        self.alg = other.alg
+        # self.inst = other.inst
+        # self.alg = other.alg
         self.obj_val = other.obj_val
         self.obj_val_valid = other.obj_val_valid
 
@@ -48,17 +53,18 @@ class Solution(ABC):
         return str(self.obj())
 
     @abstractmethod
-    def calc_objective(self) -> float:
+    def calc_objective(self) -> TObj:
         """Determine the objective value and return it."""
         raise NotImplementedError
 
-    def obj(self) -> float:
+    def obj(self) -> TObj:
         """Return objective value.
 
         Returns stored value if already known or calls calc_objective() otherwise.
         """
         if not self.obj_val_valid:
             self.obj_val = self.calc_objective()
+            self.obj_val_valid = True
         return self.obj_val
 
     def invalidate(self):
@@ -72,7 +78,7 @@ class Solution(ABC):
     def initialize(self, k):
         """Construct an initial solution.
 
-        Parameter k is increased from 0 onwards for each call of this method.
+        :param k: is increased from 0 onwards for each call of this method
         """
         raise NotImplementedError
 
@@ -101,25 +107,27 @@ class Solution(ABC):
         else:
             return self.obj() > other.obj()
 
-    def has_better_obj(self, obj: float) -> bool:
-        """Returns True if the current solution has a better objective value than obj.
+    @classmethod
+    def is_better_obj(cls, obj1: TObj, obj2: TObj) -> bool:
+        """Return True if the obj1 is a better objective value than obj2.
 
         Considers parameter settings.mh_maxi.
         """
         if settings.mh_maxi:
-            return self.obj() > obj
+            return obj1 > obj2
         else:
-            return self.obj() < obj
+            return obj1 < obj2
 
-    def has_worse_obj(self, obj: float) -> bool:
-        """Returns True if the current solution has a worse objective value than obj.
+    @classmethod
+    def is_worse_obj(cls, obj1: TObj, obj2: TObj) -> bool:
+        """Return True if obj1 is a worse objective value than obj2.
 
         Considers parameter settings.mh_maxi.
         """
         if settings.mh_maxi:
-            return self.obj() < obj
+            return obj1 < obj2
         else:
-            return self.obj() > obj
+            return obj1 > obj2
 
     def dist(self, other):
         """Return distance of current solution to other solution.
@@ -155,12 +163,14 @@ class VectorSolution(Solution, ABC):
     Attributes
         - x: vector representing a solution, realized as numpy.array
     """
+
     def __init__(self, length, init=True, dtype=int, init_value=0, **kwargs):
         """Initializes the solution vector with zeros."""
         super().__init__(**kwargs)
         self.x = np.full([length], init_value, dtype=dtype) if init else np.empty([length], dtype=dtype)
 
     def copy_from(self, other: 'VectorSolution'):
+        super().copy_from(other)
         self.x[:] = other.x
 
     def __repr__(self):
@@ -176,6 +186,7 @@ class BoolVectorSolution(VectorSolution, ABC):
     Attributes
         - x: 0/1 vector representing a solution
     """
+
     def __init__(self, length, **kwargs):
         """Initializes the solution vector with zeros."""
         super().__init__(length, dtype=bool, **kwargs)

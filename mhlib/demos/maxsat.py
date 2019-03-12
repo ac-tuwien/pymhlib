@@ -1,10 +1,9 @@
 """Demo application solving the MAXSAT problem."""
 
 import numpy as np
-import os
 import random
 
-from ..solution import BoolVectorSolution
+from mhlib.solution import BoolVectorSolution
 
 
 class MAXSATInstance:
@@ -17,6 +16,7 @@ class MAXSATInstance:
             a positive integer v refers to the v-th variable, while a negative integer v refers
             to the negated form of the v-th variable; note that variable indices start with 1 (-1)
     """
+
     def __init__(self, file_name: str):
         """Read an instance from the specified file."""
         self.n = 0
@@ -64,6 +64,7 @@ class MAXSATSolution(BoolVectorSolution):
         - inst: associated MAXSATInstance
         - x: binary incidence vector
     """
+
     def __init__(self, inst: MAXSATInstance):
         super().__init__(inst.n, inst=inst)
 
@@ -72,7 +73,7 @@ class MAXSATSolution(BoolVectorSolution):
         sol.copy_from(self)
         return sol
 
-    def calc_objective(self) -> float:
+    def calc_objective(self):
         fulfilled_clauses = 0
         for clause in self.inst.clauses:
             for v in clause:
@@ -84,7 +85,7 @@ class MAXSATSolution(BoolVectorSolution):
     def check(self):
         """Check if valid solution.
 
-        Raises ValueError if problem detected.
+        :raises ValueError: if problem detected.
         """
         if len(self.x) != self.inst.n:
             raise ValueError("Invalid length of solution")
@@ -118,7 +119,7 @@ class MAXSATSolution(BoolVectorSolution):
         otherwise the search terminates in a first-improvement manner, i.e., keeping a first encountered
         better solution.
 
-        Returns True if an improved solution has been found.
+        :returns: True if an improved solution has been found.
         """
         x = self.x
         assert 0 < k <= len(x)
@@ -161,5 +162,5 @@ class MAXSATSolution(BoolVectorSolution):
 
 
 if __name__ == '__main__':
-    from .common import run_gvns_demo
-    run_gvns_demo('MAXSAT', MAXSATInstance, MAXSATSolution, os.path.join('mhlib', 'demos', 'advanced.cnf'))
+    from mhlib.demos.common import run_gvns_demo, data_dir
+    run_gvns_demo('MAXSAT', MAXSATInstance, MAXSATSolution, data_dir+"advanced.cnf")

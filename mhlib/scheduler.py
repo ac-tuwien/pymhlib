@@ -12,8 +12,8 @@ import time
 import logging
 from math import log10
 
-from .settings import settings, get_settings_parser
-from .solution import Solution
+from mhlib.settings import settings, get_settings_parser, OwnSettings
+from mhlib.solution import Solution, TObj
 
 
 parser = get_settings_parser()
@@ -22,7 +22,9 @@ parser.add("--mh_titer", type=int, default=100,
 parser.add("--mh_tciter", type=int, default=-1,
            help='maximum number of iterations without improvement (<0: turned off)')
 parser.add("--mh_ttime", type=int, default=-1,
-           help='maximum number of iterations without improvement (<0: turned off)')
+           help='time limit [s] (<0: turned off)')
+parser.add("--mh_tctime", type=int, default=-1,
+           help='maximum time [s] without improvement (<0: turned off)')
 parser.add("--mh_tobj", type=float, default=-1,
            help='objective value at which should be terminated when reached (<0: turned off)')
 parser.add("--mh_lnewinc", default=True, action='store_true',
@@ -30,9 +32,11 @@ parser.add("--mh_lnewinc", default=True, action='store_true',
 parser.add("--no_mh_lnewinc", dest='mh_lnewinc', action='store_false')
 parser.add("--mh_lfreq", type=int, default=0,
            help='frequency of writing iteration logs (0: none, >0: number of iterations, -1: iteration 1,2,5,10,20,...')
+parser.add("--mh_checkit", default=False, action='store_true',
+           help='call check() for each solution after each method application')
+parser.add("--no_mh_checkit", dest='mh_checkit', action='store_false')
 
 
-@dataclass
 class Result:
     """Data in conjunction with a method application's result.
 
@@ -40,8 +44,14 @@ class Result:
         - changed: if false, the solution has not been changed by the method application
         - terminate: if true, a termination condition has been fulfilled
     """
-    changed: bool = True
-    terminate: bool = False
+    __slots__ = ('changed', 'terminate')
+
+    def __init__(self):
+        self.changed = True
+        self.terminate = False
+
+    def __repr__(self):
+        return f"(changed={self.changed}, terminate={self.terminate})"
 
 
 @dataclass
@@ -53,6 +63,7 @@ class Method:
         - method: a function called for a Solution object
         - par: a parameter provided when calling the method
     """
+    __slots__ = ('name', 'func', 'par')
     name: str
     func: Callable[[Solution, Any, Result], None]
     par: Any
@@ -90,12 +101,13 @@ class Scheduler(ABC):
         - run_time: overall runtime (set when terminating)
         - logger: mhlib's logger for logging general info
         - iter_logger: mhlib's logger for logging iteration info
+        - own_settings: own settings object with possibly individualized parameter values
     """
     eps = 1e-12  # epsilon value for is_logarithmic_number()
     log10_2 = log10(2)  # log10(2)
     log10_5 = log10(5)  # log10(5)
 
-    def __init__(self, sol: Solution, methods: List[Method]):
+    def __init__(self, sol: Solution, methods: List[Method], own_settings: dict = None):
         self.incumbent = sol
         self.incumbent_iteration = 0
         self.incumbent_time = 0.0
@@ -108,6 +120,7 @@ class Scheduler(ABC):
         self.iter_logger = logging.getLogger("mhlib_iter")
         self.log_iteration_header()
         self.log_iteration(None, sol, True, True)
+        self.own_settings = OwnSettings(own_settings) if own_settings else settings
 
     def update_incumbent(self, sol, current_time):
         """If the given solution is better than incumbent (or we do not have an incumbent yet) update it."""
@@ -121,10 +134,9 @@ class Scheduler(ABC):
     def next_method(meths: List, randomize: bool, repeat: bool):
         """Generator for obtaining a next method from a given list of methods.
 
-        Parameters
-            - meths: List of methods
-            - randomize: random order, otherwise consider given order
-            - repeat: repeat infinitely, otherwise just do one pass
+        :param meths: List of methods
+        :param randomize: random order, otherwise consider given order
+        :param repeat: repeat infinitely, otherwise just do one pass
         """
         if randomize:
             meths = meths.copy()
@@ -142,27 +154,26 @@ class Scheduler(ABC):
         Also updates incumbent, iteration and the method's statistics in method_stats.
         Furthermore checks the termination condition and eventually sets terminate in the returned Results object.
 
-        Parameters
-            - method: method to be performed
-            - sol: solution to which the method is applied
-            - delayed_success: if set the success is not immediately determined and updated but at some later
+        :param method: method to be performed
+        :param sol: solution to which the method is applied
+        :param delayed_success: if set the success is not immediately determined and updated but at some later
                 call of delayed_success_update()
-
-        Returns
-            - Results object
+        :returns: Results object
         """
         res = Result()
         obj_old = sol.obj()
         t_start = time.process_time()
         method.func(sol, method.par, res)
         t_end = time.process_time()
+        if __debug__ and self.own_settings.mh_checkit:
+            sol.check()
         ms = self.method_stats[method.name]
         ms.applications += 1
         ms.netto_time += t_end - t_start
         obj_new = sol.obj()
         if not delayed_success:
             ms.brutto_time += t_end - t_start
-            if sol.has_better_obj(obj_old):
+            if sol.is_better_obj(sol.obj(), obj_old):
                 ms.successes += 1
                 ms.obj_gain += obj_new - obj_old
         self.iteration += 1
@@ -174,29 +185,31 @@ class Scheduler(ABC):
             res.terminate = True
         return res
 
-    def delayed_success_update(self, method: Method, obj_old: float, t_start: float, sol: Solution):
+    def delayed_success_update(self, method: Method, obj_old: TObj, t_start: TObj, sol: Solution):
         """Update an earlier performed method's success information in method_stats.
 
-        Parameters
-            - method: earlier performed method
-            - old_obj: objective value of solution to which method had been applied
-            - t_start: time when the application of method dad started
-            - sol: current solution considered the final result of the method
+        :param method: earlier performed method
+        :param obj_old: objective value of solution to which method had been applied
+        :param t_start: time when the application of method dad started
+        :param sol: current solution considered the final result of the method
         """
         t_end = time.process_time()
         ms = self.method_stats[method.name]
         ms.brutto_time += t_end - t_start
         obj_new = sol.obj()
-        if sol.has_better_obj(obj_old):
+        if sol.is_better_obj(sol.obj(), obj_old):
             ms.successes += 1
             ms.obj_gain += obj_new - obj_old
 
     def check_termination(self):
         """Check termination conditions and return True when to terminate."""
-        if 0 <= settings.mh_titer <= self.iteration or \
-                0 <= settings.mh_tciter <= self.iteration - self.incumbent_iteration or \
-                0 <= settings.mh_ttime <= time.process_time() - self.time_start or \
-                0 <= settings.mh_tobj and not self.incumbent.has_worse_obj(settings.mh_tobj):
+        t = time.process_time()
+        if 0 <= self.own_settings.mh_titer <= self.iteration or \
+                0 <= self.own_settings.mh_tciter <= self.iteration - self.incumbent_iteration or \
+                0 <= self.own_settings.mh_ttime <= t - self.time_start or \
+                0 <= self.own_settings.mh_tctime <= t - self.incumbent_time or \
+                0 <= self.own_settings.mh_tobj and not self.incumbent.is_worse_obj(self.incumbent.obj(),
+                                                                                   self.own_settings.mh_tobj):
             return True
 
     def log_iteration_header(self):
@@ -215,15 +228,14 @@ class Scheduler(ABC):
 
         A line is written if in_any_case is set or in dependence of settings.mh_lfreq and settings.mh_lnewinc.
 
-        Parameters
-            - method: applied method or None (if initially given solution)
-            - sol: current solution
-            - new_incumbent: true if the method yielded a new incumbent solution
-            - in_any_case: turns filtering of iteration logs off
+        :param method: applied method or None (if initially given solution)
+        :param sol: current solution
+        :param new_incumbent: true if the method yielded a new incumbent solution
+        :param in_any_case: turns filtering of iteration logs off
         """
-        log = in_any_case or new_incumbent and settings.mh_lnewinc
+        log = in_any_case or new_incumbent and self.own_settings.mh_lnewinc
         if not log:
-            lfreq = settings.mh_lfreq
+            lfreq = self.own_settings.mh_lfreq
             if lfreq > 0 and self.iteration % lfreq == 0:
                 log = True
             elif lfreq < 0 and self.is_logarithmic_number(self.iteration):
@@ -289,6 +301,7 @@ class Scheduler(ABC):
             f"best time [s]: {self.incumbent_time:.3f}\n" \
             f"total time [s]: {self.run_time:.4f}\n"
         self.logger.info(s)
+        self.incumbent.check()
 
 
 class GVNS(Scheduler):
@@ -300,16 +313,18 @@ class GVNS(Scheduler):
         - meths_li: list of local improvement methods
         - meths_sh: list of shaking methods
     """
-    def __init__(self, sol: Solution, meths_ch: List[Method], meths_li: List[Method], meths_sh: List[Method]):
+
+    def __init__(self, sol: Solution, meths_ch: List[Method], meths_li: List[Method], meths_sh: List[Method],
+                 own_settings: dict = None):
         """Initialization.
 
-        Parameters
-            - meths_ch: list of construction heuristic methods
-            - meths_li: list of local improvement methods
-            - meths_sh: list of shaking methods
-            - incumbent: incumbent solution, i.e., best solution so far
+        :param sol: solution to be improved
+        :param meths_ch: list of construction heuristic methods
+        :param meths_li: list of local improvement methods
+        :param meths_sh: list of shaking methods
+        :param own_settings: optional dictionary with specific settings
         """
-        super().__init__(sol, meths_ch+meths_li+meths_sh)
+        super().__init__(sol, meths_ch+meths_li+meths_sh, own_settings)
         self.meths_ch = meths_ch
         self.meths_li = meths_li
         self.meths_sh = meths_sh
@@ -317,7 +332,7 @@ class GVNS(Scheduler):
     def vnd(self, sol: Solution) -> bool:
         """Perform variable neighborhood descent (VND) on given solution.
 
-        Returns true if a global  termination condition is fulfilled, else False.
+        :returns: true if a global termination condition is fulfilled, else False.
         """
         sol2 = sol.copy()
         while True:
@@ -339,7 +354,8 @@ class GVNS(Scheduler):
     def gvns(self, sol: Solution):
         """Perform general variable neighborhood search (GVNS) to given solution."""
         sol2 = sol.copy()
-        self.vnd(sol2)
+        if self.vnd(sol2):
+            return
         use_vnd = bool(self.meths_li)
         while True:
             for m in self.next_method(self.meths_sh, False, True):

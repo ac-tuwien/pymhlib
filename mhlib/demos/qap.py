@@ -1,10 +1,9 @@
 """Demo application solving the Quadratic Assignment Problem (QAP)."""
 
 import numpy as np
-import os
 import random
 
-from ..permutation_solution import PermutationSolution
+from mhlib.permutation_solution import PermutationSolution
 
 
 class QAPInstance:
@@ -15,6 +14,7 @@ class QAPInstance:
         - a: distance matrix
         - b: flow matrix
     """
+
     def __init__(self, file_name: str):
         """Read an instance from the specified file."""
         self.n = 0
@@ -47,6 +47,7 @@ class QAPSolution(PermutationSolution):
         - inst: associated QAPInstance
         - x: integer vector representing a permutation
     """
+
     def __init__(self, inst: QAPInstance, **kwargs):
         """Initializes the solution with 0,...,n-1 if init is set."""
         super().__init__(inst.n, inst=inst, **kwargs)
@@ -59,9 +60,9 @@ class QAPSolution(PermutationSolution):
     def copy_from(self, other: 'QAPSolution'):
         super().copy_from(other)
 
-    def calc_objective(self) -> float:
+    def calc_objective(self):
         obj = np.einsum('ij,ij', self.inst.a, self.inst.b[self.x][:, self.x])
-        return float(obj)
+        return obj
 
     def construct(self, par, result):
         """Scheduler method that constructs a new solution.
@@ -103,5 +104,5 @@ class QAPSolution(PermutationSolution):
 
 
 if __name__ == '__main__':
-    from .common import run_gvns_demo
-    run_gvns_demo('QAP', QAPInstance, QAPSolution, os.path.join('mhlib', 'demos', 'bur26a.dat'))
+    from mhlib.demos.common import run_gvns_demo, data_dir
+    run_gvns_demo('QAP', QAPInstance, QAPSolution, data_dir+'bur26a.dat')

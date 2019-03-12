@@ -3,11 +3,12 @@
 import numpy as np
 from abc import ABC
 
-from .solution import VectorSolution
+from mhlib.solution import VectorSolution
 
 
 class PermutationSolution(VectorSolution, ABC):
     """Solution that is represented by a permutation of 0,...length-1."""
+
     def __init__(self, length: int, init=True, **kwargs):
         """Initializes the solution with 0,...,length-1 if init is set."""
         super().__init__(length, init=False, **kwargs)
@@ -24,7 +25,7 @@ class PermutationSolution(VectorSolution, ABC):
     def check(self):
         """Check if valid solution.
 
-        Raises ValueError if problem detected.
+        :raises ValueError: if problem detected.
         """
         super().check()
         if set(self.x) != set(range(len(self.x))):
@@ -37,7 +38,7 @@ class PermutationSolution(VectorSolution, ABC):
         Note that frequently, a more problem-specific neighborhood search with delta-evaluation is
         much more efficient!
 
-        :arg best_improvement:  if set, the neighborhood is completely searched and a best neighbor is kept;
+        :param best_improvement:  if set, the neighborhood is completely searched and a best neighbor is kept;
             otherwise the search terminates in a first-improvement manner, i.e., keeping a first encountered
             better solution.
 
@@ -53,7 +54,7 @@ class PermutationSolution(VectorSolution, ABC):
             for p2 in order[idx+1:]:
                 self.x[p1], self.x[p2] = self.x[p2], self.x[p1]
                 if self.two_exchange_delta_eval(p1, p2):
-                    if self.has_better_obj(best_obj):
+                    if self.is_better_obj(self.obj(), best_obj):
                         if not best_improvement:
                             return True
                         best_obj = self.obj()
@@ -74,6 +75,7 @@ class PermutationSolution(VectorSolution, ABC):
 
         It can be assumed that the solution was in a correct state with a valid objective value before the move.
         The default implementation just calls invalidate() and returns True.
+
         :param p1: first position
         :param p2: second position
         :param update_obj_val: if set, the objective value should also be updated or invalidate needs to be called
