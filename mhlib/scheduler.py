@@ -4,7 +4,7 @@ The module is intended for metaheuristics in which a set of methods (or several 
 in some way repeatedly applied to candidate solutions.
 """
 
-from typing import Callable, List, Any, Optional
+from typing import Callable, List, Any
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 import random
@@ -119,7 +119,7 @@ class Scheduler(ABC):
         self.logger = logging.getLogger("mhlib")
         self.iter_logger = logging.getLogger("mhlib_iter")
         self.log_iteration_header()
-        self.log_iteration(None, sol, True, True)
+        self.log_iteration('-', sol, True, True)
         self.own_settings = OwnSettings(own_settings) if own_settings else settings
 
     def update_incumbent(self, sol, current_time):
@@ -131,8 +131,8 @@ class Scheduler(ABC):
             return True
 
     @staticmethod
-    def next_method(meths: List, randomize: bool, repeat: bool):
-        """Generator for obtaining a next method from a given list of methods.
+    def next_method(meths: List, *, randomize: bool = False, repeat: bool = False):
+        """Generator for obtaining a next method from a given list of methods, iterating through all methods.
 
         :param meths: List of methods
         :param randomize: random order, otherwise consider given order
@@ -179,7 +179,50 @@ class Scheduler(ABC):
         self.iteration += 1
         new_incumbent = self.update_incumbent(sol, t_end - self.time_start)
         terminate = self.check_termination()
-        self.log_iteration(method, sol, new_incumbent, terminate)
+        self.log_iteration(method.name, sol, new_incumbent, terminate)
+        if terminate:
+            self.run_time = time.process_time() - self.time_start
+            res.terminate = True
+        return res
+
+    def perform_method_pair(self, destroy_method: Method, repair_method: Method, sol: Solution) -> Result:
+        """Performs a destroy/repair method pair on given solution and returns Results object.
+
+        Also updates incumbent, iteration and the method's statistics in method_stats.
+        Furthermore checks the termination condition and eventually sets terminate in the returned Results object.
+
+        :param destroy_method: destroy destroy method to be performed
+        :param repair_method: repair destroy method to be performed
+        :param sol: solution to which the method is applied
+        :returns: Results object
+        """
+        res = Result()
+        obj_old = sol.obj()
+        t_start = time.process_time()
+        destroy_method.func(sol, destroy_method.par, res)
+        t_destroyed = time.process_time()
+        repair_method.func(sol, repair_method.par, res)
+        t_end = time.process_time()
+        if __debug__ and self.own_settings.mh_checkit:
+            sol.check()
+        ms_destroy = self.method_stats[destroy_method.name]
+        ms_destroy.applications += 1
+        ms_destroy.netto_time += t_destroyed - t_start
+        ms_destroy.brutto_time += t_destroyed - t_start
+        ms_repair = self.method_stats[repair_method.name]
+        ms_repair.applications += 1
+        ms_repair.netto_time += t_end - t_destroyed
+        ms_repair.brutto_time += t_end - t_destroyed
+        obj_new = sol.obj()
+        if sol.is_better_obj(sol.obj(), obj_old):
+            ms_destroy.successes += 1
+            ms_destroy.obj_gain += obj_new - obj_old
+            ms_repair.successes += 1
+            ms_repair.obj_gain += obj_new - obj_old
+        self.iteration += 1
+        new_incumbent = self.update_incumbent(sol, t_end - self.time_start)
+        terminate = self.check_termination()
+        self.log_iteration(destroy_method.name+'+'+repair_method.name, sol, new_incumbent, terminate)
         if terminate:
             self.run_time = time.process_time() - self.time_start
             res.terminate = True
@@ -214,7 +257,7 @@ class Scheduler(ABC):
 
     def log_iteration_header(self):
         """Writes iteration log header."""
-        s = f"{'iteration':>10} {'best':>17} {'current':>12} {'time':>12} {'method':>7}"
+        s = f"{'iteration':>10} {'best':>17} {'current':>12} {'time':>12} {'method':>12}"
         self.iter_logger.info(s)
 
     @staticmethod
@@ -223,12 +266,12 @@ class Scheduler(ABC):
         return abs(lr) < __class__.eps or abs(lr-__class__.log10_2) < __class__.eps or \
             abs(lr-__class__.log10_5) < __class__.eps
 
-    def log_iteration(self, method: Optional[Method], sol: Solution, new_incumbent: bool, in_any_case: bool):
+    def log_iteration(self, method_name: str, sol: Solution, new_incumbent: bool, in_any_case: bool):
         """Writes iteration log info.
 
         A line is written if in_any_case is set or in dependence of settings.mh_lfreq and settings.mh_lnewinc.
 
-        :param method: applied method or None (if initially given solution)
+        :param method_name: name of applied method or '-' (if initially given solution)
         :param sol: current solution
         :param new_incumbent: true if the method yielded a new incumbent solution
         :param in_any_case: turns filtering of iteration logs off
@@ -241,9 +284,8 @@ class Scheduler(ABC):
             elif lfreq < 0 and self.is_logarithmic_number(self.iteration):
                 log = True
         if log:
-            name = method.name if method else '-'
             s = f"{self.iteration:>10d} {self.incumbent.obj():16.5f} {sol.obj():16.5f} " \
-                f"{time.process_time()-self.time_start:9.4f} {name:>7}"
+                f"{time.process_time()-self.time_start:9.4f} {method_name:>12}"
             self.iter_logger.info(s)
 
     @abstractmethod
@@ -336,7 +378,7 @@ class GVNS(Scheduler):
         """
         sol2 = sol.copy()
         while True:
-            for m in self.next_method(self.meths_li, False, False):
+            for m in self.next_method(self.meths_li):
                 res = self.perform_method(m, sol2)
                 if sol2.is_better(sol):
                     sol.copy_from(sol2)
@@ -358,7 +400,7 @@ class GVNS(Scheduler):
             return
         use_vnd = bool(self.meths_li)
         while True:
-            for m in self.next_method(self.meths_sh, False, True):
+            for m in self.next_method(self.meths_sh, repeat=True):
                 t_start = time.process_time()
                 res = self.perform_method(m, sol2, delayed_success=use_vnd)
                 terminate = res.terminate
@@ -382,7 +424,7 @@ class GVNS(Scheduler):
         sol = self.incumbent.copy()
 
         # perform all construction heuristics, take best solution
-        for m in self.next_method(self.meths_ch, False, False):
+        for m in self.next_method(self.meths_ch):
             res = self.perform_method(m, sol)
             if res.terminate:
                 break

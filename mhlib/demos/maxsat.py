@@ -4,6 +4,7 @@ import numpy as np
 import random
 
 from mhlib.solution import BoolVectorSolution
+from mhlib.alns import ALNS
 
 
 class MAXSATInstance:
@@ -63,10 +64,12 @@ class MAXSATSolution(BoolVectorSolution):
     Attributes
         - inst: associated MAXSATInstance
         - x: binary incidence vector
+        - destroyed: list of indices of variables that have been destroyed by the ALNS's destroy operator
     """
 
     def __init__(self, inst: MAXSATInstance):
         super().__init__(inst.n, inst=inst)
+        self.destroyed = None
 
     def copy(self):
         sol = MAXSATSolution(self.inst)
@@ -108,8 +111,27 @@ class MAXSATSolution(BoolVectorSolution):
         """Scheduler method that performs shaking by flipping par random positions."""
         del result
         for i in range(par):
-            p = random.randrange(0, self.inst.n)
+            p = random.randrange(self.inst.n)
             self.x[p] = not self.x[p]
+        self.invalidate()
+
+    def destroy(self, par, result):
+        """Destroy operator for ALNS selects par*ALNS.get_number_to_destroy positions uniformly at random for removal.
+
+        Selected positions are stored with the solution in list self.destroyed.
+        """
+        del result
+        num = min(ALNS.get_number_to_destroy(len(self.x)) * par, len(self.x))
+        self.destroyed = np.random.choice(range(len(self.x)), num, replace=False)
+        self.invalidate()
+
+    def repair(self, par, result):
+        """Repair operator for ALNS assigns new random values to all positions in self.destroyed."""
+        del result, par
+        assert self.destroyed is not None
+        for p in self.destroyed:
+            self.x[p] = random.randrange(2)
+        self.destroyed = None
         self.invalidate()
 
     def k_flip_local_search(self, k: int, best_improvement) -> bool:
@@ -162,5 +184,5 @@ class MAXSATSolution(BoolVectorSolution):
 
 
 if __name__ == '__main__':
-    from mhlib.demos.common import run_gvns_demo, data_dir
-    run_gvns_demo('MAXSAT', MAXSATInstance, MAXSATSolution, data_dir+"advanced.cnf")
+    from mhlib.demos.common import run_optimization, data_dir
+    run_optimization('MAXSAT', MAXSATInstance, MAXSATSolution, data_dir+"advanced.cnf")
