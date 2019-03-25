@@ -4,6 +4,7 @@ import numpy as np
 import random
 
 from mhlib.solution import BoolVectorSolution
+from mhlib.alns import ALNS
 
 
 class MAXSATInstance:
@@ -115,13 +116,13 @@ class MAXSATSolution(BoolVectorSolution):
         self.invalidate()
 
     def destroy(self, par, result):
-        """Destroy operator for ALNS selects par*10% of the positions uniformly at random for removal.
+        """Destroy operator for ALNS selects par*ALNS.get_number_to_destroy positions uniformly at random for removal.
 
         Selected positions are stored with the solution in list self.destroyed.
         """
         del result
-        positions = max(len(self.x), len(self.x)*par*0.1)
-        self.destroyed = np.random.choice(range(len(self.x)), positions, replace=False)
+        num = min(ALNS.get_number_to_destroy(len(self.x)) * par, len(self.x))
+        self.destroyed = np.random.choice(range(len(self.x)), num, replace=False)
         self.invalidate()
 
     def repair(self, par, result):
