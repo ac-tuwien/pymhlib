@@ -36,7 +36,6 @@ class MISPInstance:
         self.p = np.ones(self.n, dtype=int)  # here we only read unweighted MISP instances
 
     def __repr__(self):
-        """Write out the instance data."""
         return f"n={self.n} m={self.m}\n"
 
 

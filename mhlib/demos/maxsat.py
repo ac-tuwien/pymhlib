@@ -54,7 +54,6 @@ class MAXSATInstance:
             raise ValueError(f"Number of clauses should be {self.m}, but {len(self.clauses)} read")
 
     def __repr__(self):
-        """Write out the instance data."""
         return f"n={self.n},\nclauses={self.clauses!r}\n"
 
 

@@ -36,7 +36,6 @@ class QAPInstance:
                 self.b[i] = [int(bij) for bij in line.split()]
 
     def __repr__(self):
-        """Write out the instance data."""
         return f"n={self.n},\na={self.a},\nb={self.b}\n"
 
 
