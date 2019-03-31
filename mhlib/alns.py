@@ -72,7 +72,7 @@ class ALNS(Scheduler):
         self.meths_destroy = meths_destroy
         self.meths_repair = meths_repair
         self.score_data = {m.name: ScoreData() for m in chain(self.meths_destroy, self.meths_repair)}
-        self.temperature = sol.obj() * self.own_settings.mh_alns_init_temp_factor
+        self.temperature = sol.obj() * self.own_settings.mh_alns_init_temp_factor + 0.000001
 
     @staticmethod
     def select_method(meths: List[Method], weights=None):
