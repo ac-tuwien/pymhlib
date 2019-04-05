@@ -63,22 +63,19 @@ class QAPSolution(PermutationSolution):
         obj = np.einsum('ij,ij', self.inst.a, self.inst.b[self.x][:, self.x])
         return obj
 
-    def construct(self, par, result):
+    def construct(self, par, _result):
         """Scheduler method that constructs a new solution.
 
         Here we just call initialize.
         """
-        del result
         self.initialize(par)
 
-    def local_improve(self, par, result):
+    def local_improve(self, _par, _result):
         """Perform local search."""
-        del par, result
         self.two_exchange_neighborhood_search(False)
 
-    def shaking(self, par, result):
+    def shaking(self, par, _result):
         """Scheduler method that performs shaking by par random 2-exchange moves."""
-        del result
         for i in range(par):
             p1 = random.randrange(0, self.inst.n)
             p2 = random.randrange(0, self.inst.n)
@@ -103,5 +100,5 @@ class QAPSolution(PermutationSolution):
 
 
 if __name__ == '__main__':
-    from mhlib.demos.common import run_gvns_demo, data_dir
-    run_gvns_demo('QAP', QAPInstance, QAPSolution, data_dir+'bur26a.dat')
+    from mhlib.demos.common import run_optimization, data_dir
+    run_optimization('QAP', QAPInstance, QAPSolution, data_dir+'bur26a.dat')

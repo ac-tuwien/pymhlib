@@ -84,23 +84,20 @@ class MISPSolution(SubsetSolution):
         super().clear()
         self.covered.fill(0)
 
-    def construct(self, par, result):
+    def construct(self, par, _result):
         """Scheduler method that constructs a new solution.
 
         Here we just call initialize.
         """
-        del result
         self.initialize(par)
 
-    def local_improve(self, par, result):
+    def local_improve(self, _par, result):
         """Scheduler method that performs one iteration of the exchange neighborhood."""
-        del par
         if not self.two_exchange_random_fill_neighborhood_search(False):
             result.changed = False
 
-    def shaking(self, par, result):
+    def shaking(self, par, _result):
         """Scheduler method that performs shaking by remove_some(par) and random_fill()."""
-        del result
         self.remove_some(par)
         self.random_fill(list(np.nonzero(self.covered == 0)[0]))
 
@@ -132,7 +129,7 @@ class MISPSolution(SubsetSolution):
 
 
 if __name__ == '__main__':
-    from mhlib.demos.common import run_gvns_demo, data_dir
+    from mhlib.demos.common import run_optimization, data_dir
     # from mhlib.settings import settings
     # settings.meths_li = 0
-    run_gvns_demo('MISP', MISPInstance, MISPSolution, data_dir + "misp-simple.clq")
+    run_optimization('MISP', MISPInstance, MISPSolution, data_dir + "misp-simple.clq")

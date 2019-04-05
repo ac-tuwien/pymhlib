@@ -86,23 +86,20 @@ class MKPSolution(SubsetSolution):
         self.y.fill(0)
         super().clear()
 
-    def construct(self, par, result):
+    def construct(self, par, _result):
         """Scheduler method that constructs a new solution.
 
         Here we just call initialize.
         """
-        del result
         self.initialize(par)
 
-    def local_improve(self, par, result):
+    def local_improve(self, _par, result):
         """Scheduler method that performs one iteration of the exchange neighborhood."""
-        del par
         if not self.two_exchange_random_fill_neighborhood_search(False):
             result.changed = False
 
-    def shaking(self, par, result):
+    def shaking(self, par, _result):
         """Scheduler method that performs shaking by remove_some(par) and random_fill()."""
-        del result
         self.remove_some(par)
         self.random_fill(self.x[self.sel:])
 
@@ -132,5 +129,5 @@ class MKPSolution(SubsetSolution):
 
 
 if __name__ == '__main__':
-    from mhlib.demos.common import run_gvns_demo, data_dir
-    run_gvns_demo('MKP', MKPInstance, MKPSolution, data_dir + "mknapcb5-01.txt")
+    from mhlib.demos.common import run_optimization, data_dir
+    run_optimization('MKP', MKPInstance, MKPSolution, data_dir + "mknapcb5-01.txt")

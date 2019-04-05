@@ -93,40 +93,35 @@ class MAXSATSolution(BoolVectorSolution):
             raise ValueError("Invalid length of solution")
         super().check()
 
-    def construct(self, par, result):
+    def construct(self, par, _result):
         """Scheduler method that constructs a new solution.
 
         Here we just call initialize.
         """
-        del result
         self.initialize(par)
 
-    def local_improve(self, par, result):
+    def local_improve(self, par, _result):
         """Perform k_flip_local_search."""
-        del result
         self.k_flip_local_search(par, False)
 
-    def shaking(self, par, result):
+    def shaking(self, par, _result):
         """Scheduler method that performs shaking by flipping par random positions."""
-        del result
         for i in range(par):
             p = random.randrange(self.inst.n)
             self.x[p] = not self.x[p]
         self.invalidate()
 
-    def destroy(self, par, result):
+    def destroy(self, par, _result):
         """Destroy operator for ALNS selects par*ALNS.get_number_to_destroy positions uniformly at random for removal.
 
         Selected positions are stored with the solution in list self.destroyed.
         """
-        del result
         num = min(ALNS.get_number_to_destroy(len(self.x)) * par, len(self.x))
         self.destroyed = np.random.choice(range(len(self.x)), num, replace=False)
         self.invalidate()
 
-    def repair(self, par, result):
+    def repair(self, _par, _result):
         """Repair operator for ALNS assigns new random values to all positions in self.destroyed."""
-        del result, par
         assert self.destroyed is not None
         for p in self.destroyed:
             self.x[p] = random.randrange(2)
