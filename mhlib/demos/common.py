@@ -5,7 +5,8 @@ from pkg_resources import resource_filename
 
 from mhlib.settings import parse_settings, settings, get_settings_parser, get_settings_as_str
 from mhlib.log import init_logger
-from mhlib.scheduler import GVNS, Method
+from mhlib.scheduler import Method
+from mhlib.gvns import GVNS
 from mhlib.alns import ALNS
 
 

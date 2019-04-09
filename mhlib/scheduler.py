@@ -91,7 +91,8 @@ class Scheduler(ABC):
     """Abstract class for metaheuristics that work by iteratively applying certain operators.
 
     Attributes
-        - incumbent: incumbent solution, i.e., initial solution and finally solution so far encountered
+        - incumbent: incumbent solution, i.e., initial solution and always best solution so far encountered
+        - incumbent_valid: True if incumbent is a valid solution to be considered
         - incumbent_iteration: iteration in which incumbent was found
         - incumbent_time: time at which incumbent was found
         - methods: list of all Methods
@@ -107,8 +108,16 @@ class Scheduler(ABC):
     log10_2 = log10(2)  # log10(2)
     log10_5 = log10(5)  # log10(5)
 
-    def __init__(self, sol: Solution, methods: List[Method], own_settings: dict = None):
+    def __init__(self, sol: Solution, methods: List[Method], own_settings: dict = None, consider_initial_sol=False):
+        """
+        :param sol: template/initial solution
+        :param methods: list of scheduler methods to apply
+        :param own_settings: an own settings object for locally valid settings that override the global ones
+        :param consider_initial_sol: if true consider sol as valid solution that should be improved upon; otherwise
+            sol is considered just a possibly uninitialized of invalid solution template
+        """
         self.incumbent = sol
+        self.incumbent_valid = consider_initial_sol
         self.incumbent_iteration = 0
         self.incumbent_time = 0.0
         self.methods = methods
@@ -119,15 +128,17 @@ class Scheduler(ABC):
         self.logger = logging.getLogger("mhlib")
         self.iter_logger = logging.getLogger("mhlib_iter")
         self.log_iteration_header()
-        self.log_iteration('-', sol, True, True)
+        if self.incumbent_valid:
+            self.log_iteration('-', sol, True, True)
         self.own_settings = OwnSettings(own_settings) if own_settings else settings
 
     def update_incumbent(self, sol, current_time):
         """If the given solution is better than incumbent (or we do not have an incumbent yet) update it."""
-        if not self.incumbent or sol.is_better(self.incumbent):
+        if not self.incumbent_valid or sol.is_better(self.incumbent):
             self.incumbent.copy_from(sol)
             self.incumbent_iteration = self.iteration
             self.incumbent_time = current_time
+            self.incumbent_valid = True
             return True
 
     @staticmethod
@@ -345,90 +356,10 @@ class Scheduler(ABC):
         self.logger.info(s)
         self.incumbent.check()
 
-
-class GVNS(Scheduler):
-    """A general variable neighborhood search (GVNS).
-
-    Attributes
-        - sol: solution object, in which final result will be returned
-        - meths_ch: list of construction heuristic methods
-        - meths_li: list of local improvement methods
-        - meths_sh: list of shaking methods
-    """
-
-    def __init__(self, sol: Solution, meths_ch: List[Method], meths_li: List[Method], meths_sh: List[Method],
-                 own_settings: dict = None):
-        """Initialization.
-
-        :param sol: solution to be improved
-        :param meths_ch: list of construction heuristic methods
-        :param meths_li: list of local improvement methods
-        :param meths_sh: list of shaking methods
-        :param own_settings: optional dictionary with specific settings
-        """
-        super().__init__(sol, meths_ch+meths_li+meths_sh, own_settings)
-        self.meths_ch = meths_ch
-        self.meths_li = meths_li
-        self.meths_sh = meths_sh
-
-    def vnd(self, sol: Solution) -> bool:
-        """Perform variable neighborhood descent (VND) on given solution.
-
-        :returns: true if a global termination condition is fulfilled, else False.
-        """
-        sol2 = sol.copy()
-        while True:
-            for m in self.next_method(self.meths_li):
-                res = self.perform_method(m, sol2)
-                if sol2.is_better(sol):
-                    sol.copy_from(sol2)
-                    if res.terminate:
-                        return True
-                    break
-                else:
-                    if res.terminate:
-                        return True
-                    if res.changed:
-                        sol2.copy_from(sol)
-            else:  # local optimum reached
-                return False
-
-    def gvns(self, sol: Solution):
-        """Perform general variable neighborhood search (GVNS) to given solution."""
-        sol2 = sol.copy()
-        if self.vnd(sol2):
-            return
-        use_vnd = bool(self.meths_li)
-        while True:
-            for m in self.next_method(self.meths_sh, repeat=True):
-                t_start = time.process_time()
-                res = self.perform_method(m, sol2, delayed_success=use_vnd)
-                terminate = res.terminate
-                if not terminate and use_vnd:
-                    terminate = self.vnd(sol2)
-                self.delayed_success_update(m, sol.obj(), t_start, sol2)
-                if sol2.is_better(sol):
-                    sol.copy_from(sol2)
-                    if terminate or res.terminate:
-                        return
-                    break
-                else:
-                    if terminate or res.terminate:
-                        return
-                    sol2.copy_from(sol)
-            else:
-                break
-
-    def run(self):
-        """Actually performs the construction heuristics followed by the GVNS."""
-        sol = self.incumbent.copy()
-
-        # perform all construction heuristics, take best solution
-        for m in self.next_method(self.meths_ch):
+    def perform_sequentially(self, sol: Solution, meths: List[Method]):
+        """Applies the given list of methods sequentially, finally keeping the best solution as incumbent."""
+        for m in self.next_method(meths):
             res = self.perform_method(m, sol)
             if res.terminate:
                 break
-        if self.incumbent.is_better(sol):
-            sol.copy_from(self.incumbent)
-
-        self.gvns(sol)
+            self.update_incumbent(sol, time.process_time())

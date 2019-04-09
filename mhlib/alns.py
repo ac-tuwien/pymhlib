@@ -58,7 +58,7 @@ class ALNS(Scheduler):
     """
 
     def __init__(self, sol: Solution, meths_ch: List[Method], meths_destroy: List[Method], meths_repair: List[Method],
-                 own_settings: dict = None):
+                 own_settings: dict = None, consider_initial_sol=False):
         """Initialization.
 
         :param sol: solution to be improved
@@ -66,8 +66,10 @@ class ALNS(Scheduler):
         :param meths_destroy: list of destroy methods
         :param meths_repair: list of repair methods
         :param own_settings: optional dictionary with specific settings
+        :param consider_initial_sol: if true consider sol as valid solution that should be improved upon; otherwise
+            sol is considered just a possibly uninitialized of invalid solution template
         """
-        super().__init__(sol, meths_ch + meths_destroy + meths_repair, own_settings)
+        super().__init__(sol, meths_ch + meths_destroy + meths_repair, own_settings, consider_initial_sol)
         self.meths_ch = meths_ch
         self.meths_destroy = meths_destroy
         self.meths_repair = meths_repair
@@ -110,7 +112,7 @@ class ALNS(Scheduler):
         self.iter_logger.info(s)
 
     def alns(self, sol: Solution):
-        """Perform adaptive large neighborhood search (ALNS) to given solution."""
+        """Perform adaptive large neighborhood search (ALNS) on given solution."""
         next_segment = self.iteration + self.own_settings.mh_alns_segment_size
         sol_incumbent = sol.copy()
         sol_new = sol.copy()
@@ -159,13 +161,6 @@ class ALNS(Scheduler):
     def run(self):
         """Actually performs the construction heuristics followed by the ALNS."""
         sol = self.incumbent.copy()
-
-        # perform all construction heuristics, take best solution
-        for m in self.next_method(self.meths_ch):
-            res = self.perform_method(m, sol)
-            if res.terminate:
-                break
-        if self.incumbent.is_better(sol):
-            sol.copy_from(self.incumbent)
-
+        assert self.incumbent_valid or self.meths_ch
+        self.perform_sequentially(sol, self.meths_ch)
         self.alns(sol)
