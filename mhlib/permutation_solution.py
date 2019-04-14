@@ -85,3 +85,84 @@ class PermutationSolution(VectorSolution, ABC):
         if update_obj_val:
             self.invalidate()
         return True
+
+
+def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution):
+    posa = {}
+    for i in range(0, len(parent_a.x)):
+        posa[parent_a.x[i]] = i
+
+    # Detect cycles
+    group = np.full(len(parent_a.x), -1)
+
+    group_id = 0
+    for i in range(0, len(parent_a.x)):
+        if group[i] != -1:
+            # Position already in a cycle
+            continue
+
+        # Create a new cycle
+        pos = i
+        while group[pos] == -1:
+            # Element at pos i is not yet assigned to a group
+            group[pos] = group_id
+            sym = parent_b.x[pos]
+            pos = posa[sym]
+
+        # sanity check
+        assert pos == i
+        group_id += 1
+
+    # Perform exchange
+    for pos in range(0, len(parent_a.x)):
+        if group[pos] % 2 == 0:
+            continue
+
+        parent_a.x[pos], parent_b.x[pos] = parent_b.x[pos], parent_a.x[pos]
+
+    return parent_a, parent_b
+
+def partial_matched_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution, swath):
+    """A partial-matched-crossover (PMX) exchange.
+
+    Generates the child individual generated from the first parent crossed with the second one
+
+    :param parent_a: first parent
+    :param parent_b: second parent
+    :param swath: fixed range for exchange
+    """
+
+    x = parent_a.x
+    y = parent_b.x
+
+    posy = {} # holds the position of every value in solution y
+    for i in range(0, len(x)):
+        posy[y[i]] = i
+
+    childx = y.copy()
+
+    done = []
+
+    for i in swath:
+        # transfer from fixed range to child
+        childx[i] = x[i]
+
+        # begin position calculation
+        val = y[i]
+        pos = posy[x[i]]
+
+        if pos == i or i in done:
+            continue
+
+        done.append(pos)
+
+        while pos in swath:
+            pos = posy[x[pos]]
+            done.append(pos)
+
+        # move val to position
+        childx[pos] = val
+
+    parent_a.x = childx
+
+    return parent_a
