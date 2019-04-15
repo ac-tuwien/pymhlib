@@ -93,6 +93,6 @@ class TSPSolution(PermutationSolution):
 
 
 if __name__ == '__main__':
-    from mhlib.demos.common import run_pbig_demo, data_dir
+    from mhlib.demos.common import run_optimization, data_dir
 
-    run_pbig_demo('TSP', TSPInstance, TSPSolution, data_dir + "advanced.cnf")
+    run_optimization('TSP', TSPInstance, TSPSolution, data_dir + "advanced.cnf")
