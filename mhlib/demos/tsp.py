@@ -1,6 +1,8 @@
 """Demo application solving the traveling salesman problem."""
 
 import random
+import numpy
+import math
 
 from mhlib.permutation_solution import PermutationSolution
 
@@ -16,13 +18,43 @@ class TSPInstance:
 
     def __init__(self, file_name: str):
         """Read an instance from the specified file."""
-        self.n = 4
-        self.distances = [
-            [0, 2, 1, 3],
-            [2, 0, 3, 2],
-            [1, 3, 0, 1],
-            [3, 2, 1, 0]
-        ]
+        coordinates = {}
+        dimension = None
+
+        with open(file_name, "r") as f:
+            for line in f:
+                if line.startswith("NAME") or line.startswith("COMMENT") or line.startswith("NODE_COORD_SECTION"):
+                    pass
+                elif line.startswith("EOF"):
+                    break
+                elif line.startswith("TYPE"):
+                    assert(line.split()[-1] == "TSP")
+                elif line.startswith("EDGE_WEIGHT_TYPE"):
+                    assert(line.split()[-1] == "EUC_2D")
+                elif line.startswith("DIMENSION"):
+                    dimension = int(line.split()[-1])
+                else:
+                    split_line = line.split()
+                    num = int(split_line[0])
+                    x = int(split_line[1])
+                    y = int(split_line[2])
+
+                    coordinates[num] = (x, y)
+
+        assert(len(coordinates) == dimension)
+
+        # building adjacency matrix
+        distances = numpy.zeros((dimension, dimension))
+
+        for i in range(1, dimension):
+            for j in range(i + 1, dimension):
+                x1, y1 = coordinates[i]
+                x2, y2 = coordinates[j]
+                dist = math.sqrt(math.pow(x2 - x1, 2) + math.pow(y2 - y1, 2))
+                distances[i][j] = distances[j][i] = int(dist)
+
+        self.distances = distances
+        self.n = dimension
 
         # make basic check if instance is meaningful
         if not 1 <= self.n <= 1000000:
@@ -79,13 +111,11 @@ class TSPSolution(PermutationSolution):
     def shaking(self, par, result):
         """Scheduler method that performs shaking by flipping par random positions."""
         del result
-        a = random.randint(0, self.inst.n -1)
-        b = random.randint(0, self.inst.n -1)
+        a = random.randint(0, self.inst.n - 1)
+        b = random.randint(0, self.inst.n - 1)
 
         self.x[a], self.x[b] = self.x[b], self.x[a]
         self.invalidate()
-
-
 
     def local_improve(self, par, result):
         del par, result
@@ -95,4 +125,4 @@ class TSPSolution(PermutationSolution):
 if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
 
-    run_optimization('TSP', TSPInstance, TSPSolution, data_dir + "advanced.cnf")
+    run_optimization('TSP', TSPInstance, TSPSolution, data_dir + "xqf131.tsp")
