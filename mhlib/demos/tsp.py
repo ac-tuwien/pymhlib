@@ -28,9 +28,9 @@ class TSPInstance:
                 elif line.startswith("EOF"):
                     break
                 elif line.startswith("TYPE"):
-                    assert(line.split()[-1] == "TSP")
+                    assert (line.split()[-1] == "TSP")
                 elif line.startswith("EDGE_WEIGHT_TYPE"):
-                    assert(line.split()[-1] == "EUC_2D")
+                    assert (line.split()[-1] == "EUC_2D")
                 elif line.startswith("DIMENSION"):
                     dimension = int(line.split()[-1])
                 else:
@@ -41,7 +41,7 @@ class TSPInstance:
 
                     coordinates[num] = (x, y)
 
-        assert(len(coordinates) == dimension)
+        assert (len(coordinates) == dimension)
 
         # building adjacency matrix
         distances = numpy.zeros((dimension, dimension))
