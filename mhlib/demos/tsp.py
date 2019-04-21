@@ -136,26 +136,29 @@ class TSPSolution(PermutationSolution):
 
         # Note: p1 and p2 have already been moved in x
 
-        x_old = self.x.copy()
-        x_old[p1], x_old[p2] = x_old[p2], x_old[p1]
-
         x_new = self.x
-
+        # new
         a_new = x_new[p1 - 1]
         b_new = x_new[p1]
         c_new = x_new[p1 + 1] if p1 + 1 < len(self.x) else x_new[0]
-
-        a_old = x_old[p2 - 1]
-        b_old = x_old[p2]
-        c_old = x_old[p2 + 1] if p2 + 1 < len(self.x) else x_old[0]
 
         d_new = x_new[p2 - 1]
         e_new = x_new[p2]
         f_new = x_new[p2 + 1] if p2 + 1 < len(self.x) else x_new[0]
 
+        # old
+        x_old = self.x
+        x_old[p1], x_old[p2] = x_old[p2], x_old[p1] # swap to get old state
+
+        a_old = x_old[p2 - 1]
+        b_old = x_old[p2]
+        c_old = x_old[p2 + 1] if p2 + 1 < len(self.x) else x_old[0]
+
         d_old = x_old[p1 - 1]
         e_old = x_old[p1]
         f_old = x_old[p1 + 1] if p1 + 1 < len(self.x) else x_old[0]
+
+        x_old[p1], x_old[p2] = x_old[p2], x_old[p1] # swap back to new state
 
         dist = self.inst.distances
 
