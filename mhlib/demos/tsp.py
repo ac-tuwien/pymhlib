@@ -134,6 +134,10 @@ class TSPSolution(PermutationSolution):
             the update of other data done
         """
 
+        if not update_obj_val:
+            # All Permutations are valid, nothing to do here.
+            return True
+
         # Note: p1 and p2 have already been moved in x
 
         x_new = self.x
@@ -171,14 +175,14 @@ class TSPSolution(PermutationSolution):
         old = first_old + second_old
         new = first_new + second_new
 
-        if update_obj_val:
-            self.obj_val -= old
-            self.obj_val += new
-            # Check
-            fast = self.obj()
-            self.invalidate()
-            full = self.obj()
-            assert (fast == full)
+        self.obj_val -= old
+        self.obj_val += new
+
+        # Check
+        # fast = self.obj()
+        # self.invalidate()
+        # full = self.obj()
+        # assert (fast == full)
 
         return True
 
