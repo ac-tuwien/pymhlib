@@ -141,27 +141,29 @@ class TSPSolution(PermutationSolution):
 
         x_new = self.x
 
-        a_new = p1 - 1
-        a_old = p2 - 1
-        b_new = p1
-        b_old = p2
-        c_new = p1 + 1 if p1 + 1 < len(self.x) else 0
-        c_old = p2 + 1 if p2 + 1 < len(self.x) else 0
+        a_new = x_new[p1 - 1]
+        b_new = x_new[p1]
+        c_new = x_new[p1 + 1] if p1 + 1 < len(self.x) else x_new[0]
 
-        d_new = p2 - 1
-        d_old = p1 - 1
-        e_new = p2
-        e_old = p1
-        f_new = p2 + 1 if p2 + 1 < len(self.x) else 0
-        f_old = p1 + 1 if p1 + 1 < len(self.x) else 0
+        a_old = x_old[p2 - 1]
+        b_old = x_old[p2]
+        c_old = x_old[p2 + 1] if p2 + 1 < len(self.x) else x_old[0]
+
+        d_new = x_new[p2 - 1]
+        e_new = x_new[p2]
+        f_new = x_new[p2 + 1] if p2 + 1 < len(self.x) else x_new[0]
+
+        d_old = x_old[p1 - 1]
+        e_old = x_old[p1]
+        f_old = x_old[p1 + 1] if p1 + 1 < len(self.x) else x_old[0]
 
         dist = self.inst.distances
 
-        first_new = dist[x_new[a_new]][x_new[b_new]] + dist[x_new[b_new]][x_new[c_new]]
-        first_old = dist[x_old[a_old]][x_old[b_old]] + dist[x_old[b_old]][x_old[c_old]]
+        first_new = dist[a_new][b_new] + dist[b_new][c_new]
+        first_old = dist[a_old][b_old] + dist[b_old][c_old]
 
-        second_new = dist[x_new[d_new]][x_new[e_new]] + dist[x_new[e_new]][x_new[f_new]]
-        second_old = dist[x_old[d_old]][x_old[e_old]] + dist[x_old[e_old]][x_old[f_old]]
+        second_new = dist[d_new][e_new] + dist[e_new][f_new]
+        second_old = dist[d_old][e_old] + dist[e_old][f_old]
 
         old = first_old + second_old
         new = first_new + second_new
