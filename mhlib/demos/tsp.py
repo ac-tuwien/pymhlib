@@ -85,9 +85,9 @@ class TSPSolution(PermutationSolution):
         distance = 0
 
         for i in range(self.inst.n - 1):
-            distance = distance + self.inst.distances[self.x[i]][self.x[i + 1]]
+            distance += self.inst.distances[self.x[i]][self.x[i + 1]]
 
-        distance = distance + self.inst.distances[self.x[-1]][self.x[0]]
+        distance += self.inst.distances[self.x[-1]][self.x[0]]
 
         return distance
 
