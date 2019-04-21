@@ -121,6 +121,62 @@ class TSPSolution(PermutationSolution):
         del par, result
         self.two_exchange_neighborhood_search(True)
 
+    def two_exchange_delta_eval(self, p1: int, p2: int, update_obj_val=True, allow_infeasible=False) -> bool:
+        """A 2-exchange move was performed, if feasible update other solution data accordingly, else revert.
+
+        It can be assumed that the solution was in a correct state with a valid objective value before the move.
+        The default implementation just calls invalidate() and returns True.
+
+        :param p1: first position
+        :param p2: second position
+        :param update_obj_val: if set, the objective value should also be updated or invalidate needs to be called
+        :param allow_infeasible: if set and the solution is infeasible, the move is nevertheless accepted and
+            the update of other data done
+        """
+
+        # Note: p1 and p2 have already been moved in x
+
+        x_old = self.x.copy()
+        x_old[p1], x_old[p2] = x_old[p2], x_old[p1]
+
+        x_new = self.x
+
+        a_new = p1 - 1
+        a_old = p2 - 1
+        b_new = p1
+        b_old = p2
+        c_new = p1 + 1 if p1 + 1 < len(self.x) else 0
+        c_old = p2 + 1 if p2 + 1 < len(self.x) else 0
+
+        d_new = p2 - 1
+        d_old = p1 - 1
+        e_new = p2
+        e_old = p1
+        f_new = p2 + 1 if p2 + 1 < len(self.x) else 0
+        f_old = p1 + 1 if p1 + 1 < len(self.x) else 0
+
+        dist = self.inst.distances
+
+        first_new = dist[x_new[a_new]][x_new[b_new]] + dist[x_new[b_new]][x_new[c_new]]
+        first_old = dist[x_old[a_old]][x_old[b_old]] + dist[x_old[b_old]][x_old[c_old]]
+
+        second_new = dist[x_new[d_new]][x_new[e_new]] + dist[x_new[e_new]][x_new[f_new]]
+        second_old = dist[x_old[d_old]][x_old[e_old]] + dist[x_old[e_old]][x_old[f_old]]
+
+        old = first_old + second_old
+        new = first_new + second_new
+
+        if update_obj_val:
+            self.obj_val -= old
+            self.obj_val += new
+            # Check
+            fast = self.obj()
+            self.invalidate()
+            full = self.obj()
+            assert (fast == full)
+
+        return True
+
 
 if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
