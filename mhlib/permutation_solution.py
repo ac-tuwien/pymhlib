@@ -87,6 +87,10 @@ class PermutationSolution(VectorSolution, ABC):
             self.invalidate()
         return True
 
+def edge_recombination(parent_a: PermutationSolution, parent_b: PermutationSolution):
+    # TODO implement
+    # example at http://www.rubicite.com/Tutorials/GeneticAlgorithms/CrossoverOperators/EdgeRecombinationCrossoverOperator.aspx
+    pass
 
 def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution):
     posa = {}
