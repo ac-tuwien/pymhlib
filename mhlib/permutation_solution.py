@@ -140,7 +140,7 @@ def partial_matched_crossover(parent_a: PermutationSolution, parent_b: Permutati
     x = parent_a.x
     y = parent_b.x
 
-    posy = {} # holds the position of every value in solution y
+    posy = {}  # holds the position of every value in solution y
     for i in range(0, len(x)):
         posy[y[i]] = i
 
