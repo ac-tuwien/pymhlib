@@ -103,9 +103,10 @@ class SSGA(Scheduler):
                 # b = random.randint(a+1,len(parent1.x) -1)
                 # child1 = partial_matched_crossover(parent1, parent2, range(a,b))
                 # child2 = partial_matched_crossover(parent2, parent1, range(a,b))
-                child1, child2 = cycle_crossover(parent1.copy(), parent2.copy())
+                #child1, child2 = cycle_crossover(parent1.copy(), parent2.copy())
                 # TODO cylcle crossover should invalide
-                # child1, child2 = edge_recombination(parent1.copy(), parent2.copy())
+                child1 = edge_recombination(parent1, parent2)
+                child2 = edge_recombination(parent2, parent1)
 
                 child1.invalidate()
                 child2.invalidate()
