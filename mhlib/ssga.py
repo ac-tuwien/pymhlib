@@ -98,7 +98,7 @@ class SSGA(Scheduler):
             child1: PermutationSolution
             child2: PermutationSolution
 
-            if random.random() < crossover_probability or True:
+            if random.random() < crossover_probability:
                 # a = random.randint(0,len(parent1.x) -2)
                 # b = random.randint(a+1,len(parent1.x) -1)
                 # child1 = partial_matched_crossover(parent1, parent2, range(a,b))
