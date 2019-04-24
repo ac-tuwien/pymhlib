@@ -2,8 +2,10 @@
 
 import numpy as np
 import networkx as nx
+from typing import Any
 
 from mhlib.subset_solution import SubsetSolution
+from mhlib.scheduler import Result
 
 
 class MISPInstance:
@@ -84,19 +86,19 @@ class MISPSolution(SubsetSolution):
         super().clear()
         self.covered.fill(0)
 
-    def construct(self, par, _result):
+    def construct(self, par: Any, _result: Result):
         """Scheduler method that constructs a new solution.
 
         Here we just call initialize.
         """
         self.initialize(par)
 
-    def local_improve(self, _par, result):
+    def local_improve(self, _par: Any, result: Result):
         """Scheduler method that performs one iteration of the exchange neighborhood."""
         if not self.two_exchange_random_fill_neighborhood_search(False):
             result.changed = False
 
-    def shaking(self, par, _result):
+    def shaking(self, par: Any, _result: Result):
         """Scheduler method that performs shaking by remove_some(par) and random_fill()."""
         self.remove_some(par)
         self.random_fill(list(np.nonzero(self.covered == 0)[0]))

@@ -2,9 +2,11 @@
 
 import numpy as np
 import random
+from typing import Any
 
 from mhlib.solution import BoolVectorSolution
 from mhlib.alns import ALNS
+from mhlib.scheduler import Result
 
 
 class MAXSATInstance:
@@ -93,14 +95,14 @@ class MAXSATSolution(BoolVectorSolution):
             raise ValueError("Invalid length of solution")
         super().check()
 
-    def construct(self, par, _result):
+    def construct(self, par: Any, _result: Result):
         """Scheduler method that constructs a new solution.
 
         Here we just call initialize.
         """
         self.initialize(par)
 
-    def local_improve(self, par, _result):
+    def local_improve(self, par: Any, _result: Result):
         """Perform k_flip_local_search."""
         self.k_flip_local_search(par, False)
 
@@ -111,7 +113,7 @@ class MAXSATSolution(BoolVectorSolution):
             self.x[p] = not self.x[p]
         self.invalidate()
 
-    def destroy(self, par, _result):
+    def destroy(self, par: Any, _result: Result):
         """Destroy operator for ALNS selects par*ALNS.get_number_to_destroy positions uniformly at random for removal.
 
         Selected positions are stored with the solution in list self.destroyed.
@@ -120,7 +122,7 @@ class MAXSATSolution(BoolVectorSolution):
         self.destroyed = np.random.choice(range(len(self.x)), num, replace=False)
         self.invalidate()
 
-    def repair(self, _par, _result):
+    def repair(self, _par: Any, _result: Result):
         """Repair operator for ALNS assigns new random values to all positions in self.destroyed."""
         assert self.destroyed is not None
         for p in self.destroyed:
@@ -128,7 +130,7 @@ class MAXSATSolution(BoolVectorSolution):
         self.destroyed = None
         self.invalidate()
 
-    def k_flip_local_search(self, k: int, best_improvement) -> bool:
+    def k_flip_local_search(self, k: int, best_improvement: bool) -> bool:
         """Perform one major iteration of a k-flip local search.
 
         If best_improvement is set, the neighborhood is completely searched and a best neighbor is kept;

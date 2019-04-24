@@ -2,8 +2,10 @@
 
 import numpy as np
 import random
+from typing import Any
 
 from mhlib.permutation_solution import PermutationSolution
+from mhlib.scheduler import Result
 
 
 class QAPInstance:
@@ -63,18 +65,18 @@ class QAPSolution(PermutationSolution):
         obj = np.einsum('ij,ij', self.inst.a, self.inst.b[self.x][:, self.x])
         return obj
 
-    def construct(self, par, _result):
+    def construct(self, par: Any, _result: Result):
         """Scheduler method that constructs a new solution.
 
         Here we just call initialize.
         """
         self.initialize(par)
 
-    def local_improve(self, _par, _result):
+    def local_improve(self, _par: Any, _result: Result):
         """Perform local search."""
         self.two_exchange_neighborhood_search(False)
 
-    def shaking(self, par, _result):
+    def shaking(self, par: Any, _result: Result):
         """Scheduler method that performs shaking by par random 2-exchange moves."""
         for i in range(par):
             p1 = random.randrange(0, self.inst.n)

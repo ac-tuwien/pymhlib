@@ -77,7 +77,7 @@ class ALNS(Scheduler):
         self.temperature = sol.obj() * self.own_settings.mh_alns_init_temp_factor + 0.000001
 
     @staticmethod
-    def select_method(meths: List[Method], weights=None):
+    def select_method(meths: List[Method], weights=None) -> Method:
         """Randomly select a method from the given list with probabilities proportional to the given weights.
 
         :param meths: list of methods from which to select one
@@ -95,7 +95,7 @@ class ALNS(Scheduler):
         return np.random.random_sample() <= exp(-abs(sol_new.obj() - sol_incumbent.obj())/self.temperature)
 
     @staticmethod
-    def get_number_to_destroy(num_elements: int, own_settings=settings):
+    def get_number_to_destroy(num_elements: int, own_settings=settings) -> int:
         """Randomly sample the number of elements to destroy in the destroy operator based on the parameter settings."""
         a = max(own_settings.mh_alns_dest_min_abs, int(own_settings.mh_alns_dest_min_ratio * num_elements))
         b = min(own_settings.mh_alns_dest_max_abs, int(own_settings.mh_alns_dest_max_ratio * num_elements))

@@ -1,8 +1,10 @@
 """Demo application solving the multi-dimensional knapsack problem (MKP)."""
 
 import numpy as np
+from typing import Any
 
 from mhlib.subset_solution import SubsetSolution
+from mhlib.scheduler import Result
 
 
 class MKPInstance:
@@ -86,19 +88,19 @@ class MKPSolution(SubsetSolution):
         self.y.fill(0)
         super().clear()
 
-    def construct(self, par, _result):
+    def construct(self, par: Any, _result: Result):
         """Scheduler method that constructs a new solution.
 
         Here we just call initialize.
         """
         self.initialize(par)
 
-    def local_improve(self, _par, result):
+    def local_improve(self, _par: Any, result: Result):
         """Scheduler method that performs one iteration of the exchange neighborhood."""
         if not self.two_exchange_random_fill_neighborhood_search(False):
             result.changed = False
 
-    def shaking(self, par, _result):
+    def shaking(self, par: Any, _result: Result):
         """Scheduler method that performs shaking by remove_some(par) and random_fill()."""
         self.remove_some(par)
         self.random_fill(self.x[self.sel:])
