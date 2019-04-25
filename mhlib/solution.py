@@ -76,7 +76,7 @@ class Solution(ABC):
 
     @abstractmethod
     def initialize(self, k):
-        """Construct an initial solution.
+        """Construct an initial solution in a fast non-sophisticated way.
 
         :param k: is increased from 0 onwards for each call of this method
         """

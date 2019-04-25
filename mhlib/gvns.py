@@ -67,7 +67,7 @@ class GVNS(Scheduler):
     def gvns(self, sol: Solution):
         """Perform general variable neighborhood search (GVNS) to given solution."""
         sol2 = sol.copy()
-        if self.vnd(sol2):
+        if self.vnd(sol2) or not self.meths_sh:
             return
         use_vnd = bool(self.meths_li)
         while True:
@@ -90,7 +90,7 @@ class GVNS(Scheduler):
             else:
                 break
 
-    def run(self):
+    def run(self) -> None:
         """Actually performs the construction heuristics followed by the GVNS."""
         sol = self.incumbent.copy()
         assert self.incumbent_valid or self.meths_ch

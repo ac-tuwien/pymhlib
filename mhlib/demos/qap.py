@@ -20,8 +20,6 @@ class QAPInstance:
     def __init__(self, file_name: str):
         """Read an instance from the specified file."""
         self.n = 0
-        self.a: np.array
-        self.b: np.array
         with open(file_name, "r") as file:
             self.n = int(file.readline())
             if not 2 <= self.n <= 1000:

@@ -71,6 +71,7 @@ class ALNS(Scheduler):
         """
         super().__init__(sol, meths_ch + meths_destroy + meths_repair, own_settings, consider_initial_sol)
         self.meths_ch = meths_ch
+        assert meths_destroy and meths_repair
         self.meths_destroy = meths_destroy
         self.meths_repair = meths_repair
         self.score_data = {m.name: ScoreData() for m in chain(self.meths_destroy, self.meths_repair)}
@@ -95,11 +96,28 @@ class ALNS(Scheduler):
         return np.random.random_sample() <= exp(-abs(sol_new.obj() - sol_incumbent.obj())/self.temperature)
 
     @staticmethod
-    def get_number_to_destroy(num_elements: int, own_settings=settings) -> int:
-        """Randomly sample the number of elements to destroy in the destroy operator based on the parameter settings."""
-        a = max(own_settings.mh_alns_dest_min_abs, int(own_settings.mh_alns_dest_min_ratio * num_elements))
-        b = min(own_settings.mh_alns_dest_max_abs, int(own_settings.mh_alns_dest_max_ratio * num_elements))
-        return np.random.randint(a, b+1)
+    def get_number_to_destroy(num_elements: int, own_settings=settings, dest_min_abs=None, dest_min_ratio=None,
+                              dest_max_abs=None, dest_max_ratio=None) -> int:
+        """Randomly sample the number of elements to destroy in the destroy operator based on the parameter settings.
+
+        :param num_elements: number of elements to destroy from (e.g., the size of the solution)
+        :param own_settings: a settings object to be used which overrides the global settings
+        :param dest_min_abs: absolute minimum number of elements to destroy overriding settings
+        :param dest_min_ratio: relative minimum ratio of elements to destroy overriding settings
+        :param dest_max_abs: absolute maximum number of elements to destroy overriding settings
+        :param dest_max_ratio: relative maximum ratio of elements to destroy overriding settings
+        """
+        if dest_min_abs is None:
+            dest_min_abs = own_settings.mh_alns_dest_min_abs
+        if dest_min_ratio is None:
+            dest_min_ratio = own_settings.mh_alns_dest_min_ratio
+        if dest_max_abs is None:
+            dest_max_abs = own_settings.mh_alns_dest_max_abs
+        if dest_max_ratio is None:
+            dest_max_ratio = own_settings.mh_alns_dest_max_ratio
+        a = max(dest_min_abs, int(dest_min_ratio * num_elements))
+        b = min(dest_max_abs, int(dest_max_ratio * num_elements))
+        return np.random.randint(a, b+1) if b >= a else b+1
 
     def log_scores(self):
         """Write information on received scores and weight update to log."""
@@ -158,7 +176,7 @@ class ALNS(Scheduler):
                         data.score = 0
                         data.applied = 0
 
-    def run(self):
+    def run(self) -> None:
         """Actually performs the construction heuristics followed by the ALNS."""
         sol = self.incumbent.copy()
         assert self.incumbent_valid or self.meths_ch

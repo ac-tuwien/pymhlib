@@ -21,6 +21,7 @@ class PermutationSolution(VectorSolution, ABC):
     def initialize(self, k):
         """Random initialization."""
         np.random.shuffle(self.x)
+        self.invalidate()
 
     def check(self):
         """Check if valid solution.
