@@ -90,11 +90,8 @@ class SSGA(Scheduler):
             if res.terminate:
                 break
 
-        iteration = 0
-        terminate = False
-
-        while not terminate:
-            iteration += 1
+        while True:
+            self.iteration += 1
             parent1 = self.selection()
             parent2 = self.selection()
 
@@ -124,7 +121,6 @@ class SSGA(Scheduler):
             child2.invalidate()
 
             if res1.terminate or res2.terminate:
-                terminate = True
                 break
 
             # Set parent 1 and 2 to the best two
