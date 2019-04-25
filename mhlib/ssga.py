@@ -92,37 +92,35 @@ class SSGA(Scheduler):
 
         while True:
             self.iteration += 1
+
+            # Selection
             parent1 = self.selection()
             parent2 = self.selection()
 
-            child1: PermutationSolution
-            child2: PermutationSolution
-
+            # Crossover
             if random.random() < self.own_settings.mh_ssga_cross_prob:
+                # TODO find way to make 'Method' receiving two solutions as parameters
+                #  and returning a new one (or two)
+                # TODO create list of crossover operations for PMX, cycle crossover, ...
                 # a = random.randint(0,len(parent1.x) -2)
                 # b = random.randint(a+1,len(parent1.x) -1)
                 # child1 = partial_matched_crossover(parent1, parent2, range(a,b))
                 # child2 = partial_matched_crossover(parent2, parent1, range(a,b))
-                #child1, child2 = cycle_crossover(parent1.copy(), parent2.copy())
-                # TODO cylcle crossover should invalide
+                # child1, child2 = cycle_crossover(parent1.copy(), parent2.copy())
                 child1 = edge_recombination(parent1, parent2)
                 child2 = edge_recombination(parent2, parent1)
-
-                child1.invalidate()
-                child2.invalidate()
             else:
                 child1 = parent1.copy()
                 child2 = parent2.copy()
 
+            # Mutation
             res1 = self.perform_method(self.meth_mu, child1)
             res2 = self.perform_method(self.meth_mu, child2)
-
-            child1.invalidate()
-            child2.invalidate()
 
             if res1.terminate or res2.terminate:
                 break
 
+            # Replacement
             # Set parent 1 and 2 to the best two
             # of: parent1, parent2, child1, child2
             if child1.is_better(parent1):
@@ -141,6 +139,8 @@ class SSGA(Scheduler):
             if parent2.is_better(self.incumbent):
                 self.incumbent = parent2.copy()
 
+            # Replace best
+            # TODO this should not necessary, find out why it is and fix
             best = population[0]
             for indiv in population:
                 if indiv.is_better(best):
