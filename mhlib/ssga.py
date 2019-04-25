@@ -117,6 +117,9 @@ class SSGA(Scheduler):
             res1 = self.perform_method(self.meth_mu, child1)
             res2 = self.perform_method(self.meth_mu, child2)
 
+            child1.invalidate()
+            child2.invalidate()
+
             if res1.terminate or res2.terminate:
                 terminate = True
                 break
