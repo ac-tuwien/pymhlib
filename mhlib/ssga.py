@@ -13,7 +13,9 @@ from mhlib.permutation_solution import PermutationSolution, cycle_crossover, par
 import random
 
 parser = get_settings_parser()
-
+parser.add("--mh_ssga_pop_size", type=int, default=100, help='SSGA population size')
+parser.add("--mh_ssga_tournament_size", type=int, default=10, help='SSGA tournament size')
+parser.add("--mh_ssga_cross_prob", type=int, default=0.01, help='SSGA crossover probability')
 
 class SSGA(Scheduler):
     """A steady state genetic algorithm.
@@ -46,12 +48,17 @@ class SSGA(Scheduler):
         #        self.meth_re = meth_re
         self.meth_mu = meth_mu
 
-    def tournament_selection(self, size):
+    def selection(self):
+        """Tournament selection.
+
+        :return: a solution
+        """
         pop = self.population
+        k = self.own_settings.mh_ssga_tournament_size
 
         best = pop[random.randint(1, len(pop)) - 1]
 
-        for i in range(size - 1):
+        for i in range(k - 1):
             indiv = pop[random.randint(1, len(pop)) - 1]
             if indiv.is_better(best):
                 best = indiv
@@ -60,10 +67,6 @@ class SSGA(Scheduler):
 
     def run(self):
         """Actually performs the construction heuristics followed by the PBIG."""
-
-        pop_size = 100
-        tournament_size = 20
-        crossover_probability = 0.01  # 1 percent
 
         #        population = List[Solution]
         self.population: List[PermutationSolution] = []
@@ -75,7 +78,7 @@ class SSGA(Scheduler):
 
         # cycle through construction heuristics to generate population
         # perform all construction heuristics, take best solution
-        while len(population) < pop_size:
+        while len(population) < self.own_settings.mh_ssga_pop_size:
             m = next(meths_cycle)
             indiv = self.incumbent.copy()
             res = self.perform_method(m, indiv)
@@ -92,13 +95,13 @@ class SSGA(Scheduler):
 
         while not terminate:
             iteration += 1
-            parent1 = self.tournament_selection(tournament_size)
-            parent2 = self.tournament_selection(tournament_size)
+            parent1 = self.selection()
+            parent2 = self.selection()
 
             child1: PermutationSolution
             child2: PermutationSolution
 
-            if random.random() < crossover_probability:
+            if random.random() < self.own_settings.mh_ssga_cross_prob:
                 # a = random.randint(0,len(parent1.x) -2)
                 # b = random.randint(a+1,len(parent1.x) -1)
                 # child1 = partial_matched_crossover(parent1, parent2, range(a,b))
