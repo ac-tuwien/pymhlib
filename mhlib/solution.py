@@ -194,6 +194,7 @@ class BoolVectorSolution(VectorSolution, ABC):
     def initialize(self, k):
         """Random initialization."""
         self.x = np.random.randint(0, 2, len(self.x))
+        self.invalidate()
 
     def check(self):
         """Check if valid solution.

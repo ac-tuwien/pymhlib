@@ -61,6 +61,7 @@ class SubsetSolution(VectorSolution, ABC):
         """Random construction of a new solution by applying random_fill to an initially empty solution."""
         self.clear()
         self.random_fill(self.x if self.unselected_elems_in_x() else list(self.all_elements))
+        self.invalidate()
 
     def check(self, unsorted=False):
         """Check correctness of solution; throw an exception if error detected.
