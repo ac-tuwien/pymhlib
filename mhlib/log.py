@@ -53,15 +53,24 @@ def init_logger():
     iter_logger.setLevel(logging.INFO)
 
 
-class IndentLevel:
+class LogLevel:
     """Manage indentation of log messages according to specified levels.
+
+    Indentation is most meaningful when embedding optimization algorithms within others.
+
+    This class can also be used as context manager in a with statement.
+
+    If indentation is used and some multi-line log message is written, write Loglevel.str after each "\n"
+    in order to do the indentation for all lines.
 
     Class attributes
         - level: level of indentation
-        - indent_str: prefix used for each indentation
-        - format_str: unindented format string
+        - str: actual string used for current indentation
+        - indent_str: prefix used for each indentation level
+        - format_str: unindented format string for logging
     """
     level = 0
+    str = ""
     indent_str = "  > "
     format_str = "%(message)s"
 
@@ -86,12 +95,23 @@ class IndentLevel:
 
     @classmethod
     def set_format(cls):
-        format_str = cls.indent_str * cls.level + cls.format_str
+        """Activate the format for the currently set level."""
+        cls.str = cls.indent_str * cls.level
+        format_str = cls.str + cls.format_str
         formatter = logging.Formatter(format_str)
         for name in ['mhlib', 'mhlib_iter']:
             logger = logging.getLogger(name)
             for h in logger.handlers:
                 h.setFormatter(formatter)
+
+    def __enter__(self):
+        """When used as context manager in with statement and entering context, increase level."""
+        self.increase()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """When used as context manager in with statement and leaving context, decrease level."""
+        self.decrease()
 
 
 def test():
@@ -103,12 +123,12 @@ def test():
     iter_logger = logging.getLogger("mhlib_iter")
     iter_logger.info('This is an info to iter_logger')
     iter_logger.error('This is an error to iter_logger')
-    IndentLevel.increase()
+    LogLevel.increase()
     logger.info('This is an info to logger at level 1')
-    IndentLevel.increase()
+    LogLevel.increase()
     logger.info('This is an info to iter_logger at level 2')
-    IndentLevel.decrease()
-    IndentLevel.decrease()
+    LogLevel.decrease()
+    LogLevel.decrease()
     logger.info('This is an info to logger at level 0')
 
 

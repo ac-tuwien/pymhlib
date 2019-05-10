@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from mhlib.settings import get_settings_parser, settings
 from mhlib.solution import Solution
 from mhlib.scheduler import Scheduler, Method
+from mhlib.log import LogLevel
 
 
 parser = get_settings_parser()
@@ -121,8 +122,8 @@ class ALNS(Scheduler):
 
     def log_scores(self):
         """Write information on received scores and weight update to log."""
-        indent = ' '*32
-        s = f"{indent}scores at end of iteration {self.iteration}:\n"
+        indent = LogLevel.str + ' ' * 32
+        s = f"{indent}scores at end of iteration {self.iteration}:\n{LogLevel.str}"
         s += f"{indent} method    applied   score    weight"
         for m in chain(self.meths_destroy, self.meths_repair):
             data = self.score_data[m.name]
