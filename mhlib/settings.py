@@ -34,7 +34,7 @@ def get_settings_parser():
     return _parser
 
 
-def parse_settings(return_unknown=False, default_config_files=None):
+def parse_settings(args=None, return_unknown=False, default_config_files=None):
     """Parses the config files and command line arguments and initializes settings and unknown_parameters.
 
     Needs to be called once in the main program (or more generally after all arguments have been added to the parser.
@@ -49,9 +49,9 @@ def parse_settings(return_unknown=False, default_config_files=None):
     p.add_argument('-c', '--config', is_config_file=True, help='config file to be read')
     p._default_config_files = default_config_files if default_config_files else []
     if return_unknown:
-        _, unknown_args[:] = p.parse_known_args(namespace=settings)
+        _, unknown_args[:] = p.parse_known_args(args=args, namespace=settings)
     else:
-        p.parse_args(namespace=settings)
+        p.parse_args(args=args, namespace=settings)
 
     # random seed; per default a random seed is generated
     if settings.seed == 0:
