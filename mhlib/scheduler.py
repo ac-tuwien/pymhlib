@@ -4,7 +4,7 @@ The module is intended for metaheuristics in which a set of methods (or several 
 in some way repeatedly applied to candidate solutions.
 """
 
-from typing import Callable, List, Any
+from typing import Callable, List, Any, Optional
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 import random
@@ -44,15 +44,17 @@ class Result:
     Attributes
         - changed: if false, the solution has not been changed by the method application
         - terminate: if true, a termination condition has been fulfilled
+        - log_info: customized log info
     """
-    __slots__ = ('changed', 'terminate')
+    __slots__ = ('changed', 'terminate', 'log_info')
 
     def __init__(self):
         self.changed = True
         self.terminate = False
+        self.log_info = None
 
     def __repr__(self):
-        return f"(changed={self.changed}, terminate={self.terminate})"
+        return f"(changed={self.changed}, terminate={self.terminate}, log_info={self.log_info})"
 
 
 @dataclass
@@ -130,7 +132,7 @@ class Scheduler(ABC):
         self.iter_logger = logging.getLogger("mhlib_iter")
         self.log_iteration_header()
         if self.incumbent_valid:
-            self.log_iteration('-', sol, True, True)
+            self.log_iteration('-', sol, True, True, None)
         self.own_settings = OwnSettings(own_settings) if own_settings else settings
 
     def update_incumbent(self, sol, current_time):
@@ -191,7 +193,7 @@ class Scheduler(ABC):
         self.iteration += 1
         new_incumbent = self.update_incumbent(sol, t_end - self.time_start)
         terminate = self.check_termination()
-        self.log_iteration(method.name, sol, new_incumbent, terminate)
+        self.log_iteration(method.name, sol, new_incumbent, terminate, res.log_info)
         if terminate:
             self.run_time = time.process_time() - self.time_start
             res.terminate = True
@@ -234,7 +236,7 @@ class Scheduler(ABC):
         self.iteration += 1
         new_incumbent = self.update_incumbent(sol, t_end - self.time_start)
         terminate = self.check_termination()
-        self.log_iteration(destroy_method.name+'+'+repair_method.name, sol, new_incumbent, terminate)
+        self.log_iteration(destroy_method.name+'+'+repair_method.name, sol, new_incumbent, terminate, res.log_info)
         if terminate:
             self.run_time = time.process_time() - self.time_start
             res.terminate = True
@@ -269,7 +271,7 @@ class Scheduler(ABC):
 
     def log_iteration_header(self):
         """Writes iteration log header."""
-        s = f"{'iteration':>10} {'best':>17} {'current':>12} {'time':>12} {'method':>12}"
+        s = f"{'iteration':>10} {'best':>17} {'current':>12} {'time':>12} {'method':<20} info"
         self.iter_logger.info(s)
 
     @staticmethod
@@ -278,7 +280,8 @@ class Scheduler(ABC):
         return abs(lr) < __class__.eps or abs(lr-__class__.log10_2) < __class__.eps or \
             abs(lr-__class__.log10_5) < __class__.eps
 
-    def log_iteration(self, method_name: str, sol: Solution, new_incumbent: bool, in_any_case: bool):
+    def log_iteration(self, method_name: str, sol: Solution, new_incumbent: bool, in_any_case: bool,
+                      log_info: Optional[str]):
         """Writes iteration log info.
 
         A line is written if in_any_case is set or in dependence of settings.mh_lfreq and settings.mh_lnewinc.
@@ -287,6 +290,7 @@ class Scheduler(ABC):
         :param sol: current solution
         :param new_incumbent: true if the method yielded a new incumbent solution
         :param in_any_case: turns filtering of iteration logs off
+        :param log_info: customize log info optionally added if not None
         """
         log = in_any_case or new_incumbent and self.own_settings.mh_lnewinc
         if not log:
@@ -297,7 +301,8 @@ class Scheduler(ABC):
                 log = True
         if log:
             s = f"{self.iteration:>10d} {self.incumbent.obj():16.5f} {sol.obj():16.5f} " \
-                f"{time.process_time()-self.time_start:9.4f} {method_name:>12}"
+                f"{time.process_time()-self.time_start:9.4f} {method_name:<20} " \
+                f"{log_info if log_info is not None else ''}"
             self.iter_logger.info(s)
 
     @abstractmethod
