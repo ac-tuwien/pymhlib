@@ -90,11 +90,12 @@ class ALNS(Scheduler):
         else:
             return np.random.choice(meths, p=weights/sum(weights))
 
-    def metropolis_criterion(self, sol_new: Solution, sol_incumbent: Solution) -> bool:
+    def metropolis_criterion(self, sol_new: Solution, sol_current: Solution) -> bool:
         """Apply Metropolis criterion as acceptance decision, return True when sol_new should be accepted."""
-        if sol_new.is_better(sol_incumbent):
+        if sol_new.is_better(sol_current):
             return True
-        return np.random.random_sample() <= exp(-abs(sol_new.obj() - sol_incumbent.obj())/self.temperature)
+        # print(sol_new.obj(), sol_current.obj(), self.temperature)
+        return np.random.random_sample() <= exp(-abs(sol_new.obj() - sol_current.obj()) / self.temperature)
 
     @staticmethod
     def get_number_to_destroy(num_elements: int, own_settings=settings, dest_min_abs=None, dest_min_ratio=None,
@@ -150,14 +151,18 @@ class ALNS(Scheduler):
             score = 0
             if sol_new.is_better(sol_incumbent):
                 score = self.own_settings.mh_alns_sigma1
-                sol_incumbent = sol_new
+                print('better than incumbent')
+                sol_incumbent.copy_from(sol_new)
+                sol.copy_from(sol_new)
             elif sol_new.is_better(sol):
                 score = self.own_settings.mh_alns_sigma2
+                print('better than current')
                 sol.copy_from(sol_new)
-            elif self.metropolis_criterion(sol_new, sol):
+            elif sol.is_better(sol_new) and self.metropolis_criterion(sol_new, sol):
                 score = self.own_settings.mh_alns_sigma3
+                print('accepted although worse')
                 sol.copy_from(sol_new)
-            else:
+            elif sol_new != sol:
                 sol_new.copy_from(sol)
             destroy_data.score += score
             repair_data.score += score
