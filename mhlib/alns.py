@@ -76,7 +76,7 @@ class ALNS(Scheduler):
         self.meths_destroy = meths_destroy
         self.meths_repair = meths_repair
         self.score_data = {m.name: ScoreData() for m in chain(self.meths_destroy, self.meths_repair)}
-        self.temperature = sol.obj() * self.own_settings.mh_alns_init_temp_factor + 0.000001
+        self.temperature = sol.obj() * self.own_settings.mh_alns_init_temp_factor + 0.000000001
 
     @staticmethod
     def select_method(meths: List[Method], weights=None) -> Method:
@@ -94,7 +94,6 @@ class ALNS(Scheduler):
         """Apply Metropolis criterion as acceptance decision, return True when sol_new should be accepted."""
         if sol_new.is_better(sol_current):
             return True
-        # print(sol_new.obj(), sol_current.obj(), self.temperature)
         return np.random.random_sample() <= exp(-abs(sol_new.obj() - sol_current.obj()) / self.temperature)
 
     @staticmethod
@@ -151,16 +150,16 @@ class ALNS(Scheduler):
             score = 0
             if sol_new.is_better(sol_incumbent):
                 score = self.own_settings.mh_alns_sigma1
-                print('better than incumbent')
+                # print('better than incumbent')
                 sol_incumbent.copy_from(sol_new)
                 sol.copy_from(sol_new)
             elif sol_new.is_better(sol):
                 score = self.own_settings.mh_alns_sigma2
-                print('better than current')
+                # print('better than current')
                 sol.copy_from(sol_new)
             elif sol.is_better(sol_new) and self.metropolis_criterion(sol_new, sol):
                 score = self.own_settings.mh_alns_sigma3
-                print('accepted although worse')
+                # print('accepted although worse')
                 sol.copy_from(sol_new)
             elif sol_new != sol:
                 sol_new.copy_from(sol)
