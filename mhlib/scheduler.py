@@ -132,7 +132,7 @@ class Scheduler(ABC):
         self.iter_logger = logging.getLogger("mhlib_iter")
         self.log_iteration_header()
         if self.incumbent_valid:
-            self.log_iteration('-', sol, True, True, None)
+            self.log_iteration('-', float('NaN'), sol, True, True, None)
         self.own_settings = OwnSettings(own_settings) if own_settings else settings
 
     def update_incumbent(self, sol, current_time):
@@ -193,7 +193,7 @@ class Scheduler(ABC):
         self.iteration += 1
         new_incumbent = self.update_incumbent(sol, t_end - self.time_start)
         terminate = self.check_termination()
-        self.log_iteration(method.name, sol, new_incumbent, terminate, res.log_info)
+        self.log_iteration(method.name, obj_old, sol, new_incumbent, terminate, res.log_info)
         if terminate:
             self.run_time = time.process_time() - self.time_start
             res.terminate = True
@@ -236,7 +236,8 @@ class Scheduler(ABC):
         self.iteration += 1
         new_incumbent = self.update_incumbent(sol, t_end - self.time_start)
         terminate = self.check_termination()
-        self.log_iteration(destroy_method.name+'+'+repair_method.name, sol, new_incumbent, terminate, res.log_info)
+        self.log_iteration(destroy_method.name+'+'+repair_method.name, obj_old, sol, new_incumbent,
+                           terminate, res.log_info)
         if terminate:
             self.run_time = time.process_time() - self.time_start
             res.terminate = True
@@ -271,7 +272,7 @@ class Scheduler(ABC):
 
     def log_iteration_header(self):
         """Writes iteration log header."""
-        s = f"{'iteration':>10} {'best':>17} {'current':>12} {'time':>12} {'method':<20} info"
+        s = f"I {'iteration':>10} {'best':>16} {'obj_old':>16} {'obj_new':>16} {'time':>12} {'method':<20} info"
         self.iter_logger.info(s)
 
     @staticmethod
@@ -280,14 +281,15 @@ class Scheduler(ABC):
         return abs(lr) < __class__.eps or abs(lr-__class__.log10_2) < __class__.eps or \
             abs(lr-__class__.log10_5) < __class__.eps
 
-    def log_iteration(self, method_name: str, sol: Solution, new_incumbent: bool, in_any_case: bool,
+    def log_iteration(self, method_name: str, obj_old: TObj, new_sol: Solution, new_incumbent: bool, in_any_case: bool,
                       log_info: Optional[str]):
         """Writes iteration log info.
 
         A line is written if in_any_case is set or in dependence of settings.mh_lfreq and settings.mh_lnewinc.
 
         :param method_name: name of applied method or '-' (if initially given solution)
-        :param sol: current solution
+        :param obj_old: objective value before applying last operator
+        :param new_sol: newly created solution
         :param new_incumbent: true if the method yielded a new incumbent solution
         :param in_any_case: turns filtering of iteration logs off
         :param log_info: customize log info optionally added if not None
@@ -300,8 +302,8 @@ class Scheduler(ABC):
             elif lfreq < 0 and self.is_logarithmic_number(self.iteration):
                 log = True
         if log:
-            s = f"{self.iteration:>10d} {self.incumbent.obj():16.5f} {sol.obj():16.5f} " \
-                f"{time.process_time()-self.time_start:9.4f} {method_name:<20} " \
+            s = f"I {self.iteration:>10d} {self.incumbent.obj():16.5f} {obj_old:16.6f} {new_sol.obj():16.5f} " \
+                f"{time.process_time()-self.time_start:12.4f} {method_name:<20} " \
                 f"{log_info if log_info is not None else ''}"
             self.iter_logger.info(s)
 
@@ -323,7 +325,7 @@ class Scheduler(ABC):
         if not self.run_time:
             self.run_time = time.process_time() - self.time_start
         s = f"Method statistics:\n{LogLevel.str}"
-        s += f" method    iter   succ succ-rate%  tot-obj-gain  avg-obj-gain rel-succ%  net-time  " \
+        s += f"S  method    iter   succ succ-rate%    tot-obj-gain    avg-obj-gain rel-succ%  net-time  " \
              f"net-time%  brut-time  brut-time%\n{LogLevel.str}"
         total_applications = 0
         total_netto_time = 0.0
@@ -338,15 +340,15 @@ class Scheduler(ABC):
             total_obj_gain += ms.obj_gain
 
         for name, ms in self.method_stats.items():
-            s += f"{name:>7} {ms.applications:7d} {ms.successes:6d} " \
+            s += f"S {name:>7} {ms.applications:7d} {ms.successes:6d} " \
                  f"{self.sdiv(ms.successes, ms.applications)*100:10.4f} " \
-                 f"{ms.obj_gain:13.5f} {self.sdiv(ms.obj_gain, ms.applications):13.5f} " \
+                 f"{ms.obj_gain:15.5f} {self.sdiv(ms.obj_gain, ms.applications):15.5f} " \
                  f"{self.sdiv(ms.successes, total_successes)*100:9.4f} " \
                  f"{ms.netto_time:9.4f} {self.sdiv(ms.netto_time, self.run_time)*100:10.4f} " \
                  f"{ms.brutto_time:10.4f} {self.sdiv(ms.brutto_time, self.run_time)*100:11.4f}\n{LogLevel.str}"
-        s += f"{'SUM/AVG':>7} {total_applications:7d} {total_successes:6d} " \
+        s += f"S {'SUM/AVG':>7} {total_applications:7d} {total_successes:6d} " \
              f"{self.sdiv(total_successes, total_applications)*100:10.4f} " \
-             f"{total_obj_gain:13.5f} {self.sdiv(total_obj_gain, total_applications):13.5f} " \
+             f"{total_obj_gain:15.5f} {self.sdiv(total_obj_gain, total_applications):15.5f} " \
              f"{self.sdiv(self.sdiv(total_successes, len(self.method_stats)), total_successes)*100:9.4f} " \
              f"{total_netto_time:9.4f} {self.sdiv(total_netto_time, self.run_time)*100:10.4f} " \
              f"{total_brutto_time:10.4f} {self.sdiv(total_brutto_time, self.run_time)*100:11.4f}\n{LogLevel.str}"
@@ -354,11 +356,11 @@ class Scheduler(ABC):
 
     def main_results(self):
         """Write main results to logger."""
-        s = f"best solution: {self.incumbent}\n{LogLevel.str}best obj: {self.incumbent.obj()}\n{LogLevel.str}" \
-            f"best iteration: {self.incumbent_iteration}\n{LogLevel.str}" \
-            f"total iterations: {self.iteration}\n{LogLevel.str}" \
-            f"best time [s]: {self.incumbent_time:.3f}\n{LogLevel.str}" \
-            f"total time [s]: {self.run_time:.4f}\n{LogLevel.str}"
+        s = f"T best solution: {self.incumbent}\n{LogLevel.str}T best obj: {self.incumbent.obj()}\n{LogLevel.str}" \
+            f"T best iteration: {self.incumbent_iteration}\n{LogLevel.str}" \
+            f"T total iterations: {self.iteration}\n{LogLevel.str}" \
+            f"T best time [s]: {self.incumbent_time:.3f}\n{LogLevel.str}" \
+            f"T total time [s]: {self.run_time:.4f}\n{LogLevel.str}"
         self.logger.info(s)
         self.incumbent.check()
 

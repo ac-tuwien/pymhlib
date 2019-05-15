@@ -27,7 +27,7 @@ parser.add("--mh_alns_dest_min_abs", type=int, default=4, help='ALNS minimum num
 parser.add("--mh_alns_dest_max_abs", type=int, default=60, help='ALNS maximum number of elements to destroy')
 parser.add("--mh_alns_dest_min_ratio", type=int, default=0.05, help='ALNS minimum ratio of elements to destroy')
 parser.add("--mh_alns_dest_max_ratio", type=int, default=0.35, help='ALNS maximum ratio of elements to destroy')
-parser.add("--mh_alns_logscores", default=False, action='store_true',
+parser.add("--mh_alns_logscores", default=True, action='store_true',
            help='ALNS write out log information on scores')
 parser.add("--no_mh_alns_logscores", dest='mh_alns_logscores', action='store_false')
 

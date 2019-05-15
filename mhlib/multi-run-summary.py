@@ -11,11 +11,11 @@ Example for a YAML config file:
 
 fetch:
     '[
-    (10, "obj", r"^best obj:\s(\d+\.?\d*)"),
-    (30, "ittot", r"^total iterations:\s(\d+\.?\d*)"),
-    (20, "itbest", r"^best iteration:\s(\d+\.?\d*)"),
-    (50, "ttot", r"^total time \[s\]:\s(\d+\.?\d*)"),
-    (40, "tbest", r"best time \[s\]:\s(\d+\.?\d*)"),
+    (10, "obj", r"^T best obj:\s(\d+\.?\d*)"),
+    (30, "ittot", r"^T total iterations:\s(\d+\.?\d*)"),
+    (20, "itbest", r"^T best iteration:\s(\d+\.?\d*)"),
+    (50, "ttot", r"^T total time \[s\]:\s(\d+\.?\d*)"),
+    (40, "tbest", r"T best time \[s\]:\s(\d+\.?\d*)"),
     ]'
 """
 
@@ -30,13 +30,13 @@ from pandas import DataFrame
 
 """Configuration of what information to extract from the out/log files."""
 fetch = [
-    (10, 'obj', r'^best obj:\s(\d+\.?\d*)'),
-    (30, 'ittot', r'^total iterations:\s(\d+\.?\d*)'),
-    (20, 'itbest', r'^best iteration:\s(\d+\.?\d*)'),
-    (50, 'ttot', r'^total time \[s\]:\s(\d+\.?\d*)'),
-    (40, 'tbest', r'^best time \[s\]:\s(\d+\.?\d*)'),
-    (110, 'obj0', r'^0+\s(\d+.?\d*)'),
-    (120, 'obj1', r'^0+1\s(\d+.?\d*)'),
+    (10, 'obj', r'^T best obj:\s(\d+\.?\d*)'),
+    (30, 'ittot', r'^T total iterations:\s(\d+\.?\d*)'),
+    (20, 'itbest', r'^T best iteration:\s(\d+\.?\d*)'),
+    (50, 'ttot', r'^T total time \[s\]:\s(\d+\.?\d*)'),
+    (40, 'tbest', r'^T best time \[s\]:\s(\d+\.?\d*)'),
+    (110, 'obj0', r'^I\s+0\s+(\d+.?\d*)'),
+    (120, 'obj1', r'^I\s+1\s+(\d+.?\d*)'),
 ]
 
 
