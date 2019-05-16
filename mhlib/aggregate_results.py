@@ -159,7 +159,7 @@ def agg_print(rawdata):
 
 
 def one_sided_wilcoxon_test(col1, col2) -> float:
-    """Perform one-sided statistical test (Wilcoxon signed rank-test) for the assumption col1<col2 and return p-value."""
+    """Perform one-sided Wilcoxon signed rank-test for the assumption col1 < col2 and return p-value."""
     dif = col1 - col2
     noties = len(dif[dif != 0])
     med_is_less = np.median(dif) < 0
@@ -177,30 +177,38 @@ def one_sided_wilcoxon_test(col1, col2) -> float:
     return p
 
 
-def doaggregate2(raw, fact):
-    """Aggregate results of two merged summary data frames."""
-    raw["obj_diff"] = raw.apply(lambda row: row["obj_x"] - row["obj_y"], axis=1)
-    raw["AlessB"] = raw.apply(lambda row: row["obj_x"] < row["obj_y"], axis=1)
-    raw["BlessA"] = raw.apply(lambda row: row["obj_x"] > row["obj_y"], axis=1)
-    raw["AeqB"] = raw.apply(lambda row: row["obj_x"] == row["obj_y"], axis=1)
+def aggregate_and_compare(raw, fact, col_name: str='obj', add_total=True, round=None):
+    """Compare two result columns in merged data frames."""
+    cx, cy = col_name + '_x', col_name + '_y'
+    raw["XminusY"] = raw.apply(lambda row: row[cx] - row[cy], axis=1)
+    raw["XlessY"] = raw.apply(lambda row: row[cx] < row[cy], axis=1)
+    raw["YlessX"] = raw.apply(lambda row: row[cx] > row[cy], axis=1)
+    raw["XeqY"] = raw.apply(lambda row: row[cx] == row[cy], axis=1)
     # rawdata["gap"] = raw.apply(lambda row: (row["ub"]-row["obj"])/row["ub"], axis=1)
     grp = raw.groupby(fact)
-    p_AlessB = {}
-    p_BlessA = {}
+    p_XlessY = {}
+    p_YlessX = {}
     for g, d in grp:
-        p_AlessB[g] = one_sided_wilcoxon_test(d["obj_x"], d["obj_y"])
-        p_BlessA[g] = one_sided_wilcoxon_test(d["obj_y"], d["obj_x"])
-    aggregated = pd.DataFrame({"runs": grp["obj_x"].size(),
-                               "A_obj_mean": grp["obj_x"].mean(),
-                               "B_obj_mean": grp["obj_y"].mean(),
-                               "diffobj_mean": grp["obj_diff"].mean(),
-                               "AlessB": grp["AlessB"].sum(),
-                               "BlessA": grp["BlessA"].sum(),
-                               "AeqB": grp["AeqB"].sum(),
-                               "p_AlessB": p_AlessB,
-                               "p_BlessA": p_BlessA,
+        p_XlessY[g] = one_sided_wilcoxon_test(d[cx], d[cy])
+        p_YlessX[g] = one_sided_wilcoxon_test(d[cy], d[cx])
+    aggregated = pd.DataFrame({"runs": grp[cx].size(),
+                               "X_mean": grp[cx].mean(),
+                               "Y_mean": grp[cy].mean(),
+                               "XminusY_mean": grp['XminusY'].mean(),
+                               "XlessY": grp["XlessY"].sum(),
+                               "YlessX": grp["YlessX"].sum(),
+                               "XeqY": grp["XeqY"].sum(),
+                               "p_XlessY": p_XlessY,
+                               "p_YlessX": p_YlessX,
                                })
-    return aggregated[["runs", "A_obj_mean", "B_obj_mean", "AlessB", "BlessA", "AeqB", "p_AlessB", "p_BlessA"]]
+    aggregated = aggregated[["runs", "X_mean", "Y_mean", "XminusY_mean", "XlessY", "YlessX", "XeqY", "p_XlessY", "p_YlessX"]]
+    if add_total:
+        raw['total'] = 'total'
+        agg_total = aggregate_and_compare(raw, 'total', col_name, add_total=False)
+        aggregated = pd.concat([aggregated, agg_total])
+    if round:
+        aggregated = round_compared(aggregated, round)
+    return aggregated
 
 
 def aggregate2(rawdata1, rawdata2):
@@ -215,13 +223,13 @@ def aggregate2(rawdata1, rawdata2):
     return {"grouped": aggregated, "total": aggtotal}
 
 
-def roundagg2(a):
+def round_compared(a: pd.DataFrame, digits: int = 2):
     """Rounds aggregated data for two summary data frames for printing."""
-    a["AlessB"] = a["AlessB"].map(lambda x: int(x))
-    a["BlessA"] = a["BlessA"].map(lambda x: int(x))
-    a["AeqB"] = a["AeqB"].map(lambda x: int(x))
-    a = a.round({"A_obj_mean": 6, "B_obj_mean": 6, "diffobj_mean": 6,
-                 "AlessB": 0, "BlessA": 0, "AeqB": 0, "p_AlessB": 4, "p_BlessA": 4})
+    a["XlessY"] = a["XlessY"].map(lambda x: int(x))
+    a["YlessX"] = a["YlessX"].map(lambda x: int(x))
+    a["XeqY"] = a["XeqY"].map(lambda x: int(x))
+    a = a.round({"X_mean": digits, "Y_mean": digits, "XminusY_mean": digits,
+                 "XlessY": 0, "YlessX": 0, "XeqY": 0, "p_XlessY": 4, "p_YlessX": 4})
     return a
 
 
@@ -229,20 +237,20 @@ def printsigdiffs(agg2):
     """Print significant differences in aggregated data for two summary
     data frames.
     """
-    Awinner = sum(agg2["AlessB"] > agg2["BlessA"])
-    Bwinner = sum(agg2["AlessB"] < agg2["BlessA"])
-    gr = agg2["AlessB"].size
-    print("A is yielding more frequently better results on ", Awinner,
-          " groups (", round(Awinner / gr * 100, 2), "%)")
-    print("B is yielding more frequently better results on ", Bwinner,
-          " groups (", round(Bwinner / gr * 100, 2), "%)")
+    Xwinner = sum(agg2["XlessY"] > agg2["YlessX"])
+    Ywinner = sum(agg2["XlessY"] < agg2["YlessX"])
+    gr = agg2["XlessY"].size
+    print("X is yielding more frequently better results on ", Xwinner,
+          " groups (", round(Xwinner / gr * 100, 2), "%)")
+    print("Y is yielding more frequently better results on ", Ywinner,
+          " groups (", round(Ywinner / gr * 100, 2), "%)")
     print("\nSignificant differences:")
-    sigAlessB = agg2[agg2.p_AlessB <= 0.05]
-    sigBlessA = agg2[agg2.p_BlessA <= 0.05]
-    if not sigAlessB.empty:
-        print("\np_AlessB<=0.05\n", sigAlessB)
-    if not sigBlessA.empty:
-        print("\np_BlessA<=0.05\n", sigBlessA)
+    sigXlessY = agg2[agg2.p_XlessY <= 0.05]
+    sigYlessX = agg2[agg2.p_YlessX <= 0.05]
+    if not sigXlessY.empty:
+        print("\np_XlessY<=0.05\n", sigXlessY)
+    if not sigYlessX.empty:
+        print("\np_YlessX<=0.05\n", sigYlessX)
 
 
 def agg2_print(rawdata1, rawdata2):
