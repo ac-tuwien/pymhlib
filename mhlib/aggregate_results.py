@@ -158,8 +158,8 @@ def agg_print(rawdata):
     print(roundagg(aggtotal))
 
 
-def stattest(col1, col2):
-    """Perform one-sided statistical test (Wilcoxon signed rank-test) for the assumption col1<col2."""
+def one_sided_wilcoxon_test(col1, col2) -> float:
+    """Perform one-sided statistical test (Wilcoxon signed rank-test) for the assumption col1<col2 and return p-value."""
     dif = col1 - col2
     noties = len(dif[dif != 0])
     med_is_less = np.median(dif) < 0
@@ -188,8 +188,8 @@ def doaggregate2(raw, fact):
     p_AlessB = {}
     p_BlessA = {}
     for g, d in grp:
-        p_AlessB[g] = stattest(d["obj_x"], d["obj_y"])
-        p_BlessA[g] = stattest(d["obj_y"], d["obj_x"])
+        p_AlessB[g] = one_sided_wilcoxon_test(d["obj_x"], d["obj_y"])
+        p_BlessA[g] = one_sided_wilcoxon_test(d["obj_y"], d["obj_x"])
     aggregated = pd.DataFrame({"runs": grp["obj_x"].size(),
                                "A_obj_mean": grp["obj_x"].mean(),
                                "B_obj_mean": grp["obj_y"].mean(),
