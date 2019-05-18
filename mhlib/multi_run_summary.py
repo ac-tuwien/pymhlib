@@ -49,19 +49,19 @@ class Data:
     values: List
 
 
-def _parse_file(file: str, fetch_, fetch_iter) -> bool:
-    """Parse file file, looking for fetch_ and when found take next fetch_ from fetch_iter.
+def _parse_file(file: str, fetch_item, fetch_iter) -> bool:
+    """Parse file file, looking for fetch_item and when found take next fetch_item from fetch_iter.
 
     :return: True when all information found, else False
     """
     # print(file)
     with open(file) as f:
         for line in f:
-            m = re.match(fetch_.reg_exp_compiled, line)
+            m = re.match(fetch_item.reg_exp_compiled, line)
             if m:
-                fetch_.values.append(float(m[1]))
+                fetch_item.values.append(float(m[1]))
                 try:
-                    fetch_ = next(fetch_iter)
+                    fetch_item = next(fetch_iter)
                 except StopIteration:
                     return True
     return False
@@ -82,22 +82,26 @@ def parse_files(paths: [List, str], to_fetch=None) -> DataFrame:
             files.append(path)
     to_fetch_data = [Data(_fetch[0], _fetch[1], _fetch[2], re.compile(_fetch[2]), []) for _fetch in to_fetch]
     to_fetch_data_sorted = sorted(to_fetch_data, key=lambda d: d.nr_to_fetch)
+    fully_parsed_files = []
     for file in files:
         # process out-file
+        # print(file)
         fetch_iter = iter(to_fetch_data_sorted)
-        _fetch = next(fetch_iter)
-        completed = _parse_file(file, _fetch, fetch_iter)
-        if not completed and fetch.nr_to_fetch >= 100:
+        fetch_item = next(fetch_iter)
+        completed = _parse_file(file, fetch_item, fetch_iter)
+        if not completed and fetch_item.nr_to_fetch >= 100:
             # also process corresponding log file
             log_file = re.sub("(.out)$", ".log", file)
-            completed = _parse_file(log_file, _fetch, fetch_iter)
+            completed = _parse_file(log_file, fetch_item, fetch_iter)
         if not completed:
             # remove partially extracted information
             length = len(to_fetch_data_sorted[-1].values)
-            for fetch in to_fetch_data_sorted:
-                del _fetch.values[length:]
-    df = DataFrame({fetch.name: fetch.values for fetch in to_fetch_data})
-    df.insert(0, 'file', files)
+            for f in to_fetch_data_sorted:
+                del f.values[length:]
+        else:
+            fully_parsed_files.append(file)
+    df = DataFrame({f.name: f.values for f in to_fetch_data})
+    df.insert(0, 'file', fully_parsed_files)
     df.set_index('file', inplace=True)
     return df
 
