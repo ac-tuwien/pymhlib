@@ -113,6 +113,11 @@ class LogLevel:
         """When used as context manager in with statement and leaving context, decrease level."""
         self.decrease()
 
+    @classmethod
+    def indent(cls, s: str) -> str:
+        """Correctly indent the given string, which may be a multi-line message."""
+        return str + s.replace('\n', f'\n{str}')
+
 
 def test():
     """Some basic module tests."""

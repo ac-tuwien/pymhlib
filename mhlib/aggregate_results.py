@@ -167,9 +167,9 @@ def one_sided_wilcoxon_test(col1, col2) -> float:
         return float(1)
     # if (col1==col2).all():
     #     return 3
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        msr, p = scipy.stats.wilcoxon(col1, col2, correction=True, zero_method="wilcox")
+    # with warnings.catch_warnings():
+    #   warnings.simplefilter("ignore")
+    msr, p = scipy.stats.wilcoxon(col1, col2, correction=True, zero_method="wilcox")
     # s,p = scipy.statsmannwhitneyu(col1,col2,alternative="less")
     p = p/2
     if not med_is_less:
@@ -177,7 +177,7 @@ def one_sided_wilcoxon_test(col1, col2) -> float:
     return p
 
 
-def aggregate_and_compare(raw, fact, col_name: str='obj', add_total=True, round=None):
+def aggregate_and_compare(raw, fact, col_name: str = 'obj', add_total=True, rounded=None):
     """Compare two result columns in merged data frames."""
     cx, cy = col_name + '_x', col_name + '_y'
     raw["XminusY"] = raw.apply(lambda row: row[cx] - row[cy], axis=1)
@@ -201,13 +201,14 @@ def aggregate_and_compare(raw, fact, col_name: str='obj', add_total=True, round=
                                "p_XlessY": p_XlessY,
                                "p_YlessX": p_YlessX,
                                })
-    aggregated = aggregated[["runs", "X_mean", "Y_mean", "XminusY_mean", "XlessY", "YlessX", "XeqY", "p_XlessY", "p_YlessX"]]
+    aggregated = aggregated[["runs", "X_mean", "Y_mean", "XminusY_mean", "XlessY", "YlessX", "XeqY",
+                             "p_XlessY", "p_YlessX"]]
     if add_total:
         raw['total'] = 'total'
         agg_total = aggregate_and_compare(raw, 'total', col_name, add_total=False)
         aggregated = pd.concat([aggregated, agg_total])
-    if round:
-        aggregated = round_compared(aggregated, round)
+    if rounded:
+        aggregated = round_compared(aggregated, rounded)
     return aggregated
 
 
