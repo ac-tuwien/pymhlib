@@ -122,13 +122,13 @@ class ALNS(Scheduler):
 
     def log_scores(self):
         """Write information on received scores and weight update to log."""
-        indent = LogLevel.str + ' ' * 32
-        s = f"{indent}scores at end of iteration {self.iteration}:\n{LogLevel.str}"
+        indent = ' ' * 32
+        s = f"{indent}scores at end of iteration {self.iteration}:\n"
         s += f"{indent} method    applied   score    weight"
         for m in chain(self.meths_destroy, self.meths_repair):
             data = self.score_data[m.name]
             s += f"\n{indent}{m.name:>7} {data.applied:10d} {data.score:7d} {data.weight:10.3f}"
-        self.iter_logger.info(s)
+        self.iter_logger.info(LogLevel.indent(s))
 
     def alns(self, sol: Solution):
         """Perform adaptive large neighborhood search (ALNS) on given solution."""

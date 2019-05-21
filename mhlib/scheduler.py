@@ -324,9 +324,9 @@ class Scheduler(ABC):
         """Write overall statistics."""
         if not self.run_time:
             self.run_time = time.process_time() - self.time_start
-        s = f"Method statistics:\n{LogLevel.str}"
+        s = f"Method statistics:\n"
         s += f"S  method    iter   succ succ-rate%    tot-obj-gain    avg-obj-gain rel-succ%  net-time  " \
-             f"net-time%  brut-time  brut-time%\n{LogLevel.str}"
+             f"net-time%  brut-time  brut-time%\n"
         total_applications = 0
         total_netto_time = 0.0
         total_successes = 0
@@ -345,23 +345,23 @@ class Scheduler(ABC):
                  f"{ms.obj_gain:15.5f} {self.sdiv(ms.obj_gain, ms.applications):15.5f} " \
                  f"{self.sdiv(ms.successes, total_successes)*100:9.4f} " \
                  f"{ms.netto_time:9.4f} {self.sdiv(ms.netto_time, self.run_time)*100:10.4f} " \
-                 f"{ms.brutto_time:10.4f} {self.sdiv(ms.brutto_time, self.run_time)*100:11.4f}\n{LogLevel.str}"
+                 f"{ms.brutto_time:10.4f} {self.sdiv(ms.brutto_time, self.run_time)*100:11.4f}\n"
         s += f"S {'SUM/AVG':>7} {total_applications:7d} {total_successes:6d} " \
              f"{self.sdiv(total_successes, total_applications)*100:10.4f} " \
              f"{total_obj_gain:15.5f} {self.sdiv(total_obj_gain, total_applications):15.5f} " \
              f"{self.sdiv(self.sdiv(total_successes, len(self.method_stats)), total_successes)*100:9.4f} " \
              f"{total_netto_time:9.4f} {self.sdiv(total_netto_time, self.run_time)*100:10.4f} " \
-             f"{total_brutto_time:10.4f} {self.sdiv(total_brutto_time, self.run_time)*100:11.4f}\n{LogLevel.str}"
-        self.logger.info(s)
+             f"{total_brutto_time:10.4f} {self.sdiv(total_brutto_time, self.run_time)*100:11.4f}\n"
+        self.logger.info(LogLevel.indent(s))
 
     def main_results(self):
         """Write main results to logger."""
-        s = f"T best solution: {self.incumbent}\n{LogLevel.str}T best obj: {self.incumbent.obj()}\n{LogLevel.str}" \
-            f"T best iteration: {self.incumbent_iteration}\n{LogLevel.str}" \
-            f"T total iterations: {self.iteration}\n{LogLevel.str}" \
-            f"T best time [s]: {self.incumbent_time:.3f}\n{LogLevel.str}" \
-            f"T total time [s]: {self.run_time:.4f}\n{LogLevel.str}"
-        self.logger.info(s)
+        s = f"T best solution: {self.incumbent}\nT best obj: {self.incumbent.obj()}\n" \
+            f"T best iteration: {self.incumbent_iteration}\n" \
+            f"T total iterations: {self.iteration}\n" \
+            f"T best time [s]: {self.incumbent_time:.3f}\n" \
+            f"T total time [s]: {self.run_time:.4f}\n"
+        self.logger.info(LogLevel.indent(s))
         self.incumbent.check()
 
     def perform_sequentially(self, sol: Solution, meths: List[Method]):

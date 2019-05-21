@@ -60,17 +60,17 @@ class LogLevel:
 
     This class can also be used as context manager in a with statement.
 
-    If indentation is used and some multi-line log message is written, write Loglevel.str after each "\n"
+    If indentation is used and some multi-line log message is written, write Loglevel.s after each "\n"
     in order to do the indentation for all lines.
 
     Class attributes
         - level: level of indentation
-        - str: actual string used for current indentation
+        - s: actual string used for current indentation
         - indent_str: prefix used for each indentation level
         - format_str: unindented format string for logging
     """
     level = 0
-    str = ""
+    s = ""
     indent_str = "  > "
     format_str = "%(message)s"
 
@@ -96,8 +96,8 @@ class LogLevel:
     @classmethod
     def set_format(cls):
         """Activate the format for the currently set level."""
-        cls.str = cls.indent_str * cls.level
-        format_str = cls.str + cls.format_str
+        cls.s = cls.indent_str * cls.level
+        format_str = cls.s + cls.format_str
         formatter = logging.Formatter(format_str)
         for name in ['mhlib', 'mhlib_iter']:
             logger = logging.getLogger(name)
@@ -114,9 +114,9 @@ class LogLevel:
         self.decrease()
 
     @classmethod
-    def indent(cls, s: str) -> str:
+    def indent(cls, s: s) -> s:
         """Correctly indent the given string, which may be a multi-line message."""
-        return str + s.replace('\n', f'\n{str}')
+        return cls.s + s.replace('\n', f'\n{cls.s}')
 
 
 def test():
