@@ -41,7 +41,6 @@ class GCInstance:
                     u = int(split_line[1]) - 1
                     v = int(split_line[2]) - 1
                     self.graph.add_edge(u, v)
-        self.p = np.ones(self.n, dtype=int)  # here we only read unweighted VCP instances
 
     def __repr__(self):
         """Write out the instance data."""
