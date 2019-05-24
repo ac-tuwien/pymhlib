@@ -96,16 +96,26 @@ class GCSolution(VectorSolution):
         result.changed = False
 
         for i in range(par):
-            p = random.randint(0, len(self.x) - 1)
 
-            used = [0] * self.inst.colors
+            if self.obj() == 0:
+                # Nothing to improve
+                return
 
-            for adj in self.inst.graph.adj[p]:
-                col = self.x[adj]
-                used[col] += 1
+            violations = 0
 
-            violations = used[self.x[p]]
+            # Find vertex involved in violations
+            while violations == 0:
+                p = random.randint(0, len(self.x) - 1)
 
+                used = [0] * self.inst.colors
+
+                for adj in self.inst.graph.adj[p]:
+                    col = self.x[adj]
+                    used[col] += 1
+
+                violations = used[self.x[p]]
+
+            # Change color to an unused one
             if min(used) < violations:
                 # we can improve by changing to a different color
                 minimals = [i for i, x in enumerate(used) if x == min(used)]
