@@ -19,6 +19,7 @@ class GCInstance:
         - n: number of nodes
         - m number of edges
         - colors: number of colors
+        - graph: the graph we want to color
     """
 
     def __init__(self, file_name: str):
@@ -48,7 +49,7 @@ class GCInstance:
 
 
 class GCSolution(VectorSolution):
-    """Solution to a VCP instance.
+    """Solution to a graph coloring problem instance.
 
     Additional attributes
         - x: for each node the color that is assigned to it
