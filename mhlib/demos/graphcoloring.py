@@ -83,12 +83,11 @@ class GCSolution(VectorSolution):
             raise ValueError("Invalid length of solution")
         super().check()
 
-    def construct(self, par, result):
+    def construct(self, par, _result):
         """Scheduler method that constructs a new solution.
 
         Here we just call initialize.
         """
-        del result
         self.initialize(par)
 
     def local_improve(self, par, result):
@@ -141,7 +140,7 @@ class GCSolution(VectorSolution):
             result.changed = True
 
 
-    def initialize(self, k):
+    def initialize(self, _k):
         pass
 
 
