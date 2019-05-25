@@ -35,7 +35,7 @@ class TSPInstance:
                     dimension = int(line.split()[-1])
                 else:
                     split_line = line.split()
-                    num = int(split_line[0])
+                    num = int(split_line[0]) - 1  # starts at 1
                     x = int(split_line[1])
                     y = int(split_line[2])
 
@@ -46,7 +46,7 @@ class TSPInstance:
         # building adjacency matrix
         distances = numpy.zeros((dimension, dimension))
 
-        for i in range(1, dimension):
+        for i in range(0, dimension):
             for j in range(i + 1, dimension):
                 x1, y1 = coordinates[i]
                 x2, y2 = coordinates[j]
@@ -75,6 +75,7 @@ class TSPSolution(PermutationSolution):
 
     def __init__(self, inst: TSPInstance):
         super().__init__(inst.n, inst=inst)
+        self.obj_val_valid = False
 
     def copy(self):
         sol = TSPSolution(self.inst)
@@ -131,55 +132,66 @@ class TSPSolution(PermutationSolution):
             the update of other data done
         """
 
+        if p1 > p2:
+            p1, p2 = p2, p1
+
+        assert(p1 < p2)
+
         if not update_obj_val:
             # All Permutations are valid, nothing to do here.
             return True
 
-        # Note: p1 and p2 have already been moved in x
+        if p1 == 0 and p2 == len(self.x) - 1:
+            # Reversing the whole solution has no effect
+            return True
 
-        x_new = self.x
-        # new
-        a_new = x_new[p1 - 1]
-        b_new = x_new[p1]
-        c_new = x_new[p1 + 1] if p1 + 1 < len(self.x) else x_new[0]
+        prev = p1 - 1
+        next = p2 + 1 if p2 + 1 < len(self.x) else 0
 
-        d_new = x_new[p2 - 1]
-        e_new = x_new[p2]
-        f_new = x_new[p2 + 1] if p2 + 1 < len(self.x) else x_new[0]
+        p1_city = self.x[p1]
+        p2_city = self.x[p2]
+        prev_city = self.x[prev]
+        next_city = self.x[next]
 
-        # old
-        x_old = self.x
-        x_old[p1], x_old[p2] = x_old[p2], x_old[p1]  # swap to get old state
+        # print(f"p1_city: {p1_city}")
+        # print(f"p2_city: {p2_city}")
+        # print(f"next_city: {next_city}")
+        # print(f"prev_city: {prev_city}")
 
-        a_old = x_old[p2 - 1]
-        b_old = x_old[p2]
-        c_old = x_old[p2 + 1] if p2 + 1 < len(self.x) else x_old[0]
+        # Old order
+        dist_1a = self.inst.distances[prev_city][p1_city]
+        # print(f"distance from {prev_city} to {p1_city} is {dist_1a}")
+        dist_1b = self.inst.distances[p2_city][next_city]
+        # print(f"distance from {p2_city} to {next_city} is {dist_1b}")
+        dist_1 = dist_1a + dist_1b
 
-        d_old = x_old[p1 - 1]
-        e_old = x_old[p1]
-        f_old = x_old[p1 + 1] if p1 + 1 < len(self.x) else x_old[0]
+        # Reversed order
+        dist_2a = self.inst.distances[prev_city][p2_city]
+        # print(f"distance from {prev_city} to {p2_city} is {dist_2a}")
+        dist_2b = self.inst.distances[p1_city][next_city]
+        # print(f"distance from {p1_city} to {next_city} is {dist_2b}")
+        dist_2 = dist_2a + dist_2b
 
-        x_old[p1], x_old[p2] = x_old[p2], x_old[p1]  # swap back to new state
+        # Check if values are correct to begin with
+        if self.obj_val_valid:
+            probe_val = self.obj_val
+            self.invalidate()
+            assert(probe_val == self.obj())
+        else:
+            self.obj()
 
-        dist = self.inst.distances
+        self.obj_val -= dist_1
+        self.obj_val += dist_2
 
-        first_new = dist[a_new][b_new] + dist[b_new][c_new]
-        first_old = dist[a_old][b_old] + dist[b_old][c_old]
+        numpy.set_printoptions(linewidth=numpy.inf)
+        # print(self.x)
+        self.x[p1:(p2+1)] = self.x[p1:(p2+1)][::-1]
 
-        second_new = dist[d_new][e_new] + dist[e_new][f_new]
-        second_old = dist[d_old][e_old] + dist[e_old][f_old]
-
-        old = first_old + second_old
-        new = first_new + second_new
-
-        self.obj_val -= old
-        self.obj_val += new
-
-        # Check
-        # fast = self.obj()
-        # self.invalidate()
-        # full = self.obj()
-        # assert (fast == full)
+        assert(self.x[prev] == prev_city)  # prev city did not change
+        assert(self.x[next] == next_city)  # next city did not change
+        assert(self.x[p1] == p2_city)  # p1 city was reversed
+        assert(self.x[p2] == p1_city)  # p2 city was reversed
+        # print(self.x)
 
         return True
 
