@@ -1,7 +1,7 @@
 """Demo application solving the symmetric traveling salesman problem."""
 
 import random
-import numpy
+import numpy as np
 import math
 
 from mhlib.permutation_solution import PermutationSolution
@@ -44,7 +44,7 @@ class TSPInstance:
         assert (len(coordinates) == dimension)
 
         # building adjacency matrix
-        distances = numpy.zeros((dimension, dimension))
+        distances = np.zeros((dimension, dimension))
 
         for i in range(0, dimension):
             for j in range(i + 1, dimension):
@@ -117,24 +117,52 @@ class TSPSolution(PermutationSolution):
         self.invalidate()
 
     def local_improve(self, _par, _result):
-        self.two_exchange_neighborhood_search(True)
+        self.two_opt_neighborhood_search(True)
 
-    def two_exchange_delta_eval(self, p1: int, p2: int, update_obj_val=True, allow_infeasible=False) -> bool:
-        """A 2-exchange move was performed, if feasible update other solution data accordingly, else revert.
+    def two_opt_neighborhood_search(self, best_improvement) -> bool:
+        """Perform the systematic search of the 2-opt neighborhood, in which two edges are exchanged.
 
-        It can be assumed that the solution was in a correct state with a valid objective value before the move.
-        The default implementation just calls invalidate() and returns True.
+        The neighborhood is searched in a randomized ordering.
+        Note that frequently, a more problem-specific neighborhood search with delta-evaluation is
+        much more efficient!
 
-        :param p1: first position
-        :param p2: second position
-        :param update_obj_val: if set, the objective value should also be updated or invalidate needs to be called
-        :param allow_infeasible: if set and the solution is infeasible, the move is nevertheless accepted and
-            the update of other data done
+        :param best_improvement:  if set, the neighborhood is completely searched and a best neighbor is kept;
+            otherwise the search terminates in a first-improvement manner, i.e., keeping a first encountered
+            better solution.
+
+        :return: True if an improved solution has been found
         """
+        n = self.inst.n
+        best_obj = orig_obj = self.obj()
+        best_p1 = None
+        best_p2 = None
+        order = np.arange(n)
+        np.random.shuffle(order)
+        for idx, p1 in enumerate(order[:n - 1]):
+            for p2 in order[idx + 1:]:
 
-        if p1 > p2:
-            p1, p2 = p2, p1
+                if p1 > p2:
+                    p1, p2 = p2, p1
 
+                self.x[p1:(p2+1)] = self.x[p1:(p2+1)][::-1]
+                if self.two_opt_delta_eval(p1, p2):
+                    if self.is_better_obj(self.obj(), best_obj):
+                        if not best_improvement:
+                            return True
+                        best_obj = self.obj()
+                        best_p1 = p1
+                        best_p2 = p2
+                    self.x[p1:(p2+1)] = self.x[p1:(p2+1)][::-1]
+                    self.obj_val = orig_obj
+                    assert self.two_opt_delta_eval(p1, p2, False)
+        if best_p1:
+            self.x[best_p1:(best_p2+1)] = self.x[best_p1:(best_p2+1)][::-1]
+            self.obj_val = best_obj
+            return True
+        self.obj_val = orig_obj
+        return False
+
+    def two_opt_delta_eval(self, p1: int, p2: int, update_obj_val=True, _allow_infeasible=False) -> bool:
         assert(p1 < p2)
 
         if not update_obj_val:
@@ -145,53 +173,35 @@ class TSPSolution(PermutationSolution):
             # Reversing the whole solution has no effect
             return True
 
+        # The solution looks as follows:
+        # .... prev, p1, ... p2, nxt ...
         prev = p1 - 1
-        next = p2 + 1 if p2 + 1 < len(self.x) else 0
+        nxt = p2 + 1 if p2 + 1 < len(self.x) else 0
 
         p1_city = self.x[p1]
         p2_city = self.x[p2]
         prev_city = self.x[prev]
-        next_city = self.x[next]
+        next_city = self.x[nxt]
 
-        # print(f"p1_city: {p1_city}")
-        # print(f"p2_city: {p2_city}")
-        # print(f"next_city: {next_city}")
-        # print(f"prev_city: {prev_city}")
-
-        # Old order
-        dist_1a = self.inst.distances[prev_city][p1_city]
-        # print(f"distance from {prev_city} to {p1_city} is {dist_1a}")
-        dist_1b = self.inst.distances[p2_city][next_city]
-        # print(f"distance from {p2_city} to {next_city} is {dist_1b}")
-        dist_1 = dist_1a + dist_1b
+        # Current order
+        dist_now_a = self.inst.distances[prev_city][p1_city]
+        dist_now_b = self.inst.distances[p2_city][next_city]
+        dist_now = dist_now_a + dist_now_b
 
         # Reversed order
-        dist_2a = self.inst.distances[prev_city][p2_city]
-        # print(f"distance from {prev_city} to {p2_city} is {dist_2a}")
-        dist_2b = self.inst.distances[p1_city][next_city]
-        # print(f"distance from {p1_city} to {next_city} is {dist_2b}")
-        dist_2 = dist_2a + dist_2b
+        dist_rev_a = self.inst.distances[prev_city][p2_city]
+        dist_rev_b = self.inst.distances[p1_city][next_city]
+        dist_rev = dist_rev_a + dist_rev_b
 
-        # Check if values are correct to begin with
-        if self.obj_val_valid:
-            probe_val = self.obj_val
+        # Update objective value
+        self.obj_val += dist_now
+        self.obj_val -= dist_rev
+
+        if __debug__:
+            # Check delta evaluation
+            probe = self.obj_val
             self.invalidate()
-            assert(probe_val == self.obj())
-        else:
-            self.obj()
-
-        self.obj_val -= dist_1
-        self.obj_val += dist_2
-
-        numpy.set_printoptions(linewidth=numpy.inf)
-        # print(self.x)
-        self.x[p1:(p2+1)] = self.x[p1:(p2+1)][::-1]
-
-        assert(self.x[prev] == prev_city)  # prev city did not change
-        assert(self.x[next] == next_city)  # next city did not change
-        assert(self.x[p1] == p2_city)  # p1 city was reversed
-        assert(self.x[p2] == p1_city)  # p2 city was reversed
-        # print(self.x)
+            assert(probe == self.obj())
 
         return True
 
