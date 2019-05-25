@@ -1,4 +1,4 @@
-"""Demo application solving the traveling salesman problem."""
+"""Demo application solving the symmetric traveling salesman problem."""
 
 import random
 import numpy
