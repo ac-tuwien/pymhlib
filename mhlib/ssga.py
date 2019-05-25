@@ -74,7 +74,7 @@ class SSGA(Scheduler):
 
         meths_cycle = cycle(self.meths_ch)
 
-        # TODO check what self.incumbent is initalized to
+        # TODO check what self.incumbent is initialized to
 
         # cycle through construction heuristics to generate population
         # perform all construction heuristics, take best solution

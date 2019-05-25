@@ -12,7 +12,7 @@ class TSPInstance:
 
     Attributes
         - n: number of cities, i.e., size of incidence vector
-        - distances: square matrix of intergers representing the distances between two cities;
+        - distances: square matrix of integers representing the distances between two cities;
             zero means there is not connection between the two cities
     """
 
