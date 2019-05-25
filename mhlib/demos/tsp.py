@@ -149,7 +149,7 @@ class TSPSolution(PermutationSolution):
 
         # old
         x_old = self.x
-        x_old[p1], x_old[p2] = x_old[p2], x_old[p1] # swap to get old state
+        x_old[p1], x_old[p2] = x_old[p2], x_old[p1]  # swap to get old state
 
         a_old = x_old[p2 - 1]
         b_old = x_old[p2]
@@ -159,7 +159,7 @@ class TSPSolution(PermutationSolution):
         e_old = x_old[p1]
         f_old = x_old[p1 + 1] if p1 + 1 < len(self.x) else x_old[0]
 
-        x_old[p1], x_old[p2] = x_old[p2], x_old[p1] # swap back to new state
+        x_old[p1], x_old[p2] = x_old[p2], x_old[p1]  # swap back to new state
 
         dist = self.inst.distances
 
