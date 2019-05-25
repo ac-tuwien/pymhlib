@@ -100,25 +100,22 @@ class TSPSolution(PermutationSolution):
             raise ValueError("Invalid length of solution")
         super().check()
 
-    def construct(self, par, result):
+    def construct(self, par, _result):
         """Scheduler method that constructs a new solution.
 
         Here we just call initialize.
         """
-        del result
         self.initialize(par)
 
-    def shaking(self, par, result):
+    def shaking(self, _par, _result):
         """Scheduler method that performs shaking by flipping par random positions."""
-        del result
         a = random.randint(0, self.inst.n - 1)
         b = random.randint(0, self.inst.n - 1)
 
         self.x[a], self.x[b] = self.x[b], self.x[a]
         self.invalidate()
 
-    def local_improve(self, par, result):
-        del par, result
+    def local_improve(self, _par, _result):
         self.two_exchange_neighborhood_search(True)
 
     def two_exchange_delta_eval(self, p1: int, p2: int, update_obj_val=True, allow_infeasible=False) -> bool:
