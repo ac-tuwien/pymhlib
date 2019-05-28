@@ -10,10 +10,12 @@ from mhlib.settings import get_settings_parser
 
 parser = get_settings_parser()
 parser.add("--mh_gcp_colors", type=int, default=100, help='number of colors available')
+# TODO Defaultwert bitte sinnvoller wählen, sodass nicht so rasch eine konfliktfreie Lösung gefunden wird
 
 
 class GCInstance:
     """Graph coloring problem instance.
+    TODO: Problemstellung beschreiben, vor allem, dass hier eben von einer fixen Farbanzahl ausgegangen wird und die Konflikte minimiert werden.
 
     Attributes
         - n: number of nodes
@@ -91,7 +93,11 @@ class GCSolution(VectorSolution):
         self.initialize(par)
 
     def local_improve(self, par, result):
-        """Scheduler method that performs one iteration of the exchange neighborhood."""
+        """Scheduler method that performs one iteration of the exchange neighborhood.
+        TODO: Es ist ja eben nicht die klassische exchange neighborhood sondern eine auf die Konflikte beschränkte -> dokumentieren.
+        TODO: Konkret sollte die Nachbarschaft der Lösung alle jene Lösungen beinhalten, die durch Umfärben eines aktuell in einem Konflikt stehenden Knoten auf eine der anderen Farben (alle!) erreicht werden.
+        TODO: Diese Nachbarschaft sollte mit einer next Improvement Strategie durchsucht werden.
+        """
 
         result.changed = False
 
@@ -104,6 +110,8 @@ class GCSolution(VectorSolution):
             violations = 0
 
             # Find vertex involved in violations
+            # TODO Diese Zufallsauswahl ist i.A. ziemlich ineffizient, vor allem wenn nur mehr wenige Konflikte existieren.
+            # TODO Besser hier einfach linear alle Knoten durchgehen und alle jene merken, die in Konflikten involviert sind. Dann für alle diese alle möglichen Umfärbungen betrachten bis eine Verbesserung gefunden wird (next improvement)
             while violations == 0:
                 p = random.randint(0, len(self.x) - 1)
 
@@ -119,16 +127,17 @@ class GCSolution(VectorSolution):
             if min(used) < violations:
                 # we can improve by changing to a different color
                 minimals = [i for i, x in enumerate(used) if x == min(used)]
-                new_col = random.choice(minimals)
+                new_col = random.choice(minimals)  # TODO Keine Random Neighbor Strategie, sondern next Improvement.
 
                 self.x[p] = new_col
                 self.obj_val -= violations
-                self.obj_val += min(used)
+                self.obj_val += min(used)  # TODO Das verstehe ich nicht. Es sollte doch nur die Anzahl der Violations minimiert werden, die Farbenanzahl ist fixiert, welche Farben verwendet werden egal
                 result.changed = True
 
 
     def shaking(self, par, result):
-        """Scheduler method that performs shaking by remove_some(par) and random_fill()."""
+        """Scheduler method that performs shaking by remove_some(par) and random_fill().
+        # TODO Ich sehe hier kein remove_some und kein random_fill. """
 
         for i in range(par):
             p = random.randint(0, len(self.x) - 1)
