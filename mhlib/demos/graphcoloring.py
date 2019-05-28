@@ -94,8 +94,8 @@ class GCSolution(VectorSolution):
 
     def local_improve(self, par, result):
         """Scheduler method that performs one iteration of the exchange neighborhood.
-        TODO: Es ist ja eben nicht die klassische exchange neighborhood sondern eine auf die Konflikte beschränkte -> dokumentieren.
-        TODO: Konkret sollte die Nachbarschaft der Lösung alle jene Lösungen beinhalten, die durch Umfärben eines aktuell in einem Konflikt stehenden Knoten auf eine der anderen Farben (alle!) erreicht werden.
+        TODO: Nachbarschaft dokumentieren
+        TODO: Konkret sollte die Nachbarschaft der Lösung alle jene Lösungen beinhalten, die durch Umfärben eines aktuell in einem Konflikt stehenden Knoten auf eine der anderen Farben (alle) erreicht werden.
         TODO: Diese Nachbarschaft sollte mit einer next Improvement Strategie durchsucht werden.
         """
 
@@ -111,7 +111,7 @@ class GCSolution(VectorSolution):
 
             # Find vertex involved in violations
             # TODO Diese Zufallsauswahl ist i.A. ziemlich ineffizient, vor allem wenn nur mehr wenige Konflikte existieren.
-            # TODO Besser hier einfach linear alle Knoten durchgehen und alle jene merken, die in Konflikten involviert sind. Dann für alle diese alle möglichen Umfärbungen betrachten bis eine Verbesserung gefunden wird (next improvement)
+            # TODO Besser hier einfach linear alle Knoten durchgehen und für alle möglichen Umfärbungen betrachten bis eine Verbesserung gefunden wird (next improvement); dies in zufälliger Reihenfolge sodass kein Bias
             while violations == 0:
                 p = random.randint(0, len(self.x) - 1)
 
@@ -127,7 +127,7 @@ class GCSolution(VectorSolution):
             if min(used) < violations:
                 # we can improve by changing to a different color
                 minimals = [i for i, x in enumerate(used) if x == min(used)]
-                new_col = random.choice(minimals)  # TODO Keine Random Neighbor Strategie, sondern next Improvement.
+                new_col = random.choice(minimals)
 
                 self.x[p] = new_col
                 self.obj_val -= violations
@@ -141,11 +141,13 @@ class GCSolution(VectorSolution):
 
         for i in range(par):
             p = random.randint(0, len(self.x) - 1)
+            # TODO Es sollten nur Knoten umgefärbt werden, die in Konflikten beteiligt sind!!
 
             col_old = self.x[p]
             change = 0
 
             col_new = random.randint(0, self.inst.colors - 1)
+
 
             for adj in self.inst.graph.adj[p]:
                 if col_old == self.x[adj]:
