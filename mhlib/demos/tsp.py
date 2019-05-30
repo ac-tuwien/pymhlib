@@ -9,6 +9,9 @@ from mhlib.permutation_solution import PermutationSolution
 
 class TSPInstance:
     """TSP problem instance.
+    This instance contains the distances between all city pairs.
+    Starting from a solution in which the cities are visited in the order they are defined in the instance file,
+    a local search in a 2-opt neighborhood using edge exchange is performed.
 
     Attributes
         - n: number of cities, i.e., size of incidence vector
