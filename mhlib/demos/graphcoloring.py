@@ -9,8 +9,7 @@ from mhlib.subset_solution import VectorSolution
 from mhlib.settings import get_settings_parser
 
 parser = get_settings_parser()
-parser.add("--mh_gcp_colors", type=int, default=100, help='number of colors available')
-# TODO Defaultwert bitte sinnvoller wählen, sodass nicht so rasch eine konfliktfreie Lösung gefunden wird
+parser.add("--mh_gcp_colors", type=int, default=3, help='number of colors available')
 
 
 class GCInstance:
