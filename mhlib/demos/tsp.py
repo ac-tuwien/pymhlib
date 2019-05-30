@@ -197,12 +197,6 @@ class TSPSolution(PermutationSolution):
         self.obj_val += dist_now
         self.obj_val -= dist_rev
 
-        if __debug__:
-            # Check delta evaluation
-            probe = self.obj_val
-            self.invalidate()
-            assert (probe == self.obj())
-
         return True
 
 
