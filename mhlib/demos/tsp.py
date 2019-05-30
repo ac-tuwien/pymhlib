@@ -188,14 +188,10 @@ class TSPSolution(PermutationSolution):
         next_city = self.x[nxt]
 
         # Current order
-        dist_now_a = self.inst.distances[prev_city][p1_city]
-        dist_now_b = self.inst.distances[p2_city][next_city]
-        dist_now = dist_now_a + dist_now_b
+        dist_now = self.inst.distances[prev_city][p1_city] + self.inst.distances[p2_city][next_city]
 
         # Reversed order
-        dist_rev_a = self.inst.distances[prev_city][p2_city]
-        dist_rev_b = self.inst.distances[p1_city][next_city]
-        dist_rev = dist_rev_a + dist_rev_b
+        dist_rev = self.inst.distances[prev_city][p2_city] + self.inst.distances[p1_city][next_city]
 
         # Update objective value
         self.obj_val += dist_now
