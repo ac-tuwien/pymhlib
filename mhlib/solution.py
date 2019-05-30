@@ -161,7 +161,7 @@ class VectorSolution(Solution, ABC):
     """Abstract solution class with integer vector as solution representation.
 
     Attributes
-        - x: vector representing a solution, realized as numpy.array
+        - x: vector representing a solution, realized ba a numpy.ndarray
     """
 
     def __init__(self, length, init=True, dtype=int, init_value=0, **kwargs):

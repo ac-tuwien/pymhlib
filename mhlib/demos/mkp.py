@@ -1,4 +1,9 @@
-"""Demo application solving the multi-dimensional knapsack problem (MKP)."""
+"""Demo application solving the multi-dimensional knapsack problem (MKP).
+
+Given are a set of n items, m resources, and a capacity for each resource.
+Each item has a price and requires from each resource a certain amount.
+Find a subset of the items with maximum total price that does not exceed the resources' capacities.
+"""
 
 import numpy as np
 from typing import Any
@@ -8,14 +13,18 @@ from mhlib.scheduler import Result
 
 
 class MKPInstance:
-    """MKP problem instance.
+    """Multi-dimensional knapsack problem (MKP) instance.
+
+    Given are a set of n items, m resources, and a capacity for each resource.
+    Each item has a price and requires from each resource a certain amount.
+    Find a subset of the items with maximum total price that does not exceed the resources' capacities.
 
     Attributes
         - n: number of items
         - m: number of resources, i.e., constraints
         - p: prices of items
         - r: resource consumption values
-        - b: resource limits
+        - b: resource capacities
         - obj_opt: optimal objective value or 0 if not known
         - r_min: minimal resource consumption value over all elements for each resource
     """

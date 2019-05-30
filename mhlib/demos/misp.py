@@ -1,4 +1,8 @@
-"""Demo application solving the maximum (weighted) independent set problem (MISP)."""
+"""Demo application solving the maximum (weighted) independent set problem (MISP).
+
+Give an undirected (weighted) graph, find a maximum cardinality subset of nodes where
+no pair of nodes is adjacent in the graph.
+"""
 
 import numpy as np
 import networkx as nx
@@ -9,7 +13,10 @@ from mhlib.scheduler import Result
 
 
 class MISPInstance:
-    """MISP problem instance.
+    """Maximum (weighted) independent set problem (MISP) instance.
+
+    Give an undirected (weighted) graph, find a maximum cardinality subset of nodes where
+    no pair of nodes is adjacent in the graph.
 
     Attributes
         - n: number of nodes

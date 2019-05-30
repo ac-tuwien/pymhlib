@@ -1,4 +1,7 @@
-"""Demo application solving the MAXSAT problem."""
+"""Demo application solving the MAXSAT problem.
+
+The goal is to maximize the number of clauses satisfied in a boolean function given in conjunctive normal form.
+"""
 
 import numpy as np
 import random
@@ -11,6 +14,8 @@ from mhlib.scheduler import Result
 
 class MAXSATInstance:
     """MAXSAT problem instance.
+
+    The goal is to maximize the number of clauses satisfied in a boolean function given in conjunctive normal form.
 
     Attributes
         - n: number of variables, i.e., size of incidence vector
@@ -103,8 +108,8 @@ class MAXSATSolution(BoolVectorSolution):
         self.initialize(par)
 
     def local_improve(self, par: Any, _result: Result):
-        """Perform k_flip_local_search."""
-        self.k_flip_local_search(par, False)
+        """Perform one k_flip_neighborhood_search."""
+        self.k_flip_neighborhood_search(par, False)
 
     def shaking(self, par, _result):
         """Scheduler method that performs shaking by flipping par random positions."""
@@ -130,8 +135,8 @@ class MAXSATSolution(BoolVectorSolution):
         self.destroyed = None
         self.invalidate()
 
-    def k_flip_local_search(self, k: int, best_improvement: bool) -> bool:
-        """Perform one major iteration of a k-flip local search.
+    def k_flip_neighborhood_search(self, k: int, best_improvement: bool) -> bool:
+        """Perform one major iteration of a k-flip local search, i.e., search one neighborhood.
 
         If best_improvement is set, the neighborhood is completely searched and a best neighbor is kept;
         otherwise the search terminates in a first-improvement manner, i.e., keeping a first encountered

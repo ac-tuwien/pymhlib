@@ -1,4 +1,11 @@
-"""Demo application solving the Quadratic Assignment Problem (QAP)."""
+"""Demo application solving the Quadratic Assignment Problem (QAP).
+
+There are a set of n facilities and a set of n locations. For each pair of locations,
+a distance is specified and for each pair of facilities a flow is given
+(e.g., the amount of supplies transported between the two facilities).
+The task is to assign all facilities to different locations with the goal of minimizing
+the sum of the distances multiplied by the corresponding flows.
+"""
 
 import numpy as np
 import random
@@ -10,6 +17,12 @@ from mhlib.scheduler import Result
 
 class QAPInstance:
     """Quadratic Assignment Problem (QAP) instance.
+
+    There are a set of n facilities and a set of n locations. For each pair of locations,
+    a distance is specified and for each pair of facilities a flow is given
+    (e.g., the amount of supplies transported between the two facilities).
+    The task is to assign all facilities to different locations with the goal of minimizing
+    the sum of the distances multiplied by the corresponding flows.
 
     Attributes
         - n: instance size
@@ -71,7 +84,7 @@ class QAPSolution(PermutationSolution):
         self.initialize(par)
 
     def local_improve(self, _par: Any, _result: Result):
-        """Perform local search."""
+        """Perform one major iteration of local search in the 2-exchange neighborhood."""
         self.two_exchange_neighborhood_search(False)
 
     def shaking(self, par: Any, _result: Result):

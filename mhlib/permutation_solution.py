@@ -74,7 +74,8 @@ class PermutationSolution(VectorSolution, ABC):
     def two_exchange_delta_eval(self, p1: int, p2: int, update_obj_val=True, allow_infeasible=False) -> bool:
         """A 2-exchange move was performed, if feasible update other solution data accordingly, else revert.
 
-        It can be assumed that the solution was in a correct state with a valid objective value before the move.
+        It can be assumed that the solution was in a correct state with a valid objective value in obj_val
+        *before* the already applied move, obj_val_valid therefore is True.
         The default implementation just calls invalidate() and returns True.
 
         :param p1: first position

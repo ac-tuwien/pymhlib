@@ -218,9 +218,11 @@ class SubsetSolution(VectorSolution, ABC):
         return self.sel < len(self.x)
 
     def element_removed_delta_eval(self, update_obj_val=True, allow_infeasible=False) -> bool:
-        """Element x[sel] has been removed in the solution, if feasible update other solution data, else revert.
+        """Element x[sel] has been removed in the solution, if feasible update other solution data,
+        else revert.
 
-        It can be assumed that the solution was in a correct state with a valid objective value before the move.
+        It can be assumed that the solution was in a correct state with a valid objective value in obj_val
+        *before* the already applied move, obj_val_valid therefore is True.
         The default implementation just calls invalidate() and returns True.
 
         :param update_obj_val: if set, the objective value should also be updated or invalidate needs to be called
@@ -235,7 +237,8 @@ class SubsetSolution(VectorSolution, ABC):
     def element_added_delta_eval(self, update_obj_val=True, allow_infeasible=False) -> bool:
         """Element x[sel-1] was added to a solution, if feasible update further solution data, else revert.
 
-        It can be assumed that the solution was in a correct state with a valid objective value before the move.
+        It can be assumed that the solution was in a correct state with a valid objective value in obj_val
+        *before* the already applied move, obj_val_valid therefore is True.
         The default implementation just calls invalidate() and returns True.
 
         :param update_obj_val: if set, the objective value should also be updated or invalidate needs to be called
