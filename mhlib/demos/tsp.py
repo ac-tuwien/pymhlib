@@ -108,13 +108,16 @@ class TSPSolution(PermutationSolution):
         """
         self.initialize(par)
 
-    def shaking(self, _par, _result):
-        """Scheduler method that performs shaking by flipping par random positions."""
-        a = random.randint(0, self.inst.n - 1)
-        b = random.randint(0, self.inst.n - 1)
+    def shaking(self, par, result):
+        """Scheduler method that performs shaking by 'par'-times swapping a pair of randomly chosen cities.
+        """
+        for _ in range(par):
+            a = random.randint(0, self.inst.n - 1)
+            b = random.randint(0, self.inst.n - 1)
+            self.x[a], self.x[b] = self.x[b], self.x[a]
 
-        self.x[a], self.x[b] = self.x[b], self.x[a]
         self.invalidate()
+        result.changed = True
 
     def local_improve(self, _par, _result):
         self.two_opt_neighborhood_search(True)
@@ -144,7 +147,7 @@ class TSPSolution(PermutationSolution):
                 if p1 > p2:
                     p1, p2 = p2, p1
 
-                self.x[p1:(p2+1)] = self.x[p1:(p2+1)][::-1]
+                self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
                 if self.two_opt_delta_eval(p1, p2):
                     if self.is_better_obj(self.obj(), best_obj):
                         if not best_improvement:
@@ -152,18 +155,18 @@ class TSPSolution(PermutationSolution):
                         best_obj = self.obj()
                         best_p1 = p1
                         best_p2 = p2
-                    self.x[p1:(p2+1)] = self.x[p1:(p2+1)][::-1]
+                    self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
                     self.obj_val = orig_obj
                     assert self.two_opt_delta_eval(p1, p2, False)
         if best_p1:
-            self.x[best_p1:(best_p2+1)] = self.x[best_p1:(best_p2+1)][::-1]
+            self.x[best_p1:(best_p2 + 1)] = self.x[best_p1:(best_p2 + 1)][::-1]
             self.obj_val = best_obj
             return True
         self.obj_val = orig_obj
         return False
 
     def two_opt_delta_eval(self, p1: int, p2: int, update_obj_val=True, _allow_infeasible=False) -> bool:
-        assert(p1 < p2)
+        assert (p1 < p2)
 
         if not update_obj_val:
             # All Permutations are valid, nothing to do here.
@@ -201,7 +204,7 @@ class TSPSolution(PermutationSolution):
             # Check delta evaluation
             probe = self.obj_val
             self.invalidate()
-            assert(probe == self.obj())
+            assert (probe == self.obj())
 
         return True
 
