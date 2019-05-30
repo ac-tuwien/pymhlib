@@ -1,6 +1,5 @@
 """Demo application solving the graph coloring problem."""
 
-import numpy as np
 import networkx as nx
 import random
 
@@ -14,7 +13,8 @@ parser.add("--mh_gcp_colors", type=int, default=3, help='number of colors availa
 
 class GCInstance:
     """Graph coloring problem instance.
-    TODO: Problemstellung beschreiben, vor allem, dass hier eben von einer fixen Farbanzahl ausgegangen wird und die Konflikte minimiert werden.
+    This instance contains the graph to color as well as a fixed number of available colors.
+    Starting from a solution in which all nodes are colored the same, we try to reduce the number of conflicts.
 
     Attributes
         - n: number of nodes
@@ -91,74 +91,66 @@ class GCSolution(VectorSolution):
         """
         self.initialize(par)
 
-    def local_improve(self, par, result):
-        """Scheduler method that performs one iteration of the exchange neighborhood.
-        TODO: Nachbarschaft dokumentieren
-        TODO: Konkret sollte die Nachbarschaft der Lösung alle jene Lösungen beinhalten, die durch Umfärben eines aktuell in einem Konflikt stehenden Knoten auf eine der anderen Farben (alle) erreicht werden.
-        TODO: Diese Nachbarschaft sollte mit einer next Improvement Strategie durchsucht werden.
+    def local_improve(self, _par, result):
+        """Scheduler method that performs one iteration of a local search following a first improvement strategy.
+        The neighborhood used is defined by all solutions that can be created by changing the color
+        of a vertex involved in a conflict.
         """
+
+        for p in range(len(self.x)):
+            nbhcol = {}
+            for col in range(self.inst.colors):
+                nbhcol[col] = 0
+
+            for adj in self.inst.graph.adj[p]:
+                nbhcol[self.x[adj]] += 1
+
+            oldcol = self.x[p]
+            if nbhcol[oldcol] > 0:
+                # Violation found
+
+                for newcol in range(self.inst.colors):
+                    if nbhcol[newcol] < nbhcol[oldcol]:
+                        # Possible improvement found
+                        self.x[p] = newcol
+                        self.obj_val -= nbhcol[oldcol]
+                        self.obj_val += nbhcol[newcol]
+                        result.changed = True
+                        return
 
         result.changed = False
 
-        for i in range(par):
+    def shaking(self, par, result):
+        """Scheduler method that performs shaking by randomly assigning a different color
+        to 'par' many random vertices that are involved in a conflict.
+        """
 
-            if self.obj() == 0:
-                # Nothing to improve
+        conflicted = []
+        result.changed = False
+
+        for u in range(len(self.x)):
+            for v in self.inst.graph.adj[u]:
+                if self.x[u] == self.x[v]:
+                    # Conflict found
+                    conflicted.append(u)
+                    break
+
+        for _ in range(par):
+            if len(conflicted) == 0:
                 return
 
-            violations = 0
+            u = random.choice(conflicted)
+            # Pick random color (different from current)
+            randcol = random.randint(0, self.inst.colors - 2)
 
-            # Find vertex involved in violations
-            # TODO Diese Zufallsauswahl ist i.A. ziemlich ineffizient, vor allem wenn nur mehr wenige Konflikte existieren.
-            # TODO Besser hier einfach linear alle Knoten durchgehen und für alle möglichen Umfärbungen betrachten bis eine Verbesserung gefunden wird (next improvement); dies in zufälliger Reihenfolge sodass kein Bias
-            while violations == 0:
-                p = random.randint(0, len(self.x) - 1)
+            if randcol >= self.x[u]:
+                randcol += 1
 
-                used = [0] * self.inst.colors
+            self.x[u] = randcol
+            self.invalidate()
 
-                for adj in self.inst.graph.adj[p]:
-                    col = self.x[adj]
-                    used[col] += 1
-
-                violations = used[self.x[p]]
-
-            # Change color to an unused one
-            if min(used) < violations:
-                # we can improve by changing to a different color
-                minimals = [i for i, x in enumerate(used) if x == min(used)]
-                new_col = random.choice(minimals)
-
-                self.x[p] = new_col
-                self.obj_val -= violations
-                self.obj_val += min(used)  # TODO Das verstehe ich nicht. Es sollte doch nur die Anzahl der Violations minimiert werden, die Farbenanzahl ist fixiert, welche Farben verwendet werden egal
-                result.changed = True
-
-
-    def shaking(self, par, result):
-        """Scheduler method that performs shaking by remove_some(par) and random_fill().
-        # TODO Ich sehe hier kein remove_some und kein random_fill. """
-
-        for i in range(par):
-            p = random.randint(0, len(self.x) - 1)
-            # TODO Es sollten nur Knoten umgefärbt werden, die in Konflikten beteiligt sind!!
-
-            col_old = self.x[p]
-            change = 0
-
-            col_new = random.randint(0, self.inst.colors - 1)
-
-
-            for adj in self.inst.graph.adj[p]:
-                if col_old == self.x[adj]:
-                    change -= 1
-
-                if col_new == self.x[adj]:
-                    change += 1
-
-            self.x[p] = col_new
-            self.obj_val += change
-            result.changed = True
-
+            # Prevent this vertex from getting changed again
+            conflicted.remove(u)
 
     def initialize(self, _k):
         pass
