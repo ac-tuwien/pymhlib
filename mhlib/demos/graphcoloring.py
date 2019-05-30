@@ -148,6 +148,7 @@ class GCSolution(VectorSolution):
 
             self.x[u] = randcol
             self.invalidate()
+            result.changed = True
 
             # Prevent this vertex from getting changed again
             conflicted.remove(u)
