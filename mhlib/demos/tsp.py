@@ -166,6 +166,7 @@ class TSPSolution(PermutationSolution):
         return False
 
     def two_opt_delta_eval(self, p1: int, p2: int, update_obj_val=True, _allow_infeasible=False) -> bool:
+        """ This method performs the delta evaluation for an edge exchange move """
         assert (p1 < p2)
 
         if not update_obj_val:
