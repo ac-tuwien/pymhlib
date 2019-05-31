@@ -40,6 +40,7 @@ def parse_settings(args=None, return_unknown=False, default_config_files=None):
     Needs to be called once in the main program (or more generally after all arguments have been added to the parser.
     Also seeds the random number generators based on parameter seed.
 
+    :param args: optional sequence of string arguments; if None sys.argv is used
     :param return_unknown: return unknown parameters as list in global variable unknown_args; otherwise raise exception
     :param default_config_files: list of default config files to read
     """
@@ -53,8 +54,22 @@ def parse_settings(args=None, return_unknown=False, default_config_files=None):
     else:
         p.parse_args(args=args, namespace=settings)
 
-    # random seed; per default a random seed is generated
+    seed_random_generators()
+
+
+def set_settings(s: configargparse.Namespace):
+    """Adopt given settings.
+
+    Used, for example in child processes to adopt settings from parent process.
+    """
+    settings.__dict__ = s.__dict__
+    seed_random_generators()
+
+
+def seed_random_generators():
+    """Initialize random number generators with settings.seed. If zero, a random seed is generated."""
     if settings.seed == 0:
+        np.random.seed()
         settings.seed = np.random.randint(np.iinfo(np.int32).max)
     np.random.seed(settings.seed)
     random.seed(settings.seed)
@@ -71,6 +86,7 @@ def load_settings(filename):
     with open(filename, 'rb') as f:
         global settings
         settings.__dict__ = vars(pickle.load(f))
+        seed_random_generators()
 
 
 def get_settings_as_str():
