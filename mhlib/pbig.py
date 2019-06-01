@@ -11,6 +11,7 @@ from mhlib.solution import Solution
 
 
 parser = get_settings_parser()
+parser.add("--mh_pbig_pop_size", type=int, default=20, help='PBIG population size')
 
 
 class PBIG(Scheduler):
@@ -41,8 +42,6 @@ class PBIG(Scheduler):
     def run(self):
         """Actually performs the construction heuristics followed by the PBIG."""
 
-        pop_size = 20
-
         #        population = List[Solution]
         population: List[Solution] = []
 
@@ -50,7 +49,7 @@ class PBIG(Scheduler):
 
         # cycle through construction heuristics to generate population
         # perform all construction heuristics, take best solution
-        while len(population) < pop_size:
+        while len(population) < self.own_settings.mh_pbig_pop_size:
             m = next(meths_cycle)
             indiv = self.incumbent.copy()
             res = self.perform_method(m, indiv)
