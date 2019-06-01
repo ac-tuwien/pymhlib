@@ -57,8 +57,6 @@ class PBIG(Scheduler):
 
         terminate = False
         while not terminate:
-            best: Solution = self.incumbent
-
             nextgen: List[Solution] = []
             for individual in population:
                 modified = individual.copy()
@@ -73,11 +71,10 @@ class PBIG(Scheduler):
                     nextgen.append(modified)
 
                     # Update population best
-                    if modified.is_better(best):
-                        best = modified
+                    if modified.is_better(self.incumbent):
+                        self.incumbent = modified  # Update best solution
                 else:
                     # Individual was not changed
                     nextgen.append(individual)
 
             population = nextgen   # Replace old population with new
-            self.incumbent = best  # Update best solution
