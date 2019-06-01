@@ -36,6 +36,8 @@ parser.add("--mh_lfreq", type=int, default=0,
 parser.add("--mh_checkit", default=False, action='store_true',
            help='call check() for each solution after each method application')
 parser.add("--no_mh_checkit", dest='mh_checkit', action='store_false')
+parser.add("--mh_workers", type=int, default=4,
+           help='number of worker processes when using multiprocessing')
 
 
 class Result:
@@ -199,34 +201,41 @@ class Scheduler(ABC):
             res.terminate = True
         return res
 
-    def perform_method_pair(self, destroy_method: Method, repair_method: Method, sol: Solution) -> Result:
+    def perform_method_pair(self, destroy: Method, repair: Method, sol: Solution) -> Result:
         """Performs a destroy/repair method pair on given solution and returns Results object.
 
         Also updates incumbent, iteration and the method's statistics in method_stats.
         Furthermore checks the termination condition and eventually sets terminate in the returned Results object.
 
-        :param destroy_method: destroy destroy method to be performed
-        :param repair_method: repair destroy method to be performed
+        :param destroy: destroy destroy method to be performed
+        :param repair: repair destroy method to be performed
         :param sol: solution to which the method is applied
         :returns: Results object
         """
         res = Result()
         obj_old = sol.obj()
         t_start = time.process_time()
-        destroy_method.func(sol, destroy_method.par, res)
+        destroy.func(sol, destroy.par, res)
         t_destroyed = time.process_time()
-        repair_method.func(sol, repair_method.par, res)
+        repair.func(sol, repair.par, res)
         t_end = time.process_time()
+        self.update_stats_for_method_pair(destroy, repair, sol, res, obj_old,
+                                          t_destroyed - t_start, t_end - t_destroyed)
+        return res
+
+    def update_stats_for_method_pair(self, destroy: Method, repair: Method, sol: Solution, res: Result, obj_old: TObj,
+                                     t_destroy: float, t_repair: float):
+        """Update statistics, incumbent and check termination condition after having performed a destroy+repair."""
         if __debug__ and self.own_settings.mh_checkit:
             sol.check()
-        ms_destroy = self.method_stats[destroy_method.name]
+        ms_destroy = self.method_stats[destroy.name]
         ms_destroy.applications += 1
-        ms_destroy.netto_time += t_destroyed - t_start
-        ms_destroy.brutto_time += t_destroyed - t_start
-        ms_repair = self.method_stats[repair_method.name]
+        ms_destroy.netto_time += t_destroy
+        ms_destroy.brutto_time += t_destroy
+        ms_repair = self.method_stats[repair.name]
         ms_repair.applications += 1
-        ms_repair.netto_time += t_end - t_destroyed
-        ms_repair.brutto_time += t_end - t_destroyed
+        ms_repair.netto_time += t_repair
+        ms_repair.brutto_time += t_repair
         obj_new = sol.obj()
         if sol.is_better_obj(sol.obj(), obj_old):
             ms_destroy.successes += 1
@@ -234,14 +243,13 @@ class Scheduler(ABC):
             ms_repair.successes += 1
             ms_repair.obj_gain += obj_new - obj_old
         self.iteration += 1
-        new_incumbent = self.update_incumbent(sol, t_end - self.time_start)
+        new_incumbent = self.update_incumbent(sol, time.process_time() - self.time_start)
         terminate = self.check_termination()
-        self.log_iteration(destroy_method.name+'+'+repair_method.name, obj_old, sol, new_incumbent,
+        self.log_iteration(destroy.name+'+'+repair.name, obj_old, sol, new_incumbent,
                            terminate, res.log_info)
         if terminate:
             self.run_time = time.process_time() - self.time_start
             res.terminate = True
-        return res
 
     def delayed_success_update(self, method: Method, obj_old: TObj, t_start: TObj, sol: Solution):
         """Update an earlier performed method's success information in method_stats.

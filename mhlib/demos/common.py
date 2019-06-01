@@ -8,6 +8,7 @@ from mhlib.log import init_logger
 from mhlib.scheduler import Method
 from mhlib.gvns import GVNS
 from mhlib.alns import ALNS
+from mhlib.par_alns import ParallelALNS
 
 
 data_dir = resource_filename("mhlib", "demos/data/")
@@ -16,7 +17,7 @@ data_dir = resource_filename("mhlib", "demos/data/")
 def run_optimization(problem_name: str, Instance, Solution, default_inst_file: str, own_settings=None):
     """Run optimization algorithm given by parameter alg on given problem instance."""
     parser = get_settings_parser()
-    parser.add("--alg", type=str, default='gvns', help='optimization algorithm to be used (gvns, alns)')
+    parser.add("--alg", type=str, default='gvns', help='optimization algorithm to be used (gvns, alns, parallel_alns)')
     parser.add("--inst_file", type=str, default=default_inst_file,
                help='problem instance file')
     parser.add("--meths_ch", type=int, default=1,
@@ -55,6 +56,12 @@ def run_optimization(problem_name: str, Instance, Solution, default_inst_file: s
                    [Method(f"de{i}", Solution.destroy, i) for i in range(1, settings.meths_de + 1)],
                    [Method(f"re{i}", Solution.repair, i) for i in range(1, settings.meths_re + 1)],
                    own_settings)
+    elif settings.alg == 'par_alns':
+        alg = ParallelALNS(solution,
+                           [Method(f"ch{i}", Solution.construct, i) for i in range(settings.meths_ch)],
+                           [Method(f"de{i}", Solution.destroy, i) for i in range(1, settings.meths_de + 1)],
+                           [Method(f"re{i}", Solution.repair, i) for i in range(1, settings.meths_re + 1)],
+                           own_settings)
     else:
         raise ValueError('Invalid optimization algorithm selected (settings.alg): ', settings.alg)
 

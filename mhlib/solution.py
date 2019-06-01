@@ -177,7 +177,7 @@ class VectorSolution(Solution, ABC):
         return str(self.x)
 
     def __eq__(self, other: 'VectorSolution') -> bool:
-        return self.obj() != other.obj() or self.x == other.x
+        return self.obj() == other.obj() and np.array_equal(self.x, other.x)
 
 
 class BoolVectorSolution(VectorSolution, ABC):
