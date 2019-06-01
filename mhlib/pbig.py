@@ -63,12 +63,8 @@ class PBIG(Scheduler):
         meths_dr: List[Method] = [self.meths_li[0], self.meths_sh[0]]
         meths_dr_cycle = cycle(meths_dr)
 
-        iteration = 0
         terminate = False
         while not terminate:
-            iteration += 1
-            print(f"Iteration: {iteration}")  # TODO remove debug output
-
             best: Solution = self.incumbent
 
             nextgen: List[Solution] = []
@@ -97,6 +93,3 @@ class PBIG(Scheduler):
             population = nextgen   # replace old population with new
             self.incumbent = best  # update best solution
             print(f"Best {best.obj()}")
-
-            if iteration == 20:
-                terminate = True
