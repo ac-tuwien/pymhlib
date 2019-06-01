@@ -42,7 +42,6 @@ class PBIG(Scheduler):
     def run(self):
         """Actually performs the construction heuristics followed by the PBIG."""
 
-        #        population = List[Solution]
         population: List[Solution] = []
 
         meths_cycle = cycle(self.meths_ch)
