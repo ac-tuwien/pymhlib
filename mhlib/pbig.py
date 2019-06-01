@@ -20,24 +20,21 @@ class PBIG(Scheduler):
     Attributes
         - sol: solution object, in which final result will be returned
         - meths_ch: list of construction heuristic methods
-        - meths_li: list of local improvement methods
-        - meths_sh: list of shaking methods
+        - meths_dr: list of destruct and recreate methods
     """
 
-    def __init__(self, sol: Solution, meths_ch: List[Method], meths_li: List[Method], meths_sh: List[Method],
+    def __init__(self, sol: Solution, meths_ch: List[Method], meths_dr: List[Method],
                  own_settings: dict = None):
         """Initialization.
 
         :param sol: solution to be improved
         :param meths_ch: list of construction heuristic methods
-        :param meths_li: list of local improvement methods
-        :param meths_sh: list of shaking methods
+        :param meths_dr: list of destruct and recreate methods
         :param own_settings: optional dictionary with specific settings
         """
-        super().__init__(sol, meths_ch+meths_li+meths_sh, own_settings)
+        super().__init__(sol, meths_ch+meths_dr, own_settings)
         self.meths_ch = meths_ch
-        self.meths_li = meths_li
-        self.meths_sh = meths_sh
+        self.meths_dr = meths_dr
 
     def run(self):
         """Actually performs the construction heuristics followed by the PBIG."""
@@ -56,10 +53,7 @@ class PBIG(Scheduler):
             if res.terminate:
                 return
 
-        # TODO already pass in delete and reconstruct methods
-        # TODO append all individual methods
-        meths_dr: List[Method] = [self.meths_li[0], self.meths_sh[0]]
-        meths_dr_cycle = cycle(meths_dr)
+        meths_dr_cycle = cycle(self.meths_dr)
 
         terminate = False
         while not terminate:
