@@ -21,7 +21,8 @@ parser.add("--mh_alns_sigma1", type=int, default=33, help='ALNS score for new gl
 parser.add("--mh_alns_sigma2", type=int, default=9, help='ALNS score for better than current solution')
 parser.add("--mh_alns_sigma3", type=int, default=13, help='ALNS score for worse accepted solution')
 parser.add("--mh_alns_gamma", type=float, default=0.1, help='ALNS ')
-parser.add("--mh_alns_init_temp_factor", type=float, default=1.05, help='ALNS factor for determining initial temperature')
+parser.add("--mh_alns_init_temp_factor", type=float, default=1.05,
+           help='ALNS factor for determining initial temperature')
 parser.add("--mh_alns_temp_dec_factor", type=float, default=0.99975, help='ALNS factor for decreasing the temperature')
 parser.add("--mh_alns_dest_min_abs", type=int, default=4, help='ALNS minimum number of elements to destroy')
 parser.add("--mh_alns_dest_max_abs", type=int, default=60, help='ALNS maximum number of elements to destroy')
