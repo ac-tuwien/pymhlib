@@ -48,6 +48,8 @@ Vienna, Austria, since 2019.
     search, GRASP, etc.
 - **alns.py**:
     A framework for adaptive large neighborhood search (ALNS).
+- **par_alns.py**:
+    A multi-process implementation of the ALNS where destroy+repair operations are parallelized.
 - **decision_diag.py**:
     A generic class for (relaxed) decision diagrams for combinatorial optimization.
 - **log.py**:
@@ -94,7 +96,7 @@ for solving your own new problem.
 Major changes over major releases
 
 #### Version 0.1 
-- ALNS added
+- ALNS and parallel ALNS added
 - many smaller improvements, bug fixes, improvements in documentation 
 
 #### Version 0.0.1 
