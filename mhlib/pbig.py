@@ -1,5 +1,9 @@
 """A population-based iterated greedy search
-
+This algorithm implements a population based iterated greedy search.
+The parameter is a method that randomly creates a solution, which will be used to generate an initial population.
+Until a termination criterion is met, the list of d&r (destroy and recreate) methods
+is applied to each individual of the population, resulting in a temporary population.
+The best of the current and the temporary iteration form a new generation for which the process will be repeated.
 """
 
 from typing import List
