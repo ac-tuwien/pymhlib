@@ -4,6 +4,7 @@
 
 from typing import List
 from itertools import cycle
+import functools
 
 from mhlib.scheduler import Method, Scheduler
 from mhlib.settings import get_settings_parser
@@ -55,26 +56,28 @@ class PBIG(Scheduler):
 
         meths_dr_cycle = cycle(self.meths_dr)
 
-        terminate = False
-        while not terminate:
-            nextgen: List[Solution] = []
+        while True:
+            changed: List[Solution] = []
+
             for individual in population:
                 modified = individual.copy()
                 meth = next(meths_dr_cycle)
                 res = self.perform_method(meth, modified)
 
                 if res.terminate:
-                    terminate = True
-                    break
+                    return
 
-                if res.changed and modified.is_better(individual):
-                    nextgen.append(modified)
+                if res.changed:
+                    changed.append(modified)
 
                     # Update population best
                     if modified.is_better(self.incumbent):
                         self.incumbent = modified  # Update best solution
-                else:
-                    # Individual was not changed
-                    nextgen.append(individual)
 
-            population = nextgen   # Replace old population with new
+            # Add new individuals to population and take the best
+            def compare(lhs: Solution, rhs: Solution):
+                return lhs.is_better(rhs)
+
+            population.extend(changed)
+            sorted(population, key=functools.cmp_to_key(compare), reverse=True)
+            population = population[0:self.own_settings.mh_pbig_pop_size]
