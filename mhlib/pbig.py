@@ -75,15 +75,12 @@ class PBIG(Scheduler):
                     terminate = True
                     break
 
-                if res.changed:
-                    if modified.is_better(individual):
-                        nextgen.append(modified)
+                if res.changed and modified.is_better(individual):
+                    nextgen.append(modified)
 
-                        # Update population best
-                        if modified.is_better(best):
-                            best = modified
-                    else:
-                        nextgen.append(individual)
+                    # Update population best
+                    if modified.is_better(best):
+                        best = modified
                 else:
                     # Individual was not changed
                     nextgen.append(individual)
