@@ -67,7 +67,7 @@ class PBIG(Scheduler):
         terminate = False
         while not terminate:
             iteration += 1
-            print(f"Iteration: {iteration}")
+            print(f"Iteration: {iteration}")  # TODO remove debug output
 
             best: Solution = self.incumbent
 
@@ -78,12 +78,9 @@ class PBIG(Scheduler):
                 res = self.perform_method(m, mod)
 
                 if res.terminate:
-                    True
-                    # TODO restore break
-                    # TODO figure out why it already terminates
-                    # print(f"Break detected but ignored for now")
-                    # terminate = True
-                    # break
+                    print(f"Break detected")  # TODO remove debug output
+                    terminate = True
+                    break
 
                 if res.changed:
                     if mod.is_better(indiv):
