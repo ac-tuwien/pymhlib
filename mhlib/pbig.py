@@ -46,13 +46,13 @@ class PBIG(Scheduler):
 
         meths_cycle = cycle(self.meths_ch)
 
-        # cycle through construction heuristics to generate population
+        # Cycle through construction heuristics to generate population
         # perform all construction heuristics, take best solution
         while len(population) < self.own_settings.mh_pbig_pop_size:
             m = next(meths_cycle)
-            indiv = self.incumbent.copy()
-            res = self.perform_method(m, indiv)
-            population.append(indiv)
+            individual = self.incumbent.copy()
+            res = self.perform_method(m, individual)
+            population.append(individual)
             if res.terminate:
                 return
 
@@ -66,26 +66,27 @@ class PBIG(Scheduler):
             best: Solution = self.incumbent
 
             nextgen: List[Solution] = []
-            for indiv in population:
-                mod = indiv.copy()
-                m = next(meths_dr_cycle)
-                res = self.perform_method(m, mod)
+            for individual in population:
+                modified = individual.copy()
+                meth = next(meths_dr_cycle)
+                res = self.perform_method(meth, modified)
 
                 if res.terminate:
                     terminate = True
                     break
 
                 if res.changed:
-                    if mod.is_better(indiv):
-                        nextgen.append(mod)
+                    if modified.is_better(individual):
+                        nextgen.append(modified)
 
-                        # update population best
-                        if mod.is_better(best):
-                            best = mod
+                        # Update population best
+                        if modified.is_better(best):
+                            best = modified
                     else:
-                        nextgen.append(indiv)
+                        nextgen.append(individual)
                 else:
-                    nextgen.append(indiv)  # indiv eq mod
+                    # Individual was not changed
+                    nextgen.append(individual)
 
-            population = nextgen   # replace old population with new
-            self.incumbent = best  # update best solution
+            population = nextgen   # Replace old population with new
+            self.incumbent = best  # Update best solution
