@@ -92,4 +92,3 @@ class PBIG(Scheduler):
 
             population = nextgen   # replace old population with new
             self.incumbent = best  # update best solution
-            print(f"Best {best.obj()}")
