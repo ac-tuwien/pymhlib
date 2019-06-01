@@ -54,8 +54,7 @@ class PBIG(Scheduler):
             res = self.perform_method(m, indiv)
             population.append(indiv)
             if res.terminate:
-                print(f"Break detected but ignored for now")
-                # break
+                return
 
         # TODO already pass in delete and reconstruct methods
         # TODO append all individual methods
@@ -73,7 +72,6 @@ class PBIG(Scheduler):
                 res = self.perform_method(m, mod)
 
                 if res.terminate:
-                    print(f"Break detected")  # TODO remove debug output
                     terminate = True
                     break
 
