@@ -3,7 +3,7 @@
 The module realizes a classical ALNS based on the scheduler module.
 """
 
-from typing import List
+from typing import List, Tuple
 import numpy as np
 from math import exp
 from itertools import chain
@@ -57,6 +57,7 @@ class ALNS(Scheduler):
         - meths_repair: list of repair methods
         - score_data: dictionary yielding ScoreData for a method
         - temperature: temperature for Metropolis criterion
+        - next_segment: iteration number of next segment for updating operator weights
     """
 
     def __init__(self, sol: Solution, meths_ch: List[Method], meths_destroy: List[Method], meths_repair: List[Method],
@@ -78,6 +79,7 @@ class ALNS(Scheduler):
         self.meths_repair = meths_repair
         self.score_data = {m.name: ScoreData() for m in chain(self.meths_destroy, self.meths_repair)}
         self.temperature = sol.obj() * self.own_settings.mh_alns_init_temp_factor + 0.000000001
+        self.next_segment = 0
 
     @staticmethod
     def select_method(meths: List[Method], weights=None) -> Method:
@@ -90,6 +92,16 @@ class ALNS(Scheduler):
             return np.random.choice(meths)
         else:
             return np.random.choice(meths, p=weights/sum(weights))
+
+    def select_method_pair(self) -> Tuple[Method, Method]:
+        """Select a destroy and repair method pair according to current weights."""
+        destroy = self.select_method(self.meths_destroy,
+                                     np.fromiter((self.score_data[m.name].weight for m in self.meths_destroy),
+                                                 dtype=float, count=len(self.meths_destroy)))
+        repair = self.select_method(self.meths_repair,
+                                    np.fromiter((self.score_data[m.name].weight for m in self.meths_repair),
+                                                dtype=float, count=len(self.meths_repair)))
+        return destroy, repair
 
     def metropolis_criterion(self, sol_new: Solution, sol_current: Solution) -> bool:
         """Apply Metropolis criterion as acceptance decision, return True when sol_new should be accepted."""
@@ -121,6 +133,53 @@ class ALNS(Scheduler):
         b = min(dest_max_abs, int(dest_max_ratio * num_elements))
         return np.random.randint(a, b+1) if b >= a else b+1
 
+    def update_operator_weights(self):
+        """Update operator weights at segment ends and re-initialize scores"""
+        if self.iteration == self.next_segment:
+            if self.own_settings.mh_alns_logscores:
+                self.log_scores()
+            self.next_segment = self.iteration + self.own_settings.mh_alns_segment_size
+            gamma = self.own_settings.mh_alns_gamma
+            for m in chain(self.meths_destroy, self.meths_repair):
+                data = self.score_data[m.name]
+                if data.applied:
+                    data.weight = data.weight * (1 - gamma) + gamma * data.score / data.applied
+                    data.score = 0
+                    data.applied = 0
+
+    def update_after_destroy_and_repair_performed(self, destroy: Method, repair: Method, sol_new: Solution,
+                                                  sol_incumbent: Solution, sol: Solution):
+        """Update current solution, incumbent, and all operator score data according to performed destroy+repair.
+
+        :param destroy: applied destroy method
+        :param repair: applied repair method
+        :param sol_new: obtained new solution
+        :param sol_incumbent: current incumbent solution
+        :param sol: current (last accepted) solution
+        """
+        destroy_data = self.score_data[destroy.name]
+        repair_data = self.score_data[repair.name]
+        destroy_data.applied += 1
+        repair_data.applied += 1
+        score = 0
+        if sol_new.is_better(sol_incumbent):
+            score = self.own_settings.mh_alns_sigma1
+            # print('better than incumbent')
+            sol_incumbent.copy_from(sol_new)
+            sol.copy_from(sol_new)
+        elif sol_new.is_better(sol):
+            score = self.own_settings.mh_alns_sigma2
+            # print('better than current')
+            sol.copy_from(sol_new)
+        elif sol.is_better(sol_new) and self.metropolis_criterion(sol_new, sol):
+            score = self.own_settings.mh_alns_sigma3
+            # print('accepted although worse')
+            sol.copy_from(sol_new)
+        elif sol_new != sol:
+            sol_new.copy_from(sol)
+        destroy_data.score += score
+        repair_data.score += score
+
     def log_scores(self):
         """Write information on received scores and weight update to log."""
         indent = ' ' * 32
@@ -133,54 +192,17 @@ class ALNS(Scheduler):
 
     def alns(self, sol: Solution):
         """Perform adaptive large neighborhood search (ALNS) on given solution."""
-        next_segment = self.iteration + self.own_settings.mh_alns_segment_size
+        self.next_segment = self.iteration + self.own_settings.mh_alns_segment_size
         sol_incumbent = sol.copy()
         sol_new = sol.copy()
         while True:
-            destroy = self.select_method(self.meths_destroy,
-                                         np.fromiter((self.score_data[m.name].weight for m in self.meths_destroy),
-                                                     dtype=float, count=len(self.meths_destroy)))
-            repair = self.select_method(self.meths_repair,
-                                        np.fromiter((self.score_data[m.name].weight for m in self.meths_repair),
-                                                    dtype=float, count=len(self.meths_repair)))
+            destroy, repair = self.select_method_pair()
             res = self.perform_method_pair(destroy, repair, sol_new)
-            destroy_data = self.score_data[destroy.name]
-            repair_data = self.score_data[repair.name]
-            destroy_data.applied += 1
-            repair_data.applied += 1
-            score = 0
-            if sol_new.is_better(sol_incumbent):
-                score = self.own_settings.mh_alns_sigma1
-                # print('better than incumbent')
-                sol_incumbent.copy_from(sol_new)
-                sol.copy_from(sol_new)
-            elif sol_new.is_better(sol):
-                score = self.own_settings.mh_alns_sigma2
-                # print('better than current')
-                sol.copy_from(sol_new)
-            elif sol.is_better(sol_new) and self.metropolis_criterion(sol_new, sol):
-                score = self.own_settings.mh_alns_sigma3
-                # print('accepted although worse')
-                sol.copy_from(sol_new)
-            elif sol_new != sol:
-                sol_new.copy_from(sol)
-            destroy_data.score += score
-            repair_data.score += score
+            self.update_after_destroy_and_repair_performed(destroy, repair, sol_new, sol_incumbent, sol)
             if res.terminate:
                 sol.copy_from(sol_incumbent)
                 return
-            if self.iteration == next_segment:
-                # end of segment: update weights and re-initialize scores
-                if self.own_settings.mh_alns_logscores:
-                    self.log_scores()
-                next_segment = self.iteration + self.own_settings.mh_alns_segment_size
-                gamma = self.own_settings.mh_alns_gamma
-                for m in chain(self.meths_destroy, self.meths_repair):
-                    data = self.score_data[m.name]
-                    if data.applied:
-                        data.weight = data.weight * (1 - gamma) + gamma * data.score / data.applied
-                        data.score = 0
-                        data.applied = 0
+            self.update_operator_weights()
 
     def run(self) -> None:
         """Actually performs the construction heuristics followed by the ALNS."""
