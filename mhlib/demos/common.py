@@ -15,7 +15,7 @@ from mhlib.ssga import SSGA
 data_dir = resource_filename("mhlib", "demos/data/")
 
 
-def run_optimization(problem_name: str, Instance, Solution, default_inst_file: str, own_settings=None):
+def run_optimization(problem_name: str, instance_class, solution_class, default_inst_file: str, own_settings=None):
     """Run optimization algorithm given by parameter alg on given problem instance."""
     parser = get_settings_parser()
     parser.add("--alg", type=str, default='gvns', help='optimization algorithm to be used (gvns, alns)')
@@ -38,35 +38,35 @@ def run_optimization(problem_name: str, Instance, Solution, default_inst_file: s
     logger = logging.getLogger("mhlib")
     logger.info(f"mhlib demo for solving {problem_name}")
     logger.info(get_settings_as_str())
-    instance = Instance(settings.inst_file)
+    instance = instance_class(settings.inst_file)
     logger.info(f"{problem_name} instance read:\n" + str(instance))
-    solution = Solution(instance)
+    solution = solution_class(instance)
     # solution.initialize(0)
 
-    logger.info(f"Solution: {solution}, obj={solution.obj()}\n")
+    logger.info(f"solution_class: {solution}, obj={solution.obj()}\n")
 
     if settings.alg == 'gvns':
         alg = GVNS(solution,
-                   [Method(f"ch{i}", Solution.construct, i) for i in range(settings.meths_ch)],
-                   [Method(f"li{i}", Solution.local_improve, i) for i in range(1, settings.meths_li + 1)],
-                   [Method(f"sh{i}", Solution.shaking, i) for i in range(1, settings.meths_sh + 1)],
+                   [Method(f"ch{i}", solution_class.construct, i) for i in range(settings.meths_ch)],
+                   [Method(f"li{i}", solution_class.local_improve, i) for i in range(1, settings.meths_li + 1)],
+                   [Method(f"sh{i}", solution_class.shaking, i) for i in range(1, settings.meths_sh + 1)],
                    own_settings)
     elif settings.alg == 'alns':
         alg = ALNS(solution,
-                   [Method(f"ch{i}", Solution.construct, i) for i in range(settings.meths_ch)],
-                   [Method(f"de{i}", Solution.destroy, i) for i in range(1, settings.meths_de + 1)],
-                   [Method(f"re{i}", Solution.repair, i) for i in range(1, settings.meths_re + 1)],
+                   [Method(f"ch{i}", solution_class.construct, i) for i in range(settings.meths_ch)],
+                   [Method(f"de{i}", solution_class.destroy, i) for i in range(1, settings.meths_de + 1)],
+                   [Method(f"re{i}", solution_class.repair, i) for i in range(1, settings.meths_re + 1)],
                    own_settings)
     elif settings.alg == 'pbig':
         alg = PBIG(solution,
-                    [Method(f"ch{i}", Solution.construct, i) for i in range(settings.meths_ch)],
-                    [Method(f"li{i}", Solution.local_improve, i) for i in range(1, settings.meths_li + 1)] +
-                    [Method(f"sh{i}", Solution.shaking, i) for i in range(1, settings.meths_sh + 1)],
-                    own_settings)
+                   [Method(f"ch{i}", solution_class.construct, i) for i in range(settings.meths_ch)],
+                   [Method(f"li{i}", solution_class.local_improve, i) for i in range(1, settings.meths_li + 1)] +
+                   [Method(f"sh{i}", solution_class.shaking, i) for i in range(1, settings.meths_sh + 1)],
+                   own_settings)
     elif settings.alg == 'ssga':
         alg = SSGA(solution,
-                   [Method(f"ch{i}", Solution.construct, i) for i in range(settings.meths_ch)],
-                   Method(f"sh{1}", Solution.shaking, 1),
+                   [Method(f"ch{i}", solution_class.construct, i) for i in range(settings.meths_ch)],
+                   Method(f"sh{1}", solution_class.shaking, 1),
                    own_settings)
     else:
         raise ValueError('Invalid optimization algorithm selected (settings.alg): ', settings.alg)

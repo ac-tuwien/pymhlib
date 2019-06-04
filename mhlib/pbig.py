@@ -1,5 +1,5 @@
-"""A population-based iterated greedy search
-This algorithm implements a population based iterated greedy search.
+"""A population-based iterated greedy (PBIG) algorithm.
+.
 The parameter is a method that randomly creates a solution, which will be used to generate an initial population.
 Until a termination criterion is met, the list of d&r (destroy and recreate) methods
 is applied to each individual of the population, resulting in a temporary population.
@@ -20,10 +20,11 @@ parser.add("--mh_pbig_pop_size", type=int, default=20, help='PBIG population siz
 
 
 class PBIG(Scheduler):
-    """A population-based iterated greedy algorithm.
+    """A population-based iterated greedy (PBIG) algorithm.
 
     Attributes
         - sol: solution object, in which final result will be returned
+        - population: population of solutions
         - meths_ch: list of construction heuristic methods
         - meths_dr: list of destruct and recreate methods
     """
@@ -38,17 +39,17 @@ class PBIG(Scheduler):
         :param own_settings: optional dictionary with specific settings
         """
         super().__init__(sol, meths_ch+meths_dr, own_settings)
+        self.population: List[Solution] = []
         self.meths_ch = meths_ch
         self.meths_dr = meths_dr
 
     def run(self):
         """Actually performs the construction heuristics followed by the PBIG."""
 
-        population: List[Solution] = []
-
         meths_cycle = cycle(self.meths_ch)
+        population = self.population
 
-        # Cycle through construction heuristics to generate population
+        # cycle through construction heuristics to generate initial population
         # perform all construction heuristics, take best solution
         while len(population) < self.own_settings.mh_pbig_pop_size:
             m = next(meths_cycle)
@@ -63,10 +64,10 @@ class PBIG(Scheduler):
         while True:
             changed: List[Solution] = []
 
-            for individual in population:
+            for individual in self.population:
                 modified = individual.copy()
-                meth = next(meths_dr_cycle)
-                res = self.perform_method(meth, modified)
+                method = next(meths_dr_cycle)
+                res = self.perform_method(method, modified)
 
                 if res.terminate:
                     return
