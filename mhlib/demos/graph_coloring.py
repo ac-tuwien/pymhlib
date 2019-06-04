@@ -1,7 +1,11 @@
-"""Demo application solving the graph coloring problem."""
+"""Demo application solving the graph coloring problem.
+
+Given a graph and an number of colors, color each node with one color so that
+the number of adjacent nodes having the same color is minimized.
+"""
 
 import networkx as nx
-import random
+import numpy as np
 
 from mhlib.subset_solution import VectorSolution
 
@@ -13,8 +17,9 @@ parser.add("--mh_gcp_colors", type=int, default=3, help='number of colors availa
 
 class GCInstance:
     """Graph coloring problem instance.
-    This instance contains the graph to color as well as a fixed number of available colors.
-    Starting from a solution in which all nodes are colored the same, we try to reduce the number of conflicts.
+
+    Given a graph and an number of colors, color each node with one color so that
+    the number of adjacent nodes having the same color is minimized.
 
     Attributes
         - n: number of nodes
@@ -51,7 +56,7 @@ class GCInstance:
 class GCSolution(VectorSolution):
     """Solution to a graph coloring problem instance.
 
-    Additional attributes
+    Attributes
         - x: for each node the color that is assigned to it
     """
 
@@ -68,11 +73,9 @@ class GCSolution(VectorSolution):
 
     def calc_objective(self):
         violations = 0
-
         for u, v in self.inst.graph.edges:
             if self.x[u] == self.x[v]:
                 violations += 1
-
         return violations
 
     def check(self):
@@ -98,23 +101,23 @@ class GCSolution(VectorSolution):
         """
 
         for p in range(len(self.x)):
-            nbhcol = {}
+            nbh_col = {}
             for col in range(self.inst.colors):
-                nbhcol[col] = 0
+                nbh_col[col] = 0
 
             for adj in self.inst.graph.adj[p]:
-                nbhcol[self.x[adj]] += 1
+                nbh_col[self.x[adj]] += 1
 
-            oldcol = self.x[p]
-            if nbhcol[oldcol] > 0:
+            old_col = self.x[p]
+            if nbh_col[old_col] > 0:
                 # Violation found
 
-                for newcol in range(self.inst.colors):
-                    if nbhcol[newcol] < nbhcol[oldcol]:
+                for new_col in range(self.inst.colors):
+                    if nbh_col[new_col] < nbh_col[old_col]:
                         # Possible improvement found
-                        self.x[p] = newcol
-                        self.obj_val -= nbhcol[oldcol]
-                        self.obj_val += nbhcol[newcol]
+                        self.x[p] = new_col
+                        self.obj_val -= nbh_col[old_col]
+                        self.obj_val += nbh_col[new_col]
                         result.changed = True
                         return
 
@@ -122,39 +125,41 @@ class GCSolution(VectorSolution):
 
     def shaking(self, par, result):
         """Scheduler method that performs shaking by randomly assigning a different color
-        to 'par' many random vertices that are involved in a conflict.
+        to 'par' many random vertices that are involved in conflicts.
         """
 
-        conflicted = []
+        under_conflict = []
         result.changed = False
 
         for u in range(len(self.x)):
             for v in self.inst.graph.adj[u]:
                 if self.x[u] == self.x[v]:
                     # Conflict found
-                    conflicted.append(u)
+                    under_conflict.append(u)
                     break
 
         for _ in range(par):
-            if len(conflicted) == 0:
+            if len(under_conflict) == 0:
                 return
 
-            u = random.choice(conflicted)
+            u = np.random.choice(under_conflict)
             # Pick random color (different from current)
-            randcol = random.randint(0, self.inst.colors - 2)
+            rand_col = np.random.randint(0, self.inst.colors - 1)
 
-            if randcol >= self.x[u]:
-                randcol += 1
+            if rand_col >= self.x[u]:
+                rand_col += 1
 
-            self.x[u] = randcol
+            self.x[u] = rand_col
             self.invalidate()
             result.changed = True
 
             # Prevent this vertex from getting changed again
-            conflicted.remove(u)
+            under_conflict.remove(u)
 
     def initialize(self, _k):
-        pass
+        """Initialize solution vector with random colors."""
+        self.x = np.random.randint(self.inst.colors, size=len(self.x))
+        self.invalidate()
 
 
 if __name__ == '__main__':
@@ -162,4 +167,4 @@ if __name__ == '__main__':
     from mhlib.settings import settings, get_settings_parser
 
     settings.mh_maxi = False
-    run_optimization('GCP', GCInstance, GCSolution, data_dir + "misp-simple.clq")
+    run_optimization('Graph Coloring', GCInstance, GCSolution, data_dir + "misp-simple.clq")
