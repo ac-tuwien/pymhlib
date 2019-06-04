@@ -1,4 +1,7 @@
-"""Demo application solving the symmetric traveling salesman problem."""
+"""Demo application solving the symmetric traveling salesman problem.
+
+Given n cities and a symmetric distance matrix for all city pairs, find a shortest round trip through all cities.
+"""
 
 import random
 import numpy as np
@@ -8,7 +11,8 @@ from mhlib.permutation_solution import PermutationSolution
 
 
 class TSPInstance:
-    """TSP problem instance.
+    """An instance of the traveling salesman problem.
+
     This instance contains the distances between all city pairs.
     Starting from a solution in which the cities are visited in the order they are defined in the instance file,
     a local search in a 2-opt neighborhood using edge exchange is performed.
@@ -73,7 +77,7 @@ class TSPSolution(PermutationSolution):
 
     Attributes
         - inst: associated TSPInstance
-        - x: order in which cities are visited
+        - x: order in which cities are visited, i.e., a permutation of 0,...,n-1
     """
 
     def __init__(self, inst: TSPInstance):
@@ -87,12 +91,9 @@ class TSPSolution(PermutationSolution):
 
     def calc_objective(self):
         distance = 0
-
         for i in range(self.inst.n - 1):
             distance += self.inst.distances[self.x[i]][self.x[i + 1]]
-
         distance += self.inst.distances[self.x[-1]][self.x[0]]
-
         return distance
 
     def check(self):
