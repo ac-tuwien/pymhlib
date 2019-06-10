@@ -9,7 +9,6 @@ from mhlib.scheduler import Method
 from mhlib.gvns import GVNS
 from mhlib.alns import ALNS
 from mhlib.pbig import PBIG
-from mhlib.ssga import SSGA
 
 
 data_dir = resource_filename("mhlib", "demos/data/")
@@ -62,11 +61,6 @@ def run_optimization(problem_name: str, instance_class, solution_class, default_
                    [Method(f"ch{i}", solution_class.construct, i) for i in range(settings.meths_ch)],
                    [Method(f"li{i}", solution_class.local_improve, i) for i in range(1, settings.meths_li + 1)] +
                    [Method(f"sh{i}", solution_class.shaking, i) for i in range(1, settings.meths_sh + 1)],
-                   own_settings)
-    elif settings.alg == 'ssga':
-        alg = SSGA(solution,
-                   [Method(f"ch{i}", solution_class.construct, i) for i in range(settings.meths_ch)],
-                   Method(f"sh{1}", solution_class.shaking, 1),
                    own_settings)
     else:
         raise ValueError('Invalid optimization algorithm selected (settings.alg): ', settings.alg)
