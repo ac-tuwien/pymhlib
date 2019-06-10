@@ -167,4 +167,4 @@ if __name__ == '__main__':
     from mhlib.settings import settings, get_settings_parser
 
     settings.mh_maxi = False
-    run_optimization('Graph Coloring', GCInstance, GCSolution, data_dir + "misp-simple.clq")
+    run_optimization('Graph Coloring', GCInstance, GCSolution, data_dir + "fpsol2.i.1.col")
