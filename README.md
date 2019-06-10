@@ -50,6 +50,8 @@ Vienna, Austria, since 2019.
     A framework for adaptive large neighborhood search (ALNS).
 - **par_alns.py**:
     A multi-process implementation of the ALNS where destroy+repair operations are parallelized.
+- **pbig.py**:
+    A population based iterated greedy (PBIG) algorithm.
 - **decision_diag.py**:
     A generic class for (relaxed) decision diagrams for combinatorial optimization.
 - **log.py**:
@@ -89,6 +91,8 @@ for solving your own new problem.
 - Maximum (weighted) independent set problem (MISP)
 - Multidimensional 0-1 knapsack problem (MKP)
 - Quadratic assignment problem (QAP)
+- Traveling Salesman Problem (TSP)
+- Graph Coloring Problem (GCP)
          
 
 ### Changelog
@@ -97,6 +101,8 @@ Major changes over major releases
 
 #### Version 0.1 
 - ALNS and parallel ALNS added
+- graph coloring and TSP demo added
+- population based iterated greedy algorithm added
 - many smaller improvements, bug fixes, improvements in documentation 
 
 #### Version 0.0.1 

@@ -6,6 +6,7 @@ from abc import ABC
 from mhlib.solution import VectorSolution
 import random
 
+
 class PermutationSolution(VectorSolution, ABC):
     """Solution that is represented by a permutation of 0,...length-1."""
 
@@ -88,16 +89,18 @@ class PermutationSolution(VectorSolution, ABC):
             self.invalidate()
         return True
 
+
 def edge_recombination(parent_a: PermutationSolution, parent_b: PermutationSolution):
     # TODO implement
-    # example at http://www.rubicite.com/Tutorials/GeneticAlgorithms/CrossoverOperators/EdgeRecombinationCrossoverOperator.aspx
+    # example at
+    # http://www.rubicite.com/Tutorials/GeneticAlgorithms/CrossoverOperators/EdgeRecombinationCrossoverOperator.aspx
 
     nbh = {}
 
     for i in range(0, len(parent_a.x)):
         elem_a = parent_a.x[i]
 
-        if not elem_a in nbh:
+        if elem_a not in nbh:
             nbh[elem_a] = []
 
         nbh[elem_a].append(parent_a.x[i - 1])
@@ -106,7 +109,7 @@ def edge_recombination(parent_a: PermutationSolution, parent_b: PermutationSolut
 
         elem_b = parent_b.x[i]
 
-        if not elem_b in nbh:
+        if elem_b not in nbh:
             nbh[elem_b] = []
 
         nbh[elem_b].append(parent_b.x[i - 1])
@@ -142,18 +145,18 @@ def edge_recombination(parent_a: PermutationSolution, parent_b: PermutationSolut
 
         x.append(start)
 
-    child: PermutationSolution
-    child = parent_a.copy()
+    child: PermutationSolution = parent_a.copy()
     assert (len(child.x) == len(x))
     child.x = x
     child.invalidate()
 
     return child
 
+
 def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution):
-    posa = {}
+    pos_a = {}
     for i in range(0, len(parent_a.x)):
-        posa[parent_a.x[i]] = i
+        pos_a[parent_a.x[i]] = i
 
     # Detect cycles
     group = np.full(len(parent_a.x), -1)
@@ -170,7 +173,7 @@ def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution
             # Element at pos i is not yet assigned to a group
             group[pos] = group_id
             sym = parent_b.x[pos]
-            pos = posa[sym]
+            pos = pos_a[sym]
 
         # sanity check
         assert pos == i
@@ -185,8 +188,9 @@ def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution
 
     return parent_a, parent_b
 
-def partial_matched_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution, swath):
-    """A partial-matched-crossover (PMX) exchange.
+
+def partially_matched_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution, swath):
+    """Partially matched crossover (PMX).
 
     Generates the child individual generated from the first parent crossed with the second one
 
@@ -202,13 +206,13 @@ def partial_matched_crossover(parent_a: PermutationSolution, parent_b: Permutati
     for i in range(0, len(x)):
         posy[y[i]] = i
 
-    childx = y.copy()
+    child_x = y.copy()
 
     done = []
 
     for i in swath:
         # transfer from fixed range to child
-        childx[i] = x[i]
+        child_x[i] = x[i]
 
         # begin position calculation
         val = y[i]
@@ -224,8 +228,8 @@ def partial_matched_crossover(parent_a: PermutationSolution, parent_b: Permutati
             done.append(pos)
 
         # move val to position
-        childx[pos] = val
+        child_x[pos] = val
 
-    parent_a.x = childx
+    parent_a.x = child_x
 
     return parent_a
