@@ -8,6 +8,7 @@ import numpy as np
 import math
 
 from mhlib.permutation_solution import PermutationSolution
+from mhlib.permutation_solution import edge_recombination
 
 
 class TSPInstance:
@@ -111,6 +112,9 @@ class TSPSolution(PermutationSolution):
         Here we just call initialize.
         """
         self.initialize(par)
+
+    def crossover(self, other: PermutationSolution):
+        return edge_recombination(self, other)
 
     def shaking(self, par, result):
         """Scheduler method that performs shaking by 'par'-times swapping a pair of randomly chosen cities.

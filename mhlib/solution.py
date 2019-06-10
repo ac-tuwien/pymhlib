@@ -10,12 +10,10 @@ from typing import TypeVar
 
 from mhlib.settings import settings, get_settings_parser
 
-
 parser = get_settings_parser()
 parser.add("--mh_maxi", default=True, action='store_true',
            help='maximize the objective function, else minimize')
 parser.add("--no_mh_maxi", dest='mh_maxi', action='store_false')
-
 
 TObj = TypeVar('TObj', int, float)  # Type of objective value
 
@@ -155,6 +153,14 @@ class Solution(ABC):
             self.invalidate()
             if old_obj != self.obj():
                 raise ValueError(f'Solution has wrong objective value: {old_obj}, should be {self.obj()}')
+
+    @abstractmethod
+    def crossover(self, other: "Solution"):
+        """ Performs a crossover operation of two solutions.
+
+        A crossover operation of two solutions is performed and the result is returned.
+        """
+        raise NotImplementedError
 
 
 class VectorSolution(Solution, ABC):

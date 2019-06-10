@@ -73,7 +73,9 @@ def run_optimization(problem_name: str, Instance, Solution, default_inst_file: s
     elif settings.alg == 'ssga':
         alg = SSGA(solution,
                    [Method(f"ch{i}", Solution.construct, i) for i in range(settings.meths_ch)],
-                   Method(f"sh{1}", Solution.shaking, 1),
+                   Solution.crossover,
+                   Method(f"mu", Solution.shaking, 1),
+                   Method(f"ls", Solution.local_improve, 1),
                    own_settings)
     else:
         raise ValueError('Invalid optimization algorithm selected (settings.alg): ', settings.alg)
