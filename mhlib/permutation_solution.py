@@ -90,7 +90,7 @@ class PermutationSolution(VectorSolution, ABC):
         return True
 
 
-def edge_recombination(parent_a: PermutationSolution, parent_b: PermutationSolution):
+def edge_recombination(parent_a: PermutationSolution, parent_b: PermutationSolution) -> PermutationSolution:
     # TODO implement
     # example at
     # http://www.rubicite.com/Tutorials/GeneticAlgorithms/CrossoverOperators/EdgeRecombinationCrossoverOperator.aspx
@@ -153,7 +153,7 @@ def edge_recombination(parent_a: PermutationSolution, parent_b: PermutationSolut
     return child
 
 
-def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution):
+def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution) -> PermutationSolution:
     pos_a = {}
     for i in range(0, len(parent_a.x)):
         pos_a[parent_a.x[i]] = i
@@ -189,7 +189,8 @@ def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution
     return parent_a, parent_b
 
 
-def partially_matched_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution, swath):
+def partially_matched_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution, swath) \
+        -> PermutationSolution:
     """Partially matched crossover (PMX).
 
     Generates the child individual generated from the first parent crossed with the second one

@@ -6,9 +6,10 @@ the number of adjacent nodes having the same color is minimized.
 
 import networkx as nx
 import numpy as np
+from typing import Any
 
-from mhlib.subset_solution import VectorSolution
-
+from mhlib.solution import VectorSolution
+from mhlib.scheduler import Result
 from mhlib.settings import get_settings_parser
 
 parser = get_settings_parser()
@@ -94,7 +95,7 @@ class GCSolution(VectorSolution):
         """
         self.initialize(par)
 
-    def local_improve(self, _par, result):
+    def local_improve(self, _par: Any, result: Result):
         """Scheduler method that performs one iteration of a local search following a first improvement strategy.
         The neighborhood used is defined by all solutions that can be created by changing the color
         of a vertex involved in a conflict.
@@ -123,7 +124,7 @@ class GCSolution(VectorSolution):
 
         result.changed = False
 
-    def shaking(self, par, result):
+    def shaking(self, par: Any, result: Result):
         """Scheduler method that performs shaking by randomly assigning a different color
         to 'par' many random vertices that are involved in conflicts.
         """
