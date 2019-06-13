@@ -156,7 +156,7 @@ class Solution(ABC):
 
     @abstractmethod
     def crossover(self, other: "Solution"):
-        """ Performs a crossover operation of two solutions.
+        """ Perform a crossover operation of two solutions.
 
         A crossover operation of two solutions is performed and the result is returned.
         """
