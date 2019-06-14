@@ -97,7 +97,7 @@ for solving your own new problem.
 
 ### Changelog
 
-Major changes over major releases
+Major changes over major releases:
 
 #### Version 0.1 
 - ALNS and parallel ALNS added

@@ -2,6 +2,7 @@
 
 import logging
 from pkg_resources import resource_filename
+import networkx as nx
 
 from mhlib.settings import parse_settings, settings, get_settings_parser, get_settings_as_str
 from mhlib.log import init_logger
@@ -13,6 +14,36 @@ from mhlib.pbig import PBIG
 
 
 data_dir = resource_filename("mhlib", "demos/data/")
+
+
+def create_or_read_simple_graph(name: str) -> nx.Graph:
+    """Read a simple unweighted graph from the specified file or create random G_n,m graph if name is gnm-n-m.
+
+    File format:
+        - ``c <comments>    #`` ignored
+        - ``p <name> <number of nodes> <number of edges>``
+        - ``e <node_1> <node_2>    #`` for each edge, nodes are labeled in 1...number of nodes
+    """
+    if name.startswith('gnm-'):
+        # create random G_n,m graph
+        _, n, m = name.split(sep='-')
+        return nx.gnm_random_graph(int(n), int(m))
+    else:  # read from file
+        graph: nx.Graph = nx.Graph()
+        with open(name) as f:
+            for line in f:
+                flag = line[0]
+                if flag == 'p':
+                    split_line = line.split(' ')
+                    n = int(split_line[2])
+                    # m = int(split_line[3])
+                    graph.add_nodes_from(range(n))
+                elif flag == 'e':
+                    split_line = line.split(' ')
+                    u = int(split_line[1]) - 1
+                    v = int(split_line[2]) - 1
+                    graph.add_edge(u, v)
+        return graph
 
 
 def run_optimization(problem_name: str, Instance, Solution, default_inst_file: str, own_settings=None):

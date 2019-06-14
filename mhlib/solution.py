@@ -205,3 +205,30 @@ class BoolVectorSolution(VectorSolution, ABC):
         for v in self.x:
             if not 0 <= v <= 1:
                 raise ValueError("Invalid value in BoolVectorSolution: {self.x}")
+
+
+class SetSolution(Solution, ABC):
+    """Abstract solution class with a set as solution representation.
+
+    Attributes
+        - s: set representing a solution
+    """
+
+    def __init__(self, **kwargs):
+        """Initializes the solution with the empty set."""
+        super().__init__(**kwargs)
+        self.s = set()
+
+    def copy_from(self, other: 'SetSolution'):
+        super().copy_from(other)
+        self.s = other.s.copy()
+
+    def __repr__(self):
+        return str(self.s)
+
+    def __eq__(self, other: 'SetSolution') -> bool:
+        return self.obj() == other.obj() and self.s == other.s
+
+    def initialize(self, k):
+        """Set the solution to the empty set."""
+        self.s.clear()
