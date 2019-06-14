@@ -1,7 +1,11 @@
 """
-Abstract class representing a candidate solution to an optimization problem.
+Abstract base class representing a candidate solution to an optimization problem and some derived still generic classes.
 
-For an optimization problem to solve you have to derive from this class.
+The abstract base class Solution represents a candidate solution to an optimization problem.
+Derived classes VectorSolution, BoolVectorSolution, and SetSolution are for solutions which are
+represented bei general fixed-length vectors, boolean fixed-length vectors and sets of arbitrary elements.
+
+For a concrete optimization problem to solve you have to derive from one of these classes.
 """
 
 from abc import ABC, abstractmethod

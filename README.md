@@ -31,13 +31,15 @@ Vienna, Austria, since 2019.
 ### Major Components
 
 - **solution.py**:
-    An abstract base class that represents a candidate solution to an optimization problem.
-- **subset_solution.py**:
-    A more specific solution class for problems in which solutions are subsets of a 
+    An abstract base class `Solution`that represents a candidate solution to an optimization problem and
+    derived classes `VectorSolution`, `BoolVectorSolution`, and `SetSolution` for solutions which are
+    represented bei general fixed-length vectors, boolean vectors or sets of arbitrary elements.
+- **subsetvec_solution.py**:
+    A more specific solution class `SubsetVectorSolution` for problems in which solutions are subsets of a 
     larger set. The set is realized by an efficient numpy array which is split into two parts, 
     the one with the included elements and the one with the remaining elements.
 - **permutation_solution.py**:
-    A more specific solution class for problems in which solutions are permutations of a
+    A more specific solution class `PermutationSolution` for problems in which solutions are permutations of a
     set of elements.
 - **scheduler.py**:
     A an abstract framework for single metaheuristics that rely on iteratively applying certain 
@@ -65,7 +67,7 @@ Vienna, Austria, since 2019.
 - **settings.py**:
     Allows for defining module-specific parameters directly in each module in an independent  distributed
     way, while values for these parameters can be provided as program arguments or in
-    configuration files. Most pyhmlib modules rely on this mechanism for their external parameters.
+    configuration files. Most `pyhmlib` modules rely on this mechanism for their external parameters.
 
 Modules/scripts for analyzing results of many runs:
 
@@ -87,12 +89,15 @@ For demonstration purposes, simple metaheuristic approaches are provided for the
 well-known combinatorial optimization problems. It is recommended to take such a demo as template 
 for solving your own new problem.
 
-- Maximum satisfiability problem (MAXSAT)
-- Maximum (weighted) independent set problem (MISP)
-- Multidimensional 0-1 knapsack problem (MKP)
-- Quadratic assignment problem (QAP)
-- Traveling Salesman Problem (TSP)
-- Graph Coloring Problem (GCP)
+- Maximum satisfiability problem (MAXSAT) based on `BoolVectorSolution`
+- Graph Coloring Problem (GCP) based on `VectorSolution`
+- Traveling Salesman Problem (TSP) based on `PermutationSolution`
+- Quadratic assignment problem (QAP) based on `PermutationSolution`
+- Minimum vertex cover problem (MVCP) based on `SetSolution`
+- Maximum (weighted) independent set problem (MISP) based on `SubsetVectorSolution`
+- Multidimensional 0-1 knapsack problem (MKP) based on `SubsetVectorSolution`
+
+Shared code of these demos is found in the modules `demos.common` and `demos.graphs`.
          
 
 ### Changelog
@@ -101,8 +106,9 @@ Major changes over major releases:
 
 #### Version 0.1 
 - ALNS and parallel ALNS added
-- graph coloring and TSP demo added
-- population based iterated greedy algorithm added
+- graph coloring, TSP, and minimum vertex cover demos added
+- population based iterated greedy and steady state genetic algorithms added
+- demos.graphs introduced
 - many smaller improvements, bug fixes, improvements in documentation 
 
 #### Version 0.0.1 
