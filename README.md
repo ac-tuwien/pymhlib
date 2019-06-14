@@ -37,7 +37,7 @@ Vienna, Austria, since 2019.
 - **subsetvec_solution.py**:
     A more specific solution class `SubsetVectorSolution` for problems in which solutions are subsets of a 
     larger set. The set is realized by an efficient numpy array which is split into two parts, 
-    the one with the included elements and the one with the remaining elements.
+    the one with the included elements in sorted order and the one with the remaining elements.
 - **permutation_solution.py**:
     A more specific solution class `PermutationSolution` for problems in which solutions are permutations of a
     set of elements.
