@@ -15,8 +15,8 @@ def create_or_read_simple_graph(name: str) -> nx.Graph:
     """
     if name.startswith('gnm-'):
         # create random G_n,m graph
-        _, n, m = name.split(sep='-')
-        return nx.gnm_random_graph(int(n), int(m))
+        par = name.split(sep='-')
+        return nx.gnm_random_graph(int(par[1]), int(par[2]), int(par[3]) if len(par) == 4 else None)
     else:  # read from file
         graph: nx.Graph = nx.Graph()
         with open(name) as f:

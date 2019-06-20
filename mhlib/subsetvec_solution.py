@@ -1,4 +1,4 @@
-"""A generic solution class for solutions that are arbitrary cardinality subsets of a given set."""
+"""A generic class for solutions that are arbitrary cardinality subsets of a given set represented in vector form."""
 
 import numpy as np
 import random
@@ -7,13 +7,13 @@ from abc import ABC
 from mhlib.solution import VectorSolution, Solution
 
 
-class SubsetSolution(VectorSolution, ABC):
-    """Generic class for solutions that are arbitrary cardinality subsets of a given set.
+class SubsetVectorSolution(VectorSolution, ABC):
+    """Generic class for solutions that are arbitrary cardinality subsets of a given set represented in vector form.
 
     Attributes
         - all_elements: complete set of which a subset shall be selected
         - sel: number of selected elements
-        - x: array with elements, where x[:sel] are the sorted selected ones;
+        - x: array with elements, where x[:sel] are the *sorted* selected ones;
             if unselected_elems_in_x returns True, all not selected elements are maintained in x[sel:]
     """
     def __init__(self, all_elements, inst=None, alg=None, init=True):
@@ -39,7 +39,7 @@ class SubsetSolution(VectorSolution, ABC):
         """Return True if the unselected elements are maintained in x[sel:], i.e., behind the selected ones."""
         return True
 
-    def copy_from(self, other: 'SubsetSolution'):
+    def copy_from(self, other: 'SubsetVectorSolution'):
         self.sel = other.sel
         if self.unselected_elems_in_x():
             super().copy_from(other)
@@ -54,7 +54,7 @@ class SubsetSolution(VectorSolution, ABC):
         self.sel = 0
         self.invalidate()
 
-    def __eq__(self, other: 'SubsetSolution') -> bool:
+    def __eq__(self, other: 'SubsetVectorSolution') -> bool:
         return self.obj() == other.obj() and self.x[:self.sel] == other.x[:other.sel]
 
     def initialize(self, k):

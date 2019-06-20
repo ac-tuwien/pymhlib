@@ -8,6 +8,7 @@ import networkx as nx
 import random
 from typing import Any
 import heapq
+from itertools import combinations
 
 from mhlib.solution import SetSolution
 from mhlib.settings import get_settings_parser
@@ -67,6 +68,8 @@ class VertexCoverSolution(SetSolution):
         :raises ValueError: if problem detected.
         """
         super().check()
+        if not self.s.issubset(set(range(self.inst.n))):
+            raise ValueError(f'Invalid value in solution set: {self.s}')
         for u, v in self.inst.graph.edges:
             if u not in self.s and v not in self.s:
                 raise ValueError(f'Edge ({u},{v}) not covered')
@@ -160,12 +163,52 @@ class VertexCoverSolution(SetSolution):
         self.initialize(par)
 
     def local_improve(self, _par, result):
-        """TODO"""
-        raise NotImplementedError
+        """Search add-one-remove-at-least-two-nodes neighborhood in first-improvement manner."""
+        g: nx.Graph = self.inst.graph
+        s = self.s
+        x = list(set(range(self.inst.n)).difference(s))
+        random.shuffle(x)
+        for u in x:
+            # when adding u, can we remove >= 2 neighboring nodes?
+            s.add(u)
+            removable = []
+            for v in g.neighbors(u):
+                if v not in s:
+                    continue
+                for v2 in g.neighbors(v):
+                    if v2 not in s:
+                        break
+                else:
+                    removable.append(v)
+            if len(removable) >= 2:
+                # find two non-adjacent
+                for va, vb in combinations(removable, 2):
+                    if not g.has_edge(va, vb):
+                        s.remove(va)
+                        s.remove(vb)
+                        removable.remove(va)
+                        removable.remove(vb)
+                        removed = {va, vb}
+                        for vc in removable:
+                            for vr in removed:
+                                if g.has_edge(vc, vr):
+                                    break
+                            else:
+                                s.remove(vc)
+                                removed.add(vc)
+                        self.invalidate()
+                        return
+            s.remove(u)
+        result.changed = False
 
-    def shaking(self, par: Any, result: Result):
-        """TODO
-        """
+    def shaking(self, par: Any, _result: Result):
+        """Add par so far unselected nodes and apply remove_redundant."""
+        s = self.s
+        x = set(range(self.inst.n)).difference(s)
+        to_add = random.sample(x, max(len(x), par))
+        for u in to_add:
+            s.add(u)
+        self.remove_redundant()
 
     def initialize(self, k):
         """Initialize solution by taking all nodes and applying local_improve."""
@@ -177,7 +220,7 @@ class VertexCoverSolution(SetSolution):
 
 
 if __name__ == '__main__':
-    from mhlib.demos.common import run_optimization, data_dir
+    from mhlib.demos.common import run_optimization
     from mhlib.settings import settings, get_settings_parser
 
     settings.mh_maxi = False

@@ -7,7 +7,7 @@ no pair of nodes is adjacent in the graph.
 import numpy as np
 from typing import Any
 
-from mhlib.subset_solution import SubsetSolution
+from mhlib.subsetvec_solution import SubsetVectorSolution
 from mhlib.scheduler import Result
 from mhlib.demos.graphs import create_or_read_simple_graph
 
@@ -39,7 +39,7 @@ class MISPInstance:
         return f"n={self.n} m={self.m}\n"
 
 
-class MISPSolution(SubsetSolution):
+class MISPSolution(SubsetVectorSolution):
     """Solution to a MISP instance.
 
     Additional attributes
