@@ -92,6 +92,10 @@ class PermutationSolution(VectorSolution, ABC):
 
 def edge_recombination(parent_a: PermutationSolution, parent_b: PermutationSolution):
     """ An edge recombination operation.
+    It created a list of neighbors for every vertex based on the parent solutions.
+    A starting vertex is randomly chosen and remove it from all neighbor lists.
+    Based on the last vertex in our new solution, we pick the vertex from its neighbor list.
+    The neighbor that has itself the fewest neighbors left will be preferred.
 
     :param parent_a: first parent
     :param parent_b: second parent
