@@ -195,13 +195,15 @@ def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution
         group_id += 1
 
     # Perform exchange
-    for pos in range(0, len(parent_a.x)):
-        if group[pos] % 2 == 0:
+    child = parent_a.copy()
+
+    for pos in range(0, len(child.x)):
+        if child[pos] % 2 == 0:
             continue
 
-        parent_a.x[pos], parent_b.x[pos] = parent_b.x[pos], parent_a.x[pos]
+        child.x[pos] = parent_b.x[pos]
 
-    return parent_a, parent_b
+    return child
 
 
 def partial_matched_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution, swath):
