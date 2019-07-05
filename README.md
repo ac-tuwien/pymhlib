@@ -1,8 +1,8 @@
-## `mhlib` - A Toolbox for Metaheuristics and Hybrid Optimization Methods
+## Python `mhlib` - A Toolbox for Metaheuristics and Hybrid Optimization Methods
 
 _This project is still in its early phase of development, please come back later!_
 
-`mhlib` is a collection of modules supporting the efficient implementation of metaheuristics 
+Python `mhlib` is a collection of modules supporting the efficient implementation of metaheuristics 
 and certain hybrid optimization approaches for solving primarily combinatorial optimization 
 problems in Python.
 
