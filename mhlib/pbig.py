@@ -10,6 +10,7 @@ from typing import List
 from itertools import cycle
 import functools
 
+from mhlib.population import Population
 from mhlib.scheduler import Method, Scheduler
 from mhlib.settings import get_settings_parser
 from mhlib.solution import Solution
@@ -39,25 +40,14 @@ class PBIG(Scheduler):
         :param own_settings: optional dictionary with specific settings
         """
         super().__init__(sol, meths_ch+meths_dr, own_settings)
-        self.population: List[Solution] = []
+        self.population = Population(sol, meths_ch, own_settings)
         self.meths_ch = meths_ch
         self.meths_dr = meths_dr
 
     def run(self):
         """Actually performs the construction heuristics followed by the PBIG."""
 
-        meths_cycle = cycle(self.meths_ch)
         population = self.population
-
-        # cycle through construction heuristics to generate initial population
-        # perform all construction heuristics, take best solution
-        while len(population) < self.own_settings.mh_pbig_pop_size:
-            m = next(meths_cycle)
-            individual = self.incumbent.copy()
-            res = self.perform_method(m, individual)
-            population.append(individual)
-            if res.terminate:
-                return
 
         meths_dr_cycle = cycle(self.meths_dr)
 
