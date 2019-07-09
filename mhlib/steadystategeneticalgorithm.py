@@ -16,38 +16,33 @@ parser.add("--mh_ssga_cross_prob", type=int, default=0.1, help='SSGA crossover p
 parser.add("--mh_ssga_loc_prob", type=int, default=0.1, help='SSGA local improvement probability')
 
 
-class Population:
+class Population(List[Solution]):
     def __init__(self, sol: Solution, meths_ch: List[Method], own_settings: dict = None):
+        super().__init__(self)
         self.meths_ch = meths_ch
         self.own_settings = own_settings
 
-        self.population: List[Solution] = []
-
-        population = self.population
         meths_cycle = cycle(self.meths_ch)
 
         # cycle through construction heuristics to generate population
         # perform all construction heuristics, take best solution
         # TODO get pop size from settings
-        while len(population) < 100:  # self.own_settings.mh_ssga_pop_size:
+        while len(self) < 100:  # self.own_settings.mh_ssga_pop_size:
             m = next(meths_cycle)
             sol = sol.copy()
             res = Result()
             m.func(sol, m.par, res)
-            population.append(sol)
+            self.append(sol)
 
             if res.terminate:
                 break
-
-    def at(self, idx):
-        return self.population[idx]
 
     def best(self):
         """Get index of best individual
         """
         best = 0
-        for i in range(len(self.population)):
-            if self.population[i].is_better(self.population[best]):
+        for i in range(len(self)):
+            if self[i].is_better(self[best]):
                 best = i
 
         return best
@@ -56,8 +51,8 @@ class Population:
         """Get index of worst individual
         """
         worst = 0
-        for i in range(len(self.population)):
-            if self.population[i].is_worse(self.population[worst]):
+        for i in range(len(self)):
+            if self[i].is_worse(self[worst]):
                 worst = i
 
         return worst
@@ -65,15 +60,14 @@ class Population:
     def selection(self):
         """Tournament selection.
         """
-        pop = self.population
         # TODO get tournament size from settings
         k = 10  # self.own_settings.mh_ssga_tournament_size
 
-        best = random.randint(1, len(pop) - 1)
+        best = random.randint(1, len(self) - 1)
 
         for i in range(k - 1):
-            individual = random.randint(1, len(pop) - 1)
-            if pop[individual].is_better(pop[best]):
+            individual = random.randint(1, len(self) - 1)
+            if self[individual].is_better(self[best]):
                 best = individual
 
         return best
@@ -114,7 +108,7 @@ class SteadyStateGeneticAlgorithm(Scheduler):
         self.meth_ls = meth_li
 
         self.population = Population(sol, meths_ch, own_settings)
-        self.incumbent = self.population.at(self.population.best())
+        self.incumbent = self.population[self.population.best()]
 
     def run(self):
         """Actually performs the construction heuristics followed by the SteadyStateGeneticAlgorithm."""
@@ -123,11 +117,11 @@ class SteadyStateGeneticAlgorithm(Scheduler):
 
         while True:
             # Create a new solution
-            p1 = population.at(population.selection()).copy()
+            p1 = population[population.selection()].copy()
 
             # Optionally crossover
             if random.random() < self.own_settings.mh_ssga_cross_prob:
-                p2 = population.at(population.selection()).copy()
+                p2 = population[population.selection()].copy()
                 p1 = self.meth_cx(p1, p2)
 
             # Mutation
@@ -145,8 +139,7 @@ class SteadyStateGeneticAlgorithm(Scheduler):
 
             # Replace in population
             worst = population.worst()
-
-            population.at(worst).copy_from(p1)
+            population[worst].copy_from(p1)
 
             # Update best solution
             if p1.is_better(self.incumbent):
