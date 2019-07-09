@@ -154,14 +154,6 @@ class Solution(ABC):
             if old_obj != self.obj():
                 raise ValueError(f'Solution has wrong objective value: {old_obj}, should be {self.obj()}')
 
-    @abstractmethod
-    def crossover(self, other: "Solution"):
-        """ Perform a crossover operation of two solutions.
-
-        A crossover operation of two solutions is performed and the result is returned.
-        """
-        raise NotImplementedError
-
 
 class VectorSolution(Solution, ABC):
     """Abstract solution class with integer vector as solution representation.
