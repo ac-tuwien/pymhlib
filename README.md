@@ -23,7 +23,7 @@ Vienna, Austria, since 2019.
 
 #### Contributors:
 - [Günther Raidl](https://www.ac.tuwien.ac.at/raidl) (mainly responsible)
-- Nikolaus Frohner
+- [Nikolaus Frohner](https://www.ac.tuwien.ac.at/nfrohner)
 - Thomas Jatschka
 - Daniel Obszelka
 - Andreas Windbichler
