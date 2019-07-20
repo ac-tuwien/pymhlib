@@ -23,8 +23,7 @@ class Population(List[Solution]):
 
         # cycle through construction heuristics to generate population
         # perform all construction heuristics, take best solution
-        # TODO get pop size from settings
-        while len(self) < 100:  # self.own_settings.mh_pop_size:
+        while len(self) < self.own_settings.mh_pop_size:
             m = next(meths_cycle)
             sol = sol.copy()
             res = Result()
@@ -57,8 +56,7 @@ class Population(List[Solution]):
     def selection(self):
         """Tournament selection.
         """
-        # TODO get tournament size from settings
-        k = 10  # self.own_settings.mh_tournament_size
+        k = self.own_settings.mh_tournament_size
 
         best = random.randint(1, len(self) - 1)
 
