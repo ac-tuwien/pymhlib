@@ -2,6 +2,7 @@
 from typing import List
 from itertools import cycle
 import random
+from statistics import stdev
 
 from mhlib.scheduler import Method, Result
 from mhlib.settings import get_settings_parser
@@ -83,3 +84,25 @@ class Population(List[Solution]):
                 duplicates.append(idx)
 
         return duplicates
+
+    def obj_avg(self):
+        """ Returns the average of the populations objective values.
+        """
+        if len(self) < 1:
+            raise ValueError("average requires at least one element")
+
+        objectives = []
+        for individual in self:
+            objectives.append(individual.obj())
+
+        return sum(objectives) / len(objectives)
+
+    def obj_std(self):
+        """ Returns the standard deviation of the populations objective values.
+        """
+        objectives = []
+        for individual in self:
+            objectives.append(individual.obj())
+
+        return stdev(objectives)
+

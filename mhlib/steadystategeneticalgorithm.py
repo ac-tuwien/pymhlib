@@ -44,6 +44,7 @@ class SteadyStateGeneticAlgorithm(Scheduler):
         :param meth_li: an optional local improvement method
         :param own_settings: optional dictionary with specific settings
         """
+        self.population = None  # Required to include pop-info in iteration header
         super().__init__(sol, meths_ch + [meth_mu] + [meth_li], own_settings)
         self.meth_cx = meth_cx
         self.meth_mu = meth_mu

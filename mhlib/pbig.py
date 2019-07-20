@@ -33,6 +33,7 @@ class PBIG(Scheduler):
         :param meths_dr: list of destruct and recreate methods
         :param own_settings: optional dictionary with specific settings
         """
+        self.population = None  # Required to include pop-info in iteration header
         super().__init__(sol, meths_ch+meths_dr, own_settings)
         self.population = Population(sol, meths_ch, self.own_settings)
         self.meths_ch = meths_ch

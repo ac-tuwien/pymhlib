@@ -280,7 +280,12 @@ class Scheduler(ABC):
 
     def log_iteration_header(self):
         """Writes iteration log header."""
-        s = f"I {'iteration':>10} {'best':>16} {'obj_old':>16} {'obj_new':>16} {'time':>12} {'method':<20} info"
+        s = f"I {'iteration':>10} {'best':>16} {'obj_old':>16} {'obj_new':>16} "
+
+        if hasattr(self, "population"):
+            s += f"{'pop avg':>16} {'pop std':>16} "
+
+        s += f"{'time':>12} {'method':<20} info"
         self.iter_logger.info(s)
 
     @staticmethod
@@ -310,9 +315,14 @@ class Scheduler(ABC):
             elif lfreq < 0 and self.is_logarithmic_number(self.iteration):
                 log = True
         if log:
-            s = f"I {self.iteration:>10d} {self.incumbent.obj():16.5f} {obj_old:16.6f} {new_sol.obj():16.5f} " \
-                f"{time.process_time()-self.time_start:12.4f} {method_name:<20} " \
-                f"{log_info if log_info is not None else ''}"
+            s = f"I {self.iteration:>10d} {self.incumbent.obj():16.5f} {obj_old:16.6f} {new_sol.obj():16.5f} "
+
+            if hasattr(self, "population"):
+                s += f"{self.population.obj_avg():16.6f} {self.population.obj_std():16.5f} "
+
+            s += f"{time.process_time()-self.time_start:12.4f} " \
+                f"{method_name:<20} {log_info if log_info is not None else ''}"
+
             self.iter_logger.info(s)
 
     @abstractmethod
@@ -335,6 +345,7 @@ class Scheduler(ABC):
         s = f"Method statistics:\n"
         s += f"S  method    iter   succ succ-rate%    tot-obj-gain    avg-obj-gain rel-succ%  net-time  " \
              f"net-time%  brut-time  brut-time%\n"
+
         total_applications = 0
         total_netto_time = 0.0
         total_successes = 0
@@ -369,6 +380,11 @@ class Scheduler(ABC):
             f"T total iterations: {self.iteration}\n" \
             f"T best time [s]: {self.incumbent_time:.3f}\n" \
             f"T total time [s]: {self.run_time:.4f}\n"
+
+        if hasattr(self, "population"):
+            s += f"T population avg: {self.population.obj_avg()}\n" \
+                f"T population std: {self.population.obj_std()}\n"
+
         self.logger.info(LogLevel.indent(s))
         self.incumbent.check()
 
