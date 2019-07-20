@@ -206,16 +206,25 @@ def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution
     return child
 
 
-def partial_matched_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution, swath):
+def partial_matched_crossover(parent_a: PermutationSolution,
+                              parent_b: PermutationSolution,
+                              swath=None):
     """A partial-matched-crossover (PMX) exchange.
 
     Generates the child individual generated from the first parent crossed with the second one
 
     :param parent_a: first parent
     :param parent_b: second parent
-    :param swath: fixed range for exchange
+    :param swath: fixed range for exchange, random if none provided
     :return: new solution retrieved by the pmx operation
     """
+
+    if swath is None:
+        #  randomly choose a swath
+        size = len(parent_a.x)
+        begin = random.randint(size - 2)
+        end = random.randint(begin + 1, size - 1)
+        swath = range(begin, end)
 
     x = parent_a.x
     y = parent_b.x
