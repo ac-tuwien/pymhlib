@@ -25,10 +25,9 @@ class Population(List[Solution]):
 
     def __init__(self, sol: Solution, meths_ch: List[Method], own_settings: dict = None):
         super().__init__(self)
-        self.meths_ch = meths_ch
         self.own_settings = own_settings
 
-        meths_cycle = cycle(self.meths_ch)
+        meths_cycle = cycle(meths_ch)
 
         # cycle through construction heuristics to generate population
         # perform all construction heuristics, take best solution
