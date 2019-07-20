@@ -105,4 +105,3 @@ class Population(List[Solution]):
             objectives.append(individual.obj())
 
         return stdev(objectives)
-
