@@ -11,6 +11,7 @@ from mhlib.solution import Solution
 parser = get_settings_parser()
 parser.add("--mh_pop_size", type=int, default=100, help='Population size')
 parser.add("--mh_tournament_size", type=int, default=10, help='Tournament size')
+parser.add("--mh_dupelim", type=bool, default=False, help='Prevent duplicates in initialization of population')
 
 
 class Population(List[Solution]):
@@ -28,6 +29,11 @@ class Population(List[Solution]):
             sol = sol.copy()
             res = Result()
             m.func(sol, m.par, res)
+
+            if self.own_settings.mh_dupelim and self.duplicates_of(sol):
+                #  do not add this duplicate individual
+                continue
+
             self.append(sol)
 
             if res.terminate:
@@ -66,3 +72,14 @@ class Population(List[Solution]):
                 best = individual
 
         return best
+
+    def duplicates_of(self, solution):
+        """ Get a list of duplicates of the provided solution.
+        """
+        duplicates = []
+
+        for idx, individual in enumerate(self):
+            if individual == solution:
+                duplicates.append(idx)
+
+        return duplicates
