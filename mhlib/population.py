@@ -16,6 +16,13 @@ parser.add("--mh_dupelim", type=bool, default=False, help='Prevent duplicates in
 
 
 class Population(List[Solution]):
+    """ A class for holding multiple solutions called a population which provides
+    the most elementary things for holding a number of solutions.
+
+    Attributes
+        - own_settings: own settings object with possibly individualized parameter values
+    """
+
     def __init__(self, sol: Solution, meths_ch: List[Method], own_settings: dict = None):
         super().__init__(self)
         self.meths_ch = meths_ch
