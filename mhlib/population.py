@@ -4,6 +4,8 @@ from itertools import cycle
 import random
 from statistics import stdev
 
+import numpy as np
+
 from mhlib.scheduler import Method, Result
 from mhlib.settings import get_settings_parser
 from mhlib.solution import Solution
@@ -15,7 +17,7 @@ parser.add("--mh_tournament_size", type=int, default=10, help='Tournament size')
 parser.add("--mh_dupelim", type=bool, default=False, help='Prevent duplicates in initialization of population')
 
 
-class Population(List[Solution]):
+class Population(np.ndarray):
     """ A class for holding multiple solutions called a population which provides
     the most elementary things for holding a number of solutions.
 
@@ -23,28 +25,34 @@ class Population(List[Solution]):
         - own_settings: own settings object with possibly individualized parameter values
     """
 
-    def __init__(self, sol: Solution, meths_ch: List[Method], own_settings: dict = None):
-        super().__init__(self)
-        self.own_settings = own_settings
+    def __new__(cls, sol: Solution, meths_ch: List[Method], own_settings: dict = None):
+        size = own_settings.mh_pop_size
+        obj = super(Population, cls).__new__(cls, size, Solution)
+        obj.own_settings = own_settings
 
         meths_cycle = cycle(meths_ch)
 
         # cycle through construction heuristics to generate population
         # perform all construction heuristics, take best solution
-        while len(self) < self.own_settings.mh_pop_size:
+        idx = 0
+        while idx < size:
             m = next(meths_cycle)
             sol = sol.copy()
             res = Result()
             m.func(sol, m.par, res)
 
-            if self.own_settings.mh_dupelim and self.duplicates_of(sol):
+            if obj.own_settings.mh_dupelim and obj.duplicates_of(sol):
                 #  do not add this duplicate individual
                 continue
 
-            self.append(sol)
+            obj[idx] = sol
 
             if res.terminate:
                 break
+
+            idx += 1
+
+        return obj
 
     def best(self):
         """Get index of best individual
@@ -86,6 +94,8 @@ class Population(List[Solution]):
         duplicates = []
 
         for idx, individual in enumerate(self):
+            if individual is None:
+                continue
             if individual == solution:
                 duplicates.append(idx)
 
@@ -106,6 +116,7 @@ class Population(List[Solution]):
     def obj_std(self):
         """ Returns the standard deviation of the populations objective values.
         """
+
         objectives = []
         for individual in self:
             objectives.append(individual.obj())
