@@ -12,12 +12,7 @@ import functools
 
 from mhlib.population import Population
 from mhlib.scheduler import Method, Scheduler
-from mhlib.settings import get_settings_parser
 from mhlib.solution import Solution
-
-
-parser = get_settings_parser()
-parser.add("--mh_pbig_pop_size", type=int, default=20, help='PBIG population size')
 
 
 class PBIG(Scheduler):
@@ -73,6 +68,7 @@ class PBIG(Scheduler):
             def compare(lhs: Solution, rhs: Solution):
                 return lhs.is_better(rhs)
 
+            original_size = len(population)
             population.extend(changed)
             sorted(population, key=functools.cmp_to_key(compare), reverse=True)
-            population = population[0:self.own_settings.mh_pbig_pop_size]
+            population = population[0:original_size]
