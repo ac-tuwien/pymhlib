@@ -49,7 +49,7 @@ class SteadyStateGeneticAlgorithm(Scheduler):
         self.meth_mu = meth_mu
         self.meth_ls = meth_li
 
-        self.population = Population(sol, meths_ch, own_settings)
+        self.population = Population(sol, meths_ch, self.own_settings)
         self.incumbent = self.population[self.population.best()]
 
     def run(self):
