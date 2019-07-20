@@ -8,7 +8,6 @@ The best of the current and the temporary iteration form a new generation for wh
 
 from typing import List
 from itertools import cycle
-import functools
 
 from mhlib.population import Population
 from mhlib.scheduler import Method, Scheduler
@@ -65,10 +64,7 @@ class PBIG(Scheduler):
                         self.incumbent = modified  # Update best solution
 
             # Add new individuals to population and take the best
-            def compare(lhs: Solution, rhs: Solution):
-                return lhs.is_better(rhs)
-
-            original_size = len(population)
-            population.extend(changed)
-            sorted(population, key=functools.cmp_to_key(compare), reverse=True)
-            population = population[0:original_size]
+            for individual in changed:
+                worst = population.worst()
+                if individual.is_better(population[worst]):
+                    population[worst] = individual
