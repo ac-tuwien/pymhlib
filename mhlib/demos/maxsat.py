@@ -183,6 +183,11 @@ class MAXSATSolution(BoolVectorSolution):
             self.invalidate()
             return better_found
 
+    def crossover(self, other: 'MAXSATSolution'):
+        """ Preform uniform crossover as crossover operation in SSGA
+        """
+        return self.uniform_crossover(other)
+
 
 if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir

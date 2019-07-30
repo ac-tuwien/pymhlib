@@ -161,6 +161,11 @@ class GCSolution(VectorSolution):
         self.x = np.random.randint(self.inst.colors, size=len(self.x))
         self.invalidate()
 
+    def crossover(self, other: 'GCSolution'):
+        """ Preform uniform crossover as crossover operation in SSGA
+        """
+        return self.uniform_crossover(other)
+
 
 if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir

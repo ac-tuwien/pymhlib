@@ -177,6 +177,21 @@ class VectorSolution(Solution, ABC):
     def __eq__(self, other: 'VectorSolution') -> bool:
         return self.obj() == other.obj() and np.array_equal(self.x, other.x)
 
+    def uniform_crossover(self, other: 'VectorSolution'):
+        child = self.copy()
+
+        #  randomly replace with other solution
+        for index in range(0, len(self.x)-1):
+            exchange = np.random.choice([True, False], 1)
+            if exchange:
+                child.x[index] = other.x[index]
+
+            pass
+
+        child.invalidate()
+
+        return child
+
 
 class BoolVectorSolution(VectorSolution, ABC):
     """Abstract solution class with 0/1 vector as solution representation.
