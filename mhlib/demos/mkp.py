@@ -138,6 +138,25 @@ class MKPSolution(SubsetSolution):
         self.sel -= 1
         return False
 
+    def crossover(self, other: 'MKPSolution'):
+        """ Perform crossover trying to add the items from the parent solution in a random order.
+        :param other: second solution for crossover
+        :return: generated child solution
+        """
+
+        items = []
+        items.extend(self.x[:self.sel])
+        items.extend(other.x[:self.sel])
+        items = list(set(items))
+
+        child = MKPSolution(self.inst)
+        child.clear()
+        child.random_fill(items)
+        child.sort_sel()
+        child.invalidate()
+
+        return child
+
 
 if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
