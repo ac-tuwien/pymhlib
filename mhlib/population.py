@@ -121,4 +121,10 @@ class Population(np.ndarray):
         for individual in self:
             objectives.append(individual.obj())
 
-        return stdev(objectives)
+        rv = 0
+        try:
+            rv =  stdev(objectives)
+        except:
+           pass
+
+        return rv
