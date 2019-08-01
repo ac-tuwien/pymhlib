@@ -119,12 +119,7 @@ class Population(np.ndarray):
 
         objectives = []
         for individual in self:
-            objectives.append(individual.obj())
+            obj = individual.obj() / 1000.
+            objectives.append(obj)
 
-        rv = 0
-        try:
-            rv =  stdev(objectives)
-        except:
-           pass
-
-        return rv
+        return stdev(objectives)
