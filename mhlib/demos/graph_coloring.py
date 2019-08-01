@@ -4,12 +4,13 @@ Given a graph and an number of colors, color each node with one color so that
 the number of adjacent nodes having the same color is minimized.
 """
 
-import networkx as nx
 import numpy as np
+from typing import Any
 
-from mhlib.subset_solution import VectorSolution
-
+from mhlib.solution import VectorSolution
+from mhlib.scheduler import Result
 from mhlib.settings import get_settings_parser
+from mhlib.demos.graphs import create_or_read_simple_graph
 
 parser = get_settings_parser()
 parser.add("--mh_gcp_colors", type=int, default=3, help='number of colors available')
@@ -22,31 +23,18 @@ class GCInstance:
     the number of adjacent nodes having the same color is minimized.
 
     Attributes
+        - graph: the graph we want to color
         - n: number of nodes
         - m number of edges
         - colors: number of colors
-        - graph: the graph we want to color
     """
 
-    def __init__(self, file_name: str):
-        """Read an instance from the specified file."""
-        self.n = 0
-        self.m = 0
+    def __init__(self, name: str):
+        """Create or read graph with given name."""
+        self.graph = create_or_read_simple_graph(name)
+        self.n = self.graph.number_of_nodes()
+        self.m = self.graph.number_of_edges()
         self.colors = settings.mh_gcp_colors
-        self.graph = nx.Graph()
-        with open(file_name, "r") as f:
-            for line in f:
-                flag = line[0]
-                if flag == 'p':
-                    split_line = line.split(' ')
-                    self.n = int(split_line[2])
-                    self.m = int(split_line[3])
-                    self.graph.add_nodes_from(range(self.n))
-                elif flag == 'e':
-                    split_line = line.split(' ')
-                    u = int(split_line[1]) - 1
-                    v = int(split_line[2]) - 1
-                    self.graph.add_edge(u, v)
 
     def __repr__(self):
         """Write out the instance data."""
@@ -94,7 +82,7 @@ class GCSolution(VectorSolution):
         """
         self.initialize(par)
 
-    def local_improve(self, _par, result):
+    def local_improve(self, _par: Any, result: Result):
         """Scheduler method that performs one iteration of a local search following a first improvement strategy.
         The neighborhood used is defined by all solutions that can be created by changing the color
         of a vertex involved in a conflict.
@@ -123,7 +111,7 @@ class GCSolution(VectorSolution):
 
         result.changed = False
 
-    def shaking(self, par, result):
+    def shaking(self, par: Any, result: Result):
         """Scheduler method that performs shaking by randomly assigning a different color
         to 'par' many random vertices that are involved in conflicts.
         """

@@ -1,7 +1,11 @@
 """
-Abstract class representing a candidate solution to an optimization problem.
+Abstract base class representing a candidate solution to an optimization problem and some derived still generic classes.
 
-For an optimization problem to solve you have to derive from this class.
+The abstract base class Solution represents a candidate solution to an optimization problem.
+Derived classes VectorSolution, BoolVectorSolution, and SetSolution are for solutions which are
+represented bei general fixed-length vectors, boolean fixed-length vectors and sets of arbitrary elements.
+
+For a concrete optimization problem to solve you have to derive from one of these classes.
 """
 
 from abc import ABC, abstractmethod
@@ -218,3 +222,30 @@ class BoolVectorSolution(VectorSolution, ABC):
         for v in self.x:
             if not 0 <= v <= 1:
                 raise ValueError("Invalid value in BoolVectorSolution: {self.x}")
+
+
+class SetSolution(Solution, ABC):
+    """Abstract solution class with a set as solution representation.
+
+    Attributes
+        - s: set representing a solution
+    """
+
+    def __init__(self, **kwargs):
+        """Initializes the solution with the empty set."""
+        super().__init__(**kwargs)
+        self.s = set()
+
+    def copy_from(self, other: 'SetSolution'):
+        super().copy_from(other)
+        self.s = other.s.copy()
+
+    def __repr__(self):
+        return str(self.s)
+
+    def __eq__(self, other: 'SetSolution') -> bool:
+        return self.obj() == other.obj() and self.s == other.s
+
+    def initialize(self, k):
+        """Set the solution to the empty set."""
+        self.s.clear()

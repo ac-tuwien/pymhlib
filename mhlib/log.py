@@ -31,6 +31,7 @@ def init_logger():
     else:
         handler = logging.FileHandler(settings.mh_out, "w")
     handler.setFormatter(formatter)
+    logger.handlers = []
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)
     logger.propagate = False
@@ -48,6 +49,7 @@ def init_logger():
             target=iter_file_handler
         )
         iter_handler.setFormatter(formatter)
+    iter_logger.handlers = []
     iter_logger.addHandler(iter_handler)
     iter_logger.propagate = False
     iter_logger.setLevel(logging.INFO)

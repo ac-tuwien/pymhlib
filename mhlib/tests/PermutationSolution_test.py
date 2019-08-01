@@ -1,6 +1,6 @@
 import unittest
 
-from mhlib.permutation_solution import PermutationSolution, cycle_crossover, partial_matched_crossover
+from mhlib.permutation_solution import PermutationSolution, cycle_crossover, partially_matched_crossover
 
 
 class TestSolution(PermutationSolution):
@@ -45,12 +45,12 @@ class CycleCrossoverTestCase(unittest.TestCase):
 
         cycle_crossover(a, b)
 
-        anew = [1, 4, 6, 2, 0, 3, 5]
-        bnew = [6, 1, 4, 2, 5, 0, 3]
+        a_new = [1, 4, 6, 2, 0, 3, 5]
+        b_new = [6, 1, 4, 2, 5, 0, 3]
 
         for i in range(0, 7):
-            self.assertEqual(a.x[i], anew[i])
-            self.assertEqual(b.x[i], bnew[i])
+            self.assertEqual(a.x[i], a_new[i])
+            self.assertEqual(b.x[i], b_new[i])
 
     def test_change(self):
         a = TestSolution(7)
@@ -61,12 +61,13 @@ class CycleCrossoverTestCase(unittest.TestCase):
 
         cycle_crossover(a, b)
 
-        anew = [1, 4, 6, 0, 2, 3, 5]
-        bnew = [6, 1, 4, 2, 0, 5, 3]
+        a_new = [1, 4, 6, 0, 2, 3, 5]
+        b_new = [6, 1, 4, 2, 0, 5, 3]
 
         for i in range(0, 7):
-            self.assertEqual(a.x[i], anew[i])
-            self.assertEqual(b.x[i], bnew[i])
+            self.assertEqual(a.x[i], a_new[i])
+            self.assertEqual(b.x[i], b_new[i])
+
 
 class PartialMatchedCrossoverTestCast(unittest.TestCase):
 
@@ -77,12 +78,12 @@ class PartialMatchedCrossoverTestCast(unittest.TestCase):
         a.change([8, 4, 7, 3, 6, 2, 5, 1, 9, 0])
         b.change([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-        childa = partial_matched_crossover(a, b, range(3,8))
+        child_a = partially_matched_crossover(a, b, range(3, 8))
 
-        expecta = [0, 7, 4, 3, 6, 2, 5 , 1, 8, 9]
+        expect_a = [0, 7, 4, 3, 6, 2, 5, 1, 8, 9]
 
-        for i in range(0,9):
-            self.assertEqual(childa.x[i], expecta[i])
+        for i in range(0, 9):
+            self.assertEqual(child_a.x[i], expect_a[i])
 
 
 if __name__ == '__main__':

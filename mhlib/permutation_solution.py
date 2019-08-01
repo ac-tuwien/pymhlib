@@ -171,7 +171,7 @@ def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution
     """
     posa = {}
     for i in range(0, len(parent_a.x)):
-        posa[parent_a.x[i]] = i
+        pos_a[parent_a.x[i]] = i
 
     # Detect cycles
     group = np.full(len(parent_a.x), -1)
@@ -188,7 +188,7 @@ def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution
             # Element at pos i is not yet assigned to a group
             group[pos] = group_id
             sym = parent_b.x[pos]
-            pos = posa[sym]
+            pos = pos_a[sym]
 
         # sanity check
         assert pos == i
@@ -233,13 +233,13 @@ def partial_matched_crossover(parent_a: PermutationSolution,
     for i in range(0, len(x)):
         posy[y[i]] = i
 
-    childx = y.copy()
+    child_x = y.copy()
 
     done = []
 
     for i in swath:
         # transfer from fixed range to child
-        childx[i] = x[i]
+        child_x[i] = x[i]
 
         # begin position calculation
         val = y[i]
@@ -255,8 +255,8 @@ def partial_matched_crossover(parent_a: PermutationSolution,
             done.append(pos)
 
         # move val to position
-        childx[pos] = val
+        child_x[pos] = val
 
-    parent_a.x = childx
+    parent_a.x = child_x
 
     return parent_a

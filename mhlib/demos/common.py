@@ -2,6 +2,7 @@
 
 import logging
 from pkg_resources import resource_filename
+import networkx as nx
 
 from mhlib.settings import parse_settings, settings, get_settings_parser, get_settings_as_str
 from mhlib.log import init_logger

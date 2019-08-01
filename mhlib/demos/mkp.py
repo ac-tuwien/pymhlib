@@ -8,7 +8,7 @@ Find a subset of the items with maximum total price that does not exceed the res
 import numpy as np
 from typing import Any
 
-from mhlib.subset_solution import SubsetSolution
+from mhlib.subsetvec_solution import SubsetVectorSolution
 from mhlib.scheduler import Result
 
 
@@ -57,7 +57,7 @@ class MKPInstance:
         return f"n={self.n} m={self.m},\np={self.p},\nr={self.r},\nb={self.b}\n"
 
 
-class MKPSolution(SubsetSolution):
+class MKPSolution(SubsetVectorSolution):
     """Solution to an MKP instance.
 
     Additional attributes

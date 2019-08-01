@@ -5,11 +5,11 @@ no pair of nodes is adjacent in the graph.
 """
 
 import numpy as np
-import networkx as nx
 from typing import Any
 
-from mhlib.subset_solution import SubsetSolution
+from mhlib.subsetvec_solution import SubsetVectorSolution
 from mhlib.scheduler import Result
+from mhlib.demos.graphs import create_or_read_simple_graph
 
 
 class MISPInstance:
@@ -19,36 +19,27 @@ class MISPInstance:
     no pair of nodes is adjacent in the graph.
 
     Attributes
+        - graph: undirected unweighted graph to consider
         - n: number of nodes
         - m number of edges
         - p: prices (weights) of items
     """
 
-    def __init__(self, file_name: str):
-        """Read an instance from the specified file."""
-        self.n = 0
-        self.m = 0
-        self.graph = nx.Graph()
-        with open(file_name, "r") as f:
-            for line in f:
-                flag = line[0]
-                if flag == 'p':
-                    split_line = line.split(' ')
-                    self.n = int(split_line[2])
-                    self.m = int(split_line[3])
-                    self.graph.add_nodes_from(range(self.n))
-                elif flag == 'e':
-                    split_line = line.split(' ')
-                    u = int(split_line[1]) - 1
-                    v = int(split_line[2]) - 1
-                    self.graph.add_edge(u, v)
-        self.p = np.ones(self.n, dtype=int)  # here we only read unweighted MISP instances
+    def __init__(self, name: str):
+        """Create or read graph with given name.
+
+        So far we only create unweighted MISP instances here.
+        """
+        self.graph = create_or_read_simple_graph(name)
+        self.n = self.graph.number_of_nodes()
+        self.m = self.graph.number_of_edges()
+        self.p = np.ones(self.n, dtype=int)
 
     def __repr__(self):
         return f"n={self.n} m={self.m}\n"
 
 
-class MISPSolution(SubsetSolution):
+class MISPSolution(SubsetVectorSolution):
     """Solution to a MISP instance.
 
     Additional attributes
