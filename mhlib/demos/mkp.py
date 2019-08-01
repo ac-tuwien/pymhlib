@@ -152,8 +152,6 @@ class MKPSolution(SubsetVectorSolution):
         child = MKPSolution(self.inst)
         child.clear()
         child.random_fill(items)
-        child.sort_sel()
-        child.invalidate()
 
         return child
 
