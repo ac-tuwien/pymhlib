@@ -70,6 +70,11 @@ class SubsetVectorSolution(VectorSolution, ABC):
         """
         all_elements_set = set(self.all_elements)
         length = len(all_elements_set)
+
+        for elem in all_elements_set:
+            if elem not in self.x:
+                raise ValueError(f"Invalid solution {elem} not in set")
+
         if not 0 <= self.sel <= length:
             raise ValueError(f"Invalid attribute sel in solution: {self.sel}")
         if len(self.x) != length:
