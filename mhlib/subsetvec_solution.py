@@ -116,7 +116,8 @@ class SubsetVectorSolution(VectorSolution, ABC):
             ir = random.randrange(i, len(pool))
             if selected != ir:
                 pool[selected], pool[ir] = pool[ir], pool[selected]
-            x[self.sel] = pool[selected]
+            swap_pos = np.where(x == x[self.sel])
+            x[self.sel], x[swap_pos] = x[swap_pos], x[self.sel]
             self.sel += 1
             if self.element_added_delta_eval():
                 selected += 1
