@@ -127,6 +127,33 @@ class SubsetVectorSolution(VectorSolution, ABC):
             self.sort_sel()
         return selected
 
+    def fill(self, pool: list) -> int:
+        """Scans elements from pool in given order and selects those whose inclusion is feasible.
+
+        The pool may be x[sel:].
+        Elements in pool must not yet be selected.
+        Uses element_added_delta_eval() which should be properly overloaded.
+        """
+        if not self.may_be_extendible():
+            return 0
+        x = self.x
+
+        selected = 0  # Number of added elements
+        for elem in pool:
+            if elem in x[:self.sel]:
+                print(f"WTF {elem} already selected")
+                continue  # elem already in subset
+            elem_pos = np.where(x == elem)
+            x[elem_pos], x[self.sel] = x[self.sel], x[elem_pos]
+            self.sel += 1
+            if self.element_added_delta_eval():
+                selected += 1
+                if not self.may_be_extendible():
+                    break
+        if selected:
+            self.sort_sel()
+        return selected
+
     def remove_some(self, k):
         """Removes min(k,sel) randomly selected elements from the solution.
 
