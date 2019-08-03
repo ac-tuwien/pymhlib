@@ -107,18 +107,9 @@ class Population(np.ndarray):
         if len(self) < 1:
             raise ValueError("average requires at least one element")
 
-        objectives = []
-        for individual in self:
-            objectives.append(individual.obj())
-
-        return sum(objectives) / len(objectives)
+        return sum([float(sol.obj()) for sol in self]) / len(self)
 
     def obj_std(self):
         """ Returns the standard deviation of the populations objective values.
         """
-
-        objectives = []
-        for individual in self:
-            objectives.append(float(individual.obj()))
-
-        return stdev(objectives)
+        return stdev([float(sol.obj()) for sol in self])
