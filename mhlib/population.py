@@ -119,7 +119,6 @@ class Population(np.ndarray):
 
         objectives = []
         for individual in self:
-            obj = individual.obj() / 1000.
-            objectives.append(obj)
+            objectives.append(float(individual.obj()))
 
         return stdev(objectives)
