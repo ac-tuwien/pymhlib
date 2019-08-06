@@ -60,7 +60,7 @@ class SubsetVectorSolution(VectorSolution, ABC):
     def initialize(self, k):
         """Random construction of a new solution by applying random_fill to an initially empty solution."""
         self.clear()
-        self.random_fill(self.x if self.unselected_elems_in_x() else list(self.all_elements))
+        self.random_fill(None if self.unselected_elems_in_x() else list(self.all_elements))
         self.invalidate()
 
     def check(self, unsorted=False):
@@ -74,15 +74,14 @@ class SubsetVectorSolution(VectorSolution, ABC):
             raise ValueError(f"Invalid attribute sel in solution: {self.sel}")
         if len(self.x) != length:
             raise ValueError(f"Invalid length of solution array x: {self.x}")
-        if unsorted:
-            if self.unselected_elems_in_x():
-                if set(self.x) != all_elements_set:
-                    raise ValueError(f"Invalid solution - x is not a permutation of V: {self.x}"
-                                     " (sorted: {sorted(self.x)})")
-            else:
-                sol_set = set(self.x[:self.sel])
-                if not sol_set.issubset(set(self.all_elements)) or len(sol_set) != self.sel:
-                    raise ValueError(f"Solution not simple subset of V: {self.x[:self.sel]}, {self.all_elements}")
+        if self.unselected_elems_in_x():
+            if set(self.x) != all_elements_set:
+                raise ValueError(f"Invalid solution - x is not a permutation of V: {self.x}"
+                                 " (sorted: {sorted(self.x)})")
+        else:
+            sol_set = set(self.x[:self.sel])
+            if not sol_set.issubset(set(self.all_elements)) or len(sol_set) != self.sel:
+                raise ValueError(f"Solution not simple subset of V: {self.x[:self.sel]}, {self.all_elements}")
         if not unsorted:
             old_v = self.x[0]
             for v in self.x[1:self.sel]:
@@ -98,14 +97,16 @@ class SubsetVectorSolution(VectorSolution, ABC):
     def random_fill(self, pool: list) -> int:
         """Scans elements from pool in random order and selects those whose inclusion is feasible.
 
-        The pool may be x[sel:].
+        if unselected_elems_in_x() is true, parameter pool is ignored and  x[sel:] is automatically used.
         Elements in pool must not yet be selected.
         Uses element_added_delta_eval() which should be properly overloaded.
-        Reorders elements in pool so that the selected ones appear in pool[: return-value].
+        Reorders elements in pool so that the selected ones appear in pool[:return-value].
         """
         if not self.may_be_extendible():
             return 0
         x = self.x
+        if self.unselected_elems_in_x():
+            pool = x[self.sel:]
         selected = 0
         for i in range(len(pool)):
             ir = random.randrange(i, len(pool))
