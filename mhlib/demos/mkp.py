@@ -146,7 +146,7 @@ class MKPSolution(SubsetVectorSolution):
         """
         parent_items = set(self.x[:self.sel]).union(other.x[:other.sel])
         child = MKPSolution(self.inst)
-        child.x = np.array(list(parent_items) + list(self.all_elements - parent_items))
+        child.x = np.array(list(parent_items) + list(set(self.all_elements) - parent_items))
         np.random.shuffle(child.x[:len(parent_items)])
         np.random.shuffle(child.x[len(parent_items):])
         child.fill(random_order=False)
