@@ -3,7 +3,7 @@
 import numpy as np
 import random
 from abc import ABC
-from typing import Optional
+from typing import Union
 
 from mhlib.solution import VectorSolution, Solution
 
@@ -59,7 +59,7 @@ class SubsetVectorSolution(VectorSolution, ABC):
         return self.obj() == other.obj() and self.x[:self.sel] == other.x[:other.sel]
 
     def initialize(self, k):
-        """Random construction of a new solution by applying random_fill to an initially empty solution."""
+        """Random construction of a new solution by applying fill to an initially empty solution."""
         self.clear()
         self.fill(None if self.unselected_elems_in_x() else list(self.all_elements))
         self.invalidate()
@@ -95,7 +95,7 @@ class SubsetVectorSolution(VectorSolution, ABC):
         """Sort selected elements in x."""
         self.x[:self.sel].sort()
 
-    def fill(self, pool: Optional[list, int] = None, random_order: bool = True) -> int:
+    def fill(self, pool: Union[list, np.ndarray] = None, random_order: bool = True) -> int:
         """Scans elements from pool (by default in random order) and selects those whose inclusion is feasible.
 
         Elements in pool must not yet be selected.
