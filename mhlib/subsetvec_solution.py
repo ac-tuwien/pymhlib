@@ -255,3 +255,19 @@ class SubsetVectorSolution(VectorSolution, ABC):
         if update_obj_val:
             self.invalidate()
         return True
+
+    def crossover(self, other: 'SubsetVectorSolution'):
+        """Performs a general crossover operation on two subset solutions.
+        The new child solution is constructed by trying to add the union of both parent subsets in a random order.
+        If feasible an item gets added, otherwise it will not be present in the child solution.
+
+        :param other: second parent for crossover
+        :return: a new child solution
+        """
+        parent_items = set(self.x[:self.sel]).union(other.x[:other.sel])
+        child = self.__class__(self.inst)
+        child.x = np.array(list(parent_items) + list(set(self.all_elements) - parent_items))
+        np.random.shuffle(child.x[:len(parent_items)])
+        np.random.shuffle(child.x[len(parent_items):])
+        child.fill(random_order=False)
+        return child

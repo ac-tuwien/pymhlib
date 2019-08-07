@@ -138,20 +138,6 @@ class MKPSolution(SubsetVectorSolution):
         self.sel -= 1
         return False
 
-    def crossover(self, other: 'MKPSolution'):
-        """ Recombination by trying to add the items from both parents in random order first, then all remaining ones.
-
-        :param other: second solution for crossover
-        :return: generated child solution
-        """
-        parent_items = set(self.x[:self.sel]).union(other.x[:other.sel])
-        child = MKPSolution(self.inst)
-        child.x = np.array(list(parent_items) + list(set(self.all_elements) - parent_items))
-        np.random.shuffle(child.x[:len(parent_items)])
-        np.random.shuffle(child.x[len(parent_items):])
-        child.fill(random_order=False)
-        return child
-
 
 if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
