@@ -99,7 +99,7 @@ class MISPSolution(SubsetVectorSolution):
     def shaking(self, par: Any, _result: Result):
         """Scheduler method that performs shaking by remove_some(par) and random_fill()."""
         self.remove_some(par)
-        self.random_fill(list(np.nonzero(self.covered == 0)[0]))
+        self.fill(list(np.nonzero(self.covered == 0)[0]))
 
     def may_be_extendible(self) -> bool:
         return np.any(self.covered == 0)
