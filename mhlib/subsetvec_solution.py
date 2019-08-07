@@ -3,6 +3,7 @@
 import numpy as np
 import random
 from abc import ABC
+from typing import Optional
 
 from mhlib.solution import VectorSolution, Solution
 
@@ -60,7 +61,7 @@ class SubsetVectorSolution(VectorSolution, ABC):
     def initialize(self, k):
         """Random construction of a new solution by applying random_fill to an initially empty solution."""
         self.clear()
-        self.random_fill(None if self.unselected_elems_in_x() else list(self.all_elements))
+        self.fill(None if self.unselected_elems_in_x() else list(self.all_elements))
         self.invalidate()
 
     def check(self, unsorted=False):
@@ -94,24 +95,28 @@ class SubsetVectorSolution(VectorSolution, ABC):
         """Sort selected elements in x."""
         self.x[:self.sel].sort()
 
-    def random_fill(self, pool: list) -> int:
-        """Scans elements from pool in random order and selects those whose inclusion is feasible.
+    def fill(self, pool: Optional[list, int] = None, random_order: bool = True) -> int:
+        """Scans elements from pool (by default in random order) and selects those whose inclusion is feasible.
 
-        if unselected_elems_in_x() is true, parameter pool is ignored and  x[sel:] is automatically used.
         Elements in pool must not yet be selected.
+        if unselected_elems_in_x() is true, parameter pool must either be None, in which case x[sel:] is used as pool,
+        or x[sel:_] for some _ > sel.
+        If random_order is set, the elements in the pool are processed in random order.
         Uses element_added_delta_eval() which should be properly overloaded.
         Reorders elements in pool so that the selected ones appear in pool[:return-value].
         """
         if not self.may_be_extendible():
             return 0
         x = self.x
-        if self.unselected_elems_in_x():
+        if pool is None:
             pool = x[self.sel:]
+        assert not self.unselected_elems_in_x() or np.may_share_memory(x[self.sel:self.sel+1], pool)
         selected = 0
         for i in range(len(pool)):
-            ir = random.randrange(i, len(pool))
-            if selected != ir:
-                pool[selected], pool[ir] = pool[ir], pool[selected]
+            if random_order:
+                ir = random.randrange(i, len(pool))
+                if selected != ir:
+                    pool[selected], pool[ir] = pool[ir], pool[selected]
             x[self.sel] = pool[selected]
             self.sel += 1
             if self.element_added_delta_eval():
@@ -140,9 +145,9 @@ class SubsetVectorSolution(VectorSolution, ABC):
             self.sort_sel()
 
     def two_exchange_random_fill_neighborhood_search(self, best_improvement) -> bool:
-        """Search 2-exchange neighborhood followed by random_fill.
+        """Search 2-exchange neighborhood followed by fill() with random ordering.
 
-        Each selected location is tried to be exchanged with each unselected one followed by a random_fill().
+        Each selected location is tried to be exchanged with each unselected one followed by a fill().
 
         The neighborhood is searched in a randomized fashion.
         Overload delta_eval-methods for problem-specific efficient delta evaluation.
@@ -176,7 +181,7 @@ class SubsetVectorSolution(VectorSolution, ABC):
                     random_fill_applied = False
                     if self.may_be_extendible():
                         self_backup = self.copy()
-                        self.random_fill(self.get_extension_pool())
+                        self.fill(self.get_extension_pool())
                         random_fill_applied = True
                     if self.is_better(best):
                         # new best solution found

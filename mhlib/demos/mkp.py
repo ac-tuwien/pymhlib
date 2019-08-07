@@ -112,7 +112,7 @@ class MKPSolution(SubsetVectorSolution):
     def shaking(self, par: Any, _result: Result):
         """Scheduler method that performs shaking by remove_some(par) and random_fill()."""
         self.remove_some(par)
-        self.random_fill(None)
+        self.fill()
 
     def may_be_extendible(self) -> bool:
         return np.all(self.y + self.inst.r_min <= self.inst.b) and self.sel < len(self.x)
