@@ -92,6 +92,7 @@ class PermutationSolution(VectorSolution, ABC):
 
 def edge_recombination(parent_a: PermutationSolution, parent_b: PermutationSolution):
     """ An edge recombination operation.
+
     It created a list of neighbors for every vertex based on the parent solutions.
     A starting vertex is randomly chosen and remove it from all neighbor lists.
     Based on the last vertex in our new solution, we pick the vertex from its neighbor list.
@@ -209,7 +210,7 @@ def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution
 def partial_matched_crossover(parent_a: PermutationSolution,
                               parent_b: PermutationSolution,
                               swath=None):
-    """A partial-matched-crossover (PMX) exchange.
+    """Partially mapped crossover (PMX).
 
     Generates the child individual generated from the first parent crossed with the second one
 

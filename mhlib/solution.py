@@ -11,6 +11,7 @@ For a concrete optimization problem to solve you have to derive from one of thes
 from abc import ABC, abstractmethod
 import numpy as np
 from typing import TypeVar
+import random
 
 from mhlib.settings import settings, get_settings_parser
 
@@ -181,19 +182,14 @@ class VectorSolution(Solution, ABC):
     def __eq__(self, other: 'VectorSolution') -> bool:
         return self.obj() == other.obj() and np.array_equal(self.x, other.x)
 
-    def uniform_crossover(self, other: 'VectorSolution'):
+    def uniform_crossover(self, other: 'VectorSolution') -> 'VectorSolution':
+        """Uniform crossover of the current solution with the given other solution."""
         child = self.copy()
-
-        #  randomly replace with other solution
-        for index in range(0, len(self.x)-1):
-            exchange = np.random.choice([True, False], 1)
-            if exchange:
-                child.x[index] = other.x[index]
-
-            pass
-
+        #  randomly replace elements with those from other solution
+        for i in range(len(self.x)):
+            if random.getrandbits(1):
+                child.x[i] = other.x[i]
         child.invalidate()
-
         return child
 
 

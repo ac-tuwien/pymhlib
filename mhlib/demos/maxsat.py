@@ -184,8 +184,7 @@ class MAXSATSolution(BoolVectorSolution):
             return better_found
 
     def crossover(self, other: 'MAXSATSolution'):
-        """ Preform uniform crossover as crossover operation in SSGA
-        """
+        """ Preform uniform crossover as crossover."""
         return self.uniform_crossover(other)
 
 

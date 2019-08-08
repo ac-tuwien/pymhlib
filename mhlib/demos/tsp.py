@@ -114,6 +114,7 @@ class TSPSolution(PermutationSolution):
         self.initialize(par)
 
     def crossover(self, other: PermutationSolution):
+        """Perform edge recombination."""
         return edge_recombination(self, other)
 
     def shaking(self, par, result):

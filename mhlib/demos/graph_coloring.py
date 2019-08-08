@@ -150,8 +150,7 @@ class GCSolution(VectorSolution):
         self.invalidate()
 
     def crossover(self, other: 'GCSolution'):
-        """ Preform uniform crossover as crossover operation in SSGA
-        """
+        """ Preform uniform crossover."""
         return self.uniform_crossover(other)
 
 
