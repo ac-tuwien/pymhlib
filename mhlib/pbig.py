@@ -8,15 +8,10 @@ The best of the current and the temporary iteration form a new generation for wh
 
 from typing import List
 from itertools import cycle
-import functools
 
+from mhlib.population import Population
 from mhlib.scheduler import Method, Scheduler
-from mhlib.settings import get_settings_parser
 from mhlib.solution import Solution
-
-
-parser = get_settings_parser()
-parser.add("--mh_pbig_pop_size", type=int, default=20, help='PBIG population size')
 
 
 class PBIG(Scheduler):
@@ -38,26 +33,15 @@ class PBIG(Scheduler):
         :param meths_dr: list of destruct and recreate methods
         :param own_settings: optional dictionary with specific settings
         """
-        super().__init__(sol, meths_ch+meths_dr, own_settings)
-        self.population: List[Solution] = []
+        population = Population(sol, meths_ch, self.own_settings)
+        super().__init__(sol, meths_ch+meths_dr, own_settings, population=population)
         self.meths_ch = meths_ch
         self.meths_dr = meths_dr
 
     def run(self):
         """Actually performs the construction heuristics followed by the PBIG."""
 
-        meths_cycle = cycle(self.meths_ch)
         population = self.population
-
-        # cycle through construction heuristics to generate initial population
-        # perform all construction heuristics, take best solution
-        while len(population) < self.own_settings.mh_pbig_pop_size:
-            m = next(meths_cycle)
-            individual = self.incumbent.copy()
-            res = self.perform_method(m, individual)
-            population.append(individual)
-            if res.terminate:
-                return
 
         meths_dr_cycle = cycle(self.meths_dr)
 
@@ -80,9 +64,7 @@ class PBIG(Scheduler):
                         self.incumbent = modified  # Update best solution
 
             # Add new individuals to population and take the best
-            def compare(lhs: Solution, rhs: Solution):
-                return lhs.is_better(rhs)
-
-            population.extend(changed)
-            sorted(population, key=functools.cmp_to_key(compare), reverse=True)
-            population = population[0:self.own_settings.mh_pbig_pop_size]
+            for individual in changed:
+                worst = population.worst()
+                if individual.is_better(population[worst]):
+                    population[worst] = individual

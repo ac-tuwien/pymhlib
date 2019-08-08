@@ -4,6 +4,7 @@ import numpy as np
 import random
 from abc import ABC
 from typing import Union
+from itertools import chain
 
 from mhlib.solution import VectorSolution, Solution
 
@@ -20,25 +21,31 @@ class SubsetVectorSolution(VectorSolution, ABC):
     def __init__(self, all_elements, inst=None, alg=None, init=True):
         """Initialize empty solution.
 
-        :param all_elements: complete set of elements, may be a generator
+        :param all_elements: complete set of elements
         :param inst: associated problem instance to store
         :param alg: associated algorithm object to store
         :param init: if False the solution is not initialized
         """
-        dtype = type(next(iter(all_elements)))
-        super().__init__(len(all_elements), dtype=dtype, inst=inst, alg=alg, init=False)
-        self.all_elements = all_elements
+        self.all_elements = set(all_elements)
+        super().__init__(len(self.all_elements), dtype=self.dtype(), inst=inst, alg=alg, init=False)
         self.sel = 0
         if init:
             if self.unselected_elems_in_x():
-                self.x = np.array(all_elements)
+                self.x = np.fromiter(self.all_elements, self.dtype(), len(self.all_elements))
             else:
-                self.x = np.empty(len(all_elements), dtype=dtype)
+                self.x = np.empty(len(self.all_elements), dtype=self.dtype())
 
     @classmethod
     def unselected_elems_in_x(cls) -> bool:
         """Return True if the unselected elements are maintained in x[sel:], i.e., behind the selected ones."""
         return True
+
+    def dtype(self):
+        """Return type of the elements."""
+        elem = None
+        for elem in self.all_elements:
+            break
+        return type(elem)
 
     def copy_from(self, other: 'SubsetVectorSolution'):
         self.sel = other.sel
@@ -69,19 +76,18 @@ class SubsetVectorSolution(VectorSolution, ABC):
 
         :param unsorted: if set, it is not checked if s is sorted
         """
-        all_elements_set = set(self.all_elements)
-        length = len(all_elements_set)
+        length = len(self.all_elements)
         if not 0 <= self.sel <= length:
             raise ValueError(f"Invalid attribute sel in solution: {self.sel}")
         if len(self.x) != length:
             raise ValueError(f"Invalid length of solution array x: {self.x}")
         if self.unselected_elems_in_x():
-            if set(self.x) != all_elements_set:
+            if set(self.x) != self.all_elements:
                 raise ValueError(f"Invalid solution - x is not a permutation of V: {self.x}"
                                  " (sorted: {sorted(self.x)})")
         else:
             sol_set = set(self.x[:self.sel])
-            if not sol_set.issubset(set(self.all_elements)) or len(sol_set) != self.sel:
+            if not sol_set.issubset(self.all_elements) or len(sol_set) != self.sel:
                 raise ValueError(f"Solution not simple subset of V: {self.x[:self.sel]}, {self.all_elements}")
         if not unsorted:
             old_v = self.x[0]
@@ -209,6 +215,23 @@ class SubsetVectorSolution(VectorSolution, ABC):
             return True
         x[:sel] = x_sel_orig
         return False
+
+    def crossover(self, other: 'SubsetVectorSolution'):
+        """Performs a general crossover operation on two subset solutions.
+        The new child solution is constructed by trying to add the union of both parent subsets in a random order.
+        If feasible an element gets added, otherwise it will not be present in the child solution.
+
+        :param other: second parent for crossover
+        :return: a new child solution
+        """
+        parent_elems = set(self.x[:self.sel]).union(other.x[:other.sel])
+        child = self.__class__(self.inst)
+        for i, elem in enumerate(chain(parent_elems, self.all_elements - parent_elems)):
+            child.x[i] = elem
+        np.random.shuffle(child.x[:len(parent_elems)])
+        np.random.shuffle(child.x[len(parent_elems):])
+        child.fill(random_order=False)
+        return child
 
     # Methods to be specialized for efficient move calculations
 

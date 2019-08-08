@@ -100,6 +100,7 @@ class Scheduler(ABC):
         - incumbent_valid: True if incumbent is a valid solution to be considered
         - incumbent_iteration: iteration in which incumbent was found
         - incumbent_time: time at which incumbent was found
+        - population: only used in derived population-based metaheurstics and here for logging, otherwise None
         - methods: list of all Methods
         - method_stats: dict of MethodStatistics for each Method
         - iteration: overall number of method applications
@@ -113,18 +114,21 @@ class Scheduler(ABC):
     log10_2 = log10(2)  # log10(2)
     log10_5 = log10(5)  # log10(5)
 
-    def __init__(self, sol: Solution, methods: List[Method], own_settings: dict = None, consider_initial_sol=False):
+    def __init__(self, sol: Solution, methods: List[Method], own_settings: dict = None, consider_initial_sol=False,
+                 population=None):
         """
         :param sol: template/initial solution
         :param methods: list of scheduler methods to apply
         :param own_settings: an own settings object for locally valid settings that override the global ones
         :param consider_initial_sol: if true consider sol as valid solution that should be improved upon; otherwise
             sol is considered just a possibly uninitialized of invalid solution template
+        :param population: optional population object used in derived population-based metaheuristic
         """
         self.incumbent = sol
         self.incumbent_valid = consider_initial_sol
         self.incumbent_iteration = 0
         self.incumbent_time = 0.0
+        self.population = population
         self.methods = methods
         self.method_stats = {method.name: MethodStatistics() for method in methods}
         self.iteration = 0
@@ -280,14 +284,19 @@ class Scheduler(ABC):
 
     def log_iteration_header(self):
         """Writes iteration log header."""
-        s = f"I {'iteration':>10} {'best':>16} {'obj_old':>16} {'obj_new':>16} {'time':>12} {'method':<20} info"
+        s = f"I {'iteration':>10} {'best':>16} {'obj_old':>16} {'obj_new':>16} "
+
+        if self.population is not None:
+            s += f"{'pop_obj_avg':>16} {'pop_obj_std':>16} "
+
+        s += f"{'time':>12} {'method':<20} info"
         self.iter_logger.info(s)
 
     @staticmethod
     def is_logarithmic_number(x: int):
         lr = log10(x) % 1
-        return abs(lr) < __class__.eps or abs(lr-__class__.log10_2) < __class__.eps or \
-            abs(lr-__class__.log10_5) < __class__.eps
+        return abs(lr) < Scheduler.eps or abs(lr-Scheduler.log10_2) < Scheduler.eps or \
+            abs(lr-Scheduler.log10_5) < Scheduler.eps
 
     def log_iteration(self, method_name: str, obj_old: TObj, new_sol: Solution, new_incumbent: bool, in_any_case: bool,
                       log_info: Optional[str]):
@@ -310,9 +319,14 @@ class Scheduler(ABC):
             elif lfreq < 0 and self.is_logarithmic_number(self.iteration):
                 log = True
         if log:
-            s = f"I {self.iteration:>10d} {self.incumbent.obj():16.5f} {obj_old:16.6f} {new_sol.obj():16.5f} " \
-                f"{time.process_time()-self.time_start:12.4f} {method_name:<20} " \
-                f"{log_info if log_info is not None else ''}"
+            s = f"I {self.iteration:>10d} {self.incumbent.obj():16.5f} {obj_old:16.6f} {new_sol.obj():16.5f} "
+
+            if self.population is not None:
+                s += f"{self.population.obj_avg():16.6f} {self.population.obj_std():16.5f} "
+
+            s += f"{time.process_time()-self.time_start:12.4f} " \
+                f"{method_name:<20} {log_info if log_info is not None else ''}"
+
             self.iter_logger.info(s)
 
     @abstractmethod
@@ -335,6 +349,7 @@ class Scheduler(ABC):
         s = f"Method statistics:\n"
         s += f"S  method    iter   succ succ-rate%    tot-obj-gain    avg-obj-gain rel-succ%  net-time  " \
              f"net-time%  brut-time  brut-time%\n"
+
         total_applications = 0
         total_netto_time = 0.0
         total_successes = 0
@@ -369,6 +384,11 @@ class Scheduler(ABC):
             f"T total iterations: {self.iteration}\n" \
             f"T best time [s]: {self.incumbent_time:.3f}\n" \
             f"T total time [s]: {self.run_time:.4f}\n"
+
+        if self.population is not None:
+            s += f"T population obj avg: {self.population.obj_avg()}\n" \
+                f"T population obj std: {self.population.obj_std()}\n"
+
         self.logger.info(LogLevel.indent(s))
         self.incumbent.check()
 
