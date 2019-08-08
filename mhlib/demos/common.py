@@ -2,7 +2,6 @@
 
 import logging
 from pkg_resources import resource_filename
-import networkx as nx
 
 from mhlib.settings import parse_settings, settings, get_settings_parser, get_settings_as_str
 from mhlib.log import init_logger
@@ -20,7 +19,8 @@ data_dir = resource_filename("mhlib", "demos/data/")
 def run_optimization(problem_name: str, Instance, Solution, default_inst_file: str, own_settings=None):
     """Run optimization algorithm given by parameter alg on given problem instance."""
     parser = get_settings_parser()
-    parser.add("--alg", type=str, default='gvns', help='optimization algorithm to be used (gvns, alns, parallel_alns)')
+    parser.add("--alg", type=str, default='gvns', help='optimization algorithm to be used '
+                                                       '(gvns, alns, parallel_alns, ssga)')
     parser.add("--inst_file", type=str, default=default_inst_file,
                help='problem instance file')
     parser.add("--meths_ch", type=int, default=1,

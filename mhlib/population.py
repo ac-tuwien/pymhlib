@@ -7,7 +7,7 @@ from statistics import stdev
 import numpy as np
 
 from mhlib.scheduler import Method, Result
-from mhlib.settings import get_settings_parser
+from mhlib.settings import get_settings_parser, settings, OwnSettings
 from mhlib.solution import Solution
 
 
@@ -15,6 +15,7 @@ parser = get_settings_parser()
 parser.add("--mh_pop_size", type=int, default=100, help='Population size')
 parser.add("--mh_tournament_size", type=int, default=10, help='Tournament size')
 parser.add("--mh_dupelim", type=bool, default=False, help='Prevent duplicates in initialization of population')
+parser.add("--no_mh_dupelim", dest='mh_dupelim', action='store_false')
 
 
 class Population(np.ndarray):
@@ -26,6 +27,7 @@ class Population(np.ndarray):
     """
 
     def __new__(cls, sol: Solution, meths_ch: List[Method], own_settings: dict = None):
+        own_settings = OwnSettings(own_settings) if own_settings else settings
         size = own_settings.mh_pop_size
         obj = super(Population, cls).__new__(cls, size, Solution)
         obj.own_settings = own_settings
@@ -102,14 +104,12 @@ class Population(np.ndarray):
         return duplicates
 
     def obj_avg(self):
-        """ Returns the average of the populations objective values.
-        """
+        """ Returns the average of the populations objective values."""
         if len(self) < 1:
             raise ValueError("average requires at least one element")
 
         return sum([float(sol.obj()) for sol in self]) / len(self)
 
     def obj_std(self):
-        """ Returns the standard deviation of the populations objective values.
-        """
+        """ Returns the standard deviation of the populations objective values."""
         return stdev([float(sol.obj()) for sol in self])

@@ -1,7 +1,6 @@
 """A basic steady-state genetic algorithm."""
 
 from typing import List, Callable
-from itertools import cycle
 import random
 
 from mhlib.population import Population
@@ -11,7 +10,7 @@ from mhlib.solution import Solution
 
 
 parser = get_settings_parser()
-parser.add("--mh_ssga_cross_prob", type=int, default=0.1, help='SSGA crossover probability')
+parser.add("--mh_ssga_cross_prob", type=int, default=1, help='SSGA crossover probability')
 parser.add("--mh_ssga_loc_prob", type=int, default=0.1, help='SSGA local improvement probability')
 
 
@@ -44,13 +43,12 @@ class SteadyStateGeneticAlgorithm(Scheduler):
         :param meth_li: an optional local improvement method
         :param own_settings: optional dictionary with specific settings
         """
-        self.population = None  # Required to include pop-info in iteration header
-        super().__init__(sol, meths_ch + [meth_mu] + [meth_li], own_settings)
+        population = Population(sol, meths_ch, own_settings)
+        super().__init__(sol, meths_ch + [meth_mu] + [meth_li], own_settings, population=population)
         self.meth_cx = meth_cx
         self.meth_mu = meth_mu
         self.meth_ls = meth_li
 
-        self.population = Population(sol, meths_ch, self.own_settings)
         self.incumbent = self.population[self.population.best()]
 
     def run(self):
