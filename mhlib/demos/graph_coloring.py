@@ -149,7 +149,7 @@ class GCSolution(VectorSolution):
         self.x = np.random.randint(self.inst.colors, size=len(self.x))
         self.invalidate()
 
-    def crossover(self, other: 'GCSolution'):
+    def crossover(self, other: 'GCSolution') -> 'GCSolution':
         """ Preform uniform crossover."""
         return self.uniform_crossover(other)
 

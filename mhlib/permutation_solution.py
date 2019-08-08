@@ -89,175 +89,156 @@ class PermutationSolution(VectorSolution, ABC):
             self.invalidate()
         return True
 
+    def partially_mapped_crossover(self, other: 'PermutationSolution') -> 'PermutationSolution':
+        """Partially mapped crossover (PMX).
 
-def edge_recombination(parent_a: PermutationSolution, parent_b: PermutationSolution):
-    """ An edge recombination operation.
+        Copies the current solution, selects a random subsequence from the other parent and realizes this subsequence
+        in the child by corresponding pairwise exchanges.
 
-    It created a list of neighbors for every vertex based on the parent solutions.
-    A starting vertex is randomly chosen and remove it from all neighbor lists.
-    Based on the last vertex in our new solution, we pick the vertex from its neighbor list.
-    The neighbor that has itself the fewest neighbors left will be preferred.
+        :param other: second parent
+        :return: new offspring solution
+        """
 
-    :param parent_a: first parent
-    :param parent_b: second parent
+        size = len(self.x)
 
-    :return new solution retrieved by the recombination operation
-    """
-    nbh = {}
+        # determine random subsequence
+        begin = random.randrange(size)
+        end = random.randrange(size - 1)
+        if begin == end:
+            end = end + 1
+        if begin > end:
+            begin, end = end, begin
 
-    for i in range(0, len(parent_a.x)):
-        elem_a = parent_a.x[i]
+        child = self.copy()
 
-        if elem_a not in nbh:
-            nbh[elem_a] = []
+        # adopt subsequence from parent b by corresponding pairwise exchanges
+        pos = np.empty(size, int)
+        for i, elem in enumerate(child.x):
+            pos[elem] = i
+        for i in range(begin, end):
+            elem = other.x[i]
+            j = pos[elem]
+            if i != j:
+                elem_2 = child.x[i]
+                child.x[i], child.x[j] = elem, elem_2
+                pos[elem], pos[elem_2] = i, j
+        child.invalidate()
+        return child
 
-        nbh[elem_a].append(parent_a.x[i - 1])
-        pos_next = i + 1 if i + 1 < len(parent_a.x) else 0
-        nbh[elem_a].append(parent_a.x[pos_next])
+    def cycle_crossover(self, other: 'PermutationSolution') -> 'PermutationSolution':
+        """ Cycle crossover.
 
-        elem_b = parent_b.x[i]
+        A randomized crossover method that adopts absolute positions of the elements from the parents.
 
-        if elem_b not in nbh:
-            nbh[elem_b] = []
+        TODO: revise
 
-        nbh[elem_b].append(parent_b.x[i - 1])
-        pos_next = i + 1 if i + 1 < len(parent_b.x) else 0
-        nbh[elem_b].append(parent_b.x[pos_next])
+        :param other: second parent
+        :return: new offspring solution
+        """
+        pos_a = {}
+        for i in range(0, len(self.x)):
+            pos_a[self.x[i]] = i
 
-    x = []
-    start = random.randint(0, len(parent_a.x) - 1)
-    x.append(start)
+        # Detect cycles
+        group = np.full(len(self.x), -1)
 
-    while len(x) < len(parent_a.x):
-        for i in nbh:
-            while start in nbh[i]:
-                nbh[i].remove(start)
+        group_id = 0
+        for i in range(0, len(self.x)):
+            if group[i] != -1:
+                # Position already in a cycle
+                continue
 
-        if len(nbh[start]) > 0:
-            # determine bh of x that has fewest neighbors
-            choices = [nbh[start][0]]
-            for i in nbh[start]:
-                elem = choices[0]
-                if len(nbh[i]) < len(nbh[elem]):
-                    choices = [i]  # new minimum found
-                elif len(nbh[i]) == len(nbh[elem]):
-                    choices.append(elem)  # add equal choice
+            # Create a new cycle
+            pos = i
+            while group[pos] == -1:
+                # Element at pos i is not yet assigned to a group
+                group[pos] = group_id
+                sym = other.x[pos]
+                pos = pos_a[sym]
 
-            start = random.choice(choices)
-        else:
-            # find random not in child
-            tries = 0
-            while start in x:
-                tries += 1
-                start = random.randint(0, len(parent_a.x) - 1)
+            # sanity check
+            assert pos == i
+            group_id += 1
 
+        # Perform exchange
+        child = self.copy()
+
+        for pos in range(0, len(child.x)):
+            if child[pos] % 2 == 0:
+                continue
+
+            child.x[pos] = other.x[pos]
+        child.invalidate()
+        return child
+
+    def edge_recombination(self, other: 'PermutationSolution') -> 'PermutationSolution':
+        """ Edge recombination.
+
+        This is a classical recombination operator for the traveling salesman problem, for example.
+        It creates an adjacency list, i.e., a list of neighbors in the cyclically viewed parent permutations,
+        for each element.
+        A start element is randomly chosen and removed from the adjacency lists.
+        From this current element the next is iteratively determined by either choosing an element randomly
+        from the element's adjacency list, or, if the list is empty, by choosing some other not yet visited element.
+
+        :param other: second parent
+        :return new offspring solution
+
+        TODO: revise
+        """
+        nbh = {}
+
+        for i in range(0, len(self.x)):
+            elem_a = self.x[i]
+
+            if elem_a not in nbh:
+                nbh[elem_a] = []
+
+            nbh[elem_a].append(self.x[i - 1])
+            pos_next = i + 1 if i + 1 < len(self.x) else 0
+            nbh[elem_a].append(self.x[pos_next])
+
+            elem_b = other.x[i]
+
+            if elem_b not in nbh:
+                nbh[elem_b] = []
+
+            nbh[elem_b].append(other.x[i - 1])
+            pos_next = i + 1 if i + 1 < len(other.x) else 0
+            nbh[elem_b].append(other.x[pos_next])
+
+        x = []
+        start = random.randrange(len(self.x))
         x.append(start)
 
-    child = parent_a.copy()
-    assert (len(child.x) == len(x))
-    child.x = x
-    child.invalidate()
+        while len(x) < len(self.x):
+            for i in nbh:
+                while start in nbh[i]:
+                    nbh[i].remove(start)
 
-    return child
+            if len(nbh[start]) > 0:
+                # determine bh of x that has fewest neighbors
+                choices = [nbh[start][0]]
+                for i in nbh[start]:
+                    elem = choices[0]
+                    if len(nbh[i]) < len(nbh[elem]):
+                        choices = [i]  # new minimum found
+                    elif len(nbh[i]) == len(nbh[elem]):
+                        choices.append(elem)  # add equal choice
 
+                start = random.choice(choices)
+            else:
+                # find random not in child
+                tries = 0
+                while start in x:
+                    tries += 1
+                    start = random.randrange(len(self.x))
 
-def cycle_crossover(parent_a: PermutationSolution, parent_b: PermutationSolution):
-    """ A cycle crossover operation.
+            x.append(start)
 
-    Generates the child individual generated from the first parent crossed with the second one
+        child = self.copy()
+        assert len(child.x) == len(x)
+        child.x = x
+        child.invalidate()
+        return child
 
-    :param parent_a: first parent
-    :param parent_b: second parent
-    :return: new solution generated by the cycle crossover operation
-    """
-    pos_a = {}
-    for i in range(0, len(parent_a.x)):
-        pos_a[parent_a.x[i]] = i
-
-    # Detect cycles
-    group = np.full(len(parent_a.x), -1)
-
-    group_id = 0
-    for i in range(0, len(parent_a.x)):
-        if group[i] != -1:
-            # Position already in a cycle
-            continue
-
-        # Create a new cycle
-        pos = i
-        while group[pos] == -1:
-            # Element at pos i is not yet assigned to a group
-            group[pos] = group_id
-            sym = parent_b.x[pos]
-            pos = pos_a[sym]
-
-        # sanity check
-        assert pos == i
-        group_id += 1
-
-    # Perform exchange
-    child = parent_a.copy()
-
-    for pos in range(0, len(child.x)):
-        if child[pos] % 2 == 0:
-            continue
-
-        child.x[pos] = parent_b.x[pos]
-
-    return child
-
-
-def partial_matched_crossover(parent_a: PermutationSolution,
-                              parent_b: PermutationSolution,
-                              swath=None):
-    """Partially mapped crossover (PMX).
-
-    Generates the child individual generated from the first parent crossed with the second one
-
-    :param parent_a: first parent
-    :param parent_b: second parent
-    :param swath: fixed range for exchange, random if none provided
-    :return: new solution retrieved by the pmx operation
-    """
-
-    if swath is None:
-        #  randomly choose a swath
-        size = len(parent_a.x)
-        begin = random.randint(size - 2)
-        end = random.randint(begin + 1, size - 1)
-        swath = range(begin, end)
-
-    x = parent_a.x
-    y = parent_b.x
-
-    posy = {}  # holds the position of every value in solution y
-    for i in range(0, len(x)):
-        posy[y[i]] = i
-
-    child_x = y.copy()
-
-    done = []
-
-    for i in swath:
-        # transfer from fixed range to child
-        child_x[i] = x[i]
-
-        # begin position calculation
-        val = y[i]
-        pos = posy[x[i]]
-
-        if pos == i or i in done:
-            continue
-
-        done.append(pos)
-
-        while pos in swath:
-            pos = posy[x[pos]]
-            done.append(pos)
-
-        # move val to position
-        child_x[pos] = val
-
-    parent_a.x = child_x
-
-    return parent_a

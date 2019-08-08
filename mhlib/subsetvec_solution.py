@@ -216,21 +216,25 @@ class SubsetVectorSolution(VectorSolution, ABC):
         x[:sel] = x_sel_orig
         return False
 
-    def crossover(self, other: 'SubsetVectorSolution'):
+    def subset_crossover(self, other: 'SubsetVectorSolution') -> 'SubsetVectorSolution':
         """Performs a general crossover operation on two subset solutions.
-        The new child solution is constructed by trying to add the union of both parent subsets in a random order.
+
+        A new child solution is constructed by considering all elements in the parent solutions in random order.
         If feasible an element gets added, otherwise it will not be present in the child solution.
+        Finally, also all elements that do not appear in the parents are also considered for inclusion in random order.
 
         :param other: second parent for crossover
         :return: a new child solution
         """
         parent_elems = set(self.x[:self.sel]).union(other.x[:other.sel])
-        child = self.__class__(self.inst)
+        child = self.copy()
+        child.clear()
         for i, elem in enumerate(chain(parent_elems, self.all_elements - parent_elems)):
             child.x[i] = elem
         np.random.shuffle(child.x[:len(parent_elems)])
         np.random.shuffle(child.x[len(parent_elems):])
         child.fill(random_order=False)
+        child.invalidate()
         return child
 
     # Methods to be specialized for efficient move calculations

@@ -127,6 +127,10 @@ class MISPSolution(SubsetVectorSolution):
         self.sel -= 1
         return False
 
+    def crossover(self, other: 'MISPSolution') -> 'MISPSolution':
+        """Apply subset_crossover."""
+        return self.subset_crossover(other)
+
 
 if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir

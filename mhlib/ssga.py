@@ -58,11 +58,11 @@ class SteadyStateGeneticAlgorithm(Scheduler):
 
         while True:
             # Create a new solution
-            p1 = population[population.selection()].copy()
+            p1 = population[population.select()].copy()
 
             # Optionally crossover
             if random.random() < self.own_settings.mh_ssga_cross_prob:
-                p2 = population[population.selection()].copy()
+                p2 = population[population.select()].copy()
                 p1 = self.meth_cx(p1, p2)
 
             # Mutation

@@ -19,8 +19,7 @@ parser.add("--no_mh_dupelim", dest='mh_dupelim', action='store_false')
 
 
 class Population(np.ndarray):
-    """ A class for holding multiple solutions called a population which provides
-    the most elementary things for holding a number of solutions.
+    """ Maintains a set of solutions, called a population and provides elementary methods.
 
     Attributes
         - own_settings: own settings object with possibly individualized parameter values
@@ -31,9 +30,7 @@ class Population(np.ndarray):
         size = own_settings.mh_pop_size
         obj = super(Population, cls).__new__(cls, size, Solution)
         obj.own_settings = own_settings
-
         meths_cycle = cycle(meths_ch)
-
         # cycle through construction heuristics to generate population
         # perform all construction heuristics, take best solution
         idx = 0
@@ -42,74 +39,59 @@ class Population(np.ndarray):
             sol = sol.copy()
             res = Result()
             m.func(sol, m.par, res)
-
             if obj.own_settings.mh_dupelim and obj.duplicates_of(sol):
                 #  do not add this duplicate individual
                 continue
-
             obj[idx] = sol
-
             if res.terminate:
                 break
-
             idx += 1
-
         return obj
 
     def best(self):
-        """Get index of best individual
-        """
+        """Get index of best solution."""
         best = 0
         for i in range(len(self)):
             if self[i].is_better(self[best]):
                 best = i
-
         return best
 
     def worst(self):
-        """Get index of worst individual
-        """
+        """Get index of worst solution."""
         worst = 0
         for i in range(len(self)):
             if self[i].is_worse(self[worst]):
                 worst = i
-
         return worst
 
-    def selection(self):
-        """Tournament selection.
-        """
+    def tournament_selection(self):
+        """Select one solution with tournament selection with replacement and return its index."""
         k = self.own_settings.mh_tournament_size
-
-        best = random.randint(1, len(self) - 1)
-
+        best = random.randrange(len(self))
         for i in range(k - 1):
-            individual = random.randint(1, len(self) - 1)
-            if self[individual].is_better(self[best]):
-                best = individual
-
+            idx = random.randrange(len(self))
+            if self[idx].is_better(self[best]):
+                best = idx
         return best
+    
+    def select(self):
+        """Select one solution and return its index.
+        
+        So far calls tournament_selection. May be extended in the future.
+        """
+        return self.tournament_selection()
 
     def duplicates_of(self, solution):
-        """ Get a list of duplicates of the provided solution.
-        """
-        duplicates = []
-
-        for idx, individual in enumerate(self):
-            if individual is None:
-                continue
-            if individual == solution:
-                duplicates.append(idx)
-
-        return duplicates
+        """ Get a list of duplicates of the provided solution."""
+        return [i for i, sol in enumerate(self) if sol == solution]
 
     def obj_avg(self):
-        """ Returns the average of the populations objective values."""
+        """ Returns the average of all solutions' objective values."""
         if len(self) < 1:
             raise ValueError("average requires at least one element")
 
         return sum([float(sol.obj()) for sol in self]) / len(self)
 
     def obj_std(self):
-        """ Returns the standard deviation of the populations objective values."""
+        """ Returns the standard deviation of all solutions' objective values."""
         return stdev([float(sol.obj()) for sol in self])

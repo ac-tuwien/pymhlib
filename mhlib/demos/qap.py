@@ -111,6 +111,10 @@ class QAPSolution(PermutationSolution):
             self.obj_val -= d
         return True
 
+    def crossover(self, other: 'QAPSolution') -> 'QAPSolution':
+        """Perform edge recombination."""
+        return self.cycle_crossover(other)
+
 
 if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
