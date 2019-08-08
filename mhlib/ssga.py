@@ -1,4 +1,4 @@
-"""A basic steady-state genetic algorithm."""
+"""A steady-state genetic algorithm (SSGA)."""
 
 from typing import List, Callable
 import random

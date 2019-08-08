@@ -52,8 +52,12 @@ Vienna, Austria, since 2019.
     A framework for adaptive large neighborhood search (ALNS).
 - **par_alns.py**:
     A multi-process implementation of the ALNS where destroy+repair operations are parallelized.
+- **population.py**
+    A population class for population-based metaheuristics.
 - **pbig.py**:
     A population based iterated greedy (PBIG) algorithm.
+- **ssga.py**:
+    A steady-state genetic algorithm (SSGA).
 - **decision_diag.py**:
     A generic class for (relaxed) decision diagrams for combinatorial optimization.
 - **log.py**:

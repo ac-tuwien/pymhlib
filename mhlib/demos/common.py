@@ -10,7 +10,7 @@ from mhlib.gvns import GVNS
 from mhlib.alns import ALNS
 from mhlib.par_alns import ParallelALNS
 from mhlib.pbig import PBIG
-from mhlib.steadystategeneticalgorithm import SteadyStateGeneticAlgorithm
+from mhlib.ssga import SteadyStateGeneticAlgorithm
 
 
 data_dir = resource_filename("mhlib", "demos/data/")
