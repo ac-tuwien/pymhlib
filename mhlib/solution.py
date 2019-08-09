@@ -13,12 +13,10 @@ import numpy as np
 from typing import TypeVar
 import random
 
-from mhlib.settings import settings, get_settings_parser
+from mhlib.settings import settings, get_settings_parser, add_bool_arg
 
 parser = get_settings_parser()
-parser.add("--mh_maxi", default=True, action='store_true',
-           help='maximize the objective function, else minimize')
-parser.add("--no_mh_maxi", dest='mh_maxi', action='store_false')
+add_bool_arg(parser, "mh_maxi", default=True, help='maximize the objective function, else minimize')
 
 TObj = TypeVar('TObj', int, float)  # Type of objective value
 

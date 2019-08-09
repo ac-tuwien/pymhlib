@@ -112,7 +112,8 @@ class QAPSolution(PermutationSolution):
         return True
 
     def crossover(self, other: 'QAPSolution') -> 'QAPSolution':
-        """Perform edge recombination."""
+        """Perform cycle crossover."""
+        # return self.partially_mapped_crossover(other)
         return self.cycle_crossover(other)
 
 

@@ -2,6 +2,7 @@
 
 import numpy as np
 from abc import ABC
+from typing import List
 
 from mhlib.solution import VectorSolution
 import random
@@ -130,44 +131,32 @@ class PermutationSolution(VectorSolution, ABC):
 
         A randomized crossover method that adopts absolute positions of the elements from the parents.
 
-        TODO: revise
-
         :param other: second parent
         :return: new offspring solution
         """
-        pos_a = {}
-        for i in range(0, len(self.x)):
-            pos_a[self.x[i]] = i
+        size = len(self.x)
+        pos = np.empty(size, int)
+        for i, elem in enumerate(self.x):
+            pos[elem] = i
 
-        # Detect cycles
-        group = np.full(len(self.x), -1)
-
-        group_id = 0
-        for i in range(0, len(self.x)):
-            if group[i] != -1:
-                # Position already in a cycle
+        # detect all cycles
+        group = np.full(size, 0)
+        group_id = 1
+        for i in range(size):
+            if group[i]:
                 continue
-
-            # Create a new cycle
-            pos = i
-            while group[pos] == -1:
-                # Element at pos i is not yet assigned to a group
-                group[pos] = group_id
-                sym = other.x[pos]
-                pos = pos_a[sym]
-
-            # sanity check
-            assert pos == i
+            j = i
+            while not group[j]:
+                group[j] = group_id
+                elem = other.x[j]
+                j = pos[elem]
             group_id += 1
 
-        # Perform exchange
+        # perform exchange
         child = self.copy()
-
-        for pos in range(0, len(child.x)):
-            if child[pos] % 2 == 0:
-                continue
-
-            child.x[pos] = other.x[pos]
+        for i in range(size):
+            if child.x[i] % 2 == 1:
+                child.x[pos] = other.x[pos]
         child.invalidate()
         return child
 
@@ -183,62 +172,42 @@ class PermutationSolution(VectorSolution, ABC):
 
         :param other: second parent
         :return new offspring solution
-
-        TODO: revise
         """
-        nbh = {}
-
-        for i in range(0, len(self.x)):
-            elem_a = self.x[i]
-
-            if elem_a not in nbh:
-                nbh[elem_a] = []
-
-            nbh[elem_a].append(self.x[i - 1])
-            pos_next = i + 1 if i + 1 < len(self.x) else 0
-            nbh[elem_a].append(self.x[pos_next])
-
-            elem_b = other.x[i]
-
-            if elem_b not in nbh:
-                nbh[elem_b] = []
-
-            nbh[elem_b].append(other.x[i - 1])
-            pos_next = i + 1 if i + 1 < len(other.x) else 0
-            nbh[elem_b].append(other.x[pos_next])
-
-        x = []
-        start = random.randrange(len(self.x))
-        x.append(start)
-
-        while len(x) < len(self.x):
-            for i in nbh:
-                while start in nbh[i]:
-                    nbh[i].remove(start)
-
-            if len(nbh[start]) > 0:
-                # determine bh of x that has fewest neighbors
-                choices = [nbh[start][0]]
-                for i in nbh[start]:
-                    elem = choices[0]
-                    if len(nbh[i]) < len(nbh[elem]):
-                        choices = [i]  # new minimum found
-                    elif len(nbh[i]) == len(nbh[elem]):
-                        choices.append(elem)  # add equal choice
-
-                start = random.choice(choices)
-            else:
-                # find random not in child
-                tries = 0
-                while start in x:
-                    tries += 1
-                    start = random.randrange(len(self.x))
-
-            x.append(start)
-
+        def append_if_not_contained(nbs, nb):
+            if nb not in nbs:
+                nbs.append(nb)
+        size = len(self.x)
+        adj_lists: List[List[int]] = [list() for _ in range(size)]
+        for i, elem in enumerate(self.x):
+            append_if_not_contained(adj_lists[elem], self.x[(i-1) % size])
+            append_if_not_contained(adj_lists[elem], self.x[(i+1) % size])
+        for i, elem in enumerate(other.x):
+            append_if_not_contained(adj_lists[elem], other.x[(i-1) % size])
+            append_if_not_contained(adj_lists[elem], other.x[(i+1) % size])
+        unvisited = set(range(size))
         child = self.copy()
-        assert len(child.x) == len(x)
-        child.x = x
+        elem = random.randrange(size)
+        for i in range(size-1):
+            # accept elem and remove it from unvisited and adjacency list
+            child.x[i] = elem
+            unvisited.remove(elem)
+            for j in adj_lists[elem]:
+                adj_lists[j].remove(elem)
+            # select next elem
+            if not adj_lists[elem]:
+                sel = random.choice(list(unvisited))
+            else:
+                candidates = [adj_lists[elem][0]]
+                degree = len(adj_lists[candidates[0]])
+                for e2 in adj_lists[elem][1:]:
+                    degree_e2 = len(adj_lists[e2])
+                    if degree_e2 < degree:
+                        candidates = [e2]
+                    elif degree_e2 == degree:
+                        candidates.append(e2)
+                sel = random.choice(candidates)
+                adj_lists[elem].clear()
+            elem = sel
+        child.x[-1] = elem
         child.invalidate()
         return child
-

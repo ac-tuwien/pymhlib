@@ -14,10 +14,10 @@ import sys
 from mhlib.settings import settings, get_settings_parser, parse_settings
 
 parser = get_settings_parser()
-parser.add("--mh_out", type=str, default="None",
-           help='file to write general output into (None: stdout)')
-parser.add("--mh_log", type=str, default="None",
-           help='file to write iteration-wise logging into (None: stdout)')
+parser.add_argument("--mh_out", type=str, default="None",
+                    help='file to write general output into (None: stdout)')
+parser.add_argument("--mh_log", type=str, default="None",
+                    help='file to write iteration-wise logging into (None: stdout)')
 
 
 def init_logger():

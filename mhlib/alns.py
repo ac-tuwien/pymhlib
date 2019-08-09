@@ -9,28 +9,29 @@ from math import exp
 from itertools import chain
 from dataclasses import dataclass
 
-from mhlib.settings import get_settings_parser, settings
+from mhlib.settings import get_settings_parser, settings, add_bool_arg
 from mhlib.solution import Solution
 from mhlib.scheduler import Scheduler, Method
 from mhlib.log import LogLevel
 
 
 parser = get_settings_parser()
-parser.add("--mh_alns_segment_size", type=int, default=200, help='ALNS segment size')
-parser.add("--mh_alns_sigma1", type=int, default=33, help='ALNS score for new global best solution')
-parser.add("--mh_alns_sigma2", type=int, default=9, help='ALNS score for better than current solution')
-parser.add("--mh_alns_sigma3", type=int, default=13, help='ALNS score for worse accepted solution')
-parser.add("--mh_alns_gamma", type=float, default=0.1, help='ALNS ')
-parser.add("--mh_alns_init_temp_factor", type=float, default=1.05,
-           help='ALNS factor for determining initial temperature')
-parser.add("--mh_alns_temp_dec_factor", type=float, default=0.99975, help='ALNS factor for decreasing the temperature')
-parser.add("--mh_alns_dest_min_abs", type=int, default=4, help='ALNS minimum number of elements to destroy')
-parser.add("--mh_alns_dest_max_abs", type=int, default=60, help='ALNS maximum number of elements to destroy')
-parser.add("--mh_alns_dest_min_ratio", type=float, default=0.05, help='ALNS minimum ratio of elements to destroy')
-parser.add("--mh_alns_dest_max_ratio", type=float, default=0.35, help='ALNS maximum ratio of elements to destroy')
-parser.add("--mh_alns_logscores", default=True, action='store_true',
-           help='ALNS write out log information on scores')
-parser.add("--no_mh_alns_logscores", dest='mh_alns_logscores', action='store_false')
+parser.add_argument("--mh_alns_segment_size", type=int, default=200, help='ALNS segment size')
+parser.add_argument("--mh_alns_sigma1", type=int, default=33, help='ALNS score for new global best solution')
+parser.add_argument("--mh_alns_sigma2", type=int, default=9, help='ALNS score for better than current solution')
+parser.add_argument("--mh_alns_sigma3", type=int, default=13, help='ALNS score for worse accepted solution')
+parser.add_argument("--mh_alns_gamma", type=float, default=0.1, help='ALNS ')
+parser.add_argument("--mh_alns_init_temp_factor", type=float, default=1.05,
+                    help='ALNS factor for determining initial temperature')
+parser.add_argument("--mh_alns_temp_dec_factor", type=float, default=0.99975,
+                    help='ALNS factor for decreasing the temperature')
+parser.add_argument("--mh_alns_dest_min_abs", type=int, default=4, help='ALNS minimum number of elements to destroy')
+parser.add_argument("--mh_alns_dest_max_abs", type=int, default=60, help='ALNS maximum number of elements to destroy')
+parser.add_argument("--mh_alns_dest_min_ratio", type=float, default=0.05,
+                    help='ALNS minimum ratio of elements to destroy')
+parser.add_argument("--mh_alns_dest_max_ratio", type=float, default=0.35,
+                    help='ALNS maximum ratio of elements to destroy')
+add_bool_arg(parser, "mh_alns_logscores", default=True, help='ALNS write out log information on scores')
 
 
 @dataclass

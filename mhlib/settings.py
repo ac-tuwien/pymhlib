@@ -11,15 +11,15 @@ For the usage of config files see the documentation of configargparse or call th
 import pickle
 import numpy as np
 import random
-import configargparse
+from configargparse import ArgParser, Namespace, ArgumentDefaultsRawHelpFormatter
 
 
-settings = configargparse.Namespace()  # global Namespace with all settings
+settings = Namespace()  # global Namespace with all settings
 unknown_args = []  # global list with all unknown parameters
 _parser = None  # single global settings parser
 
 
-def get_settings_parser():
+def get_settings_parser() -> ArgParser:
     """Returns the single global argument parser for adding parameters.
 
     Parameters can be added in all modules by add_argument.
@@ -28,10 +28,24 @@ def get_settings_parser():
     """
     global _parser
     if not _parser:
-        _parser = configargparse.ArgParser(  # default_config_files=["default.cfg"],
-                                           formatter_class=configargparse.ArgumentDefaultsRawHelpFormatter)
+        _parser = ArgParser(  # default_config_files=["default.cfg"],
+                                           formatter_class=ArgumentDefaultsRawHelpFormatter)
         _parser.set_defaults(seed=0)
     return _parser
+
+
+def add_bool_arg(parser: ArgParser, name: str, default: bool, **kwargs):
+    """Add a boolean parameter to the settings parser.
+
+    This helper function add two arguments "--"+name and "--no-"+name to the settings parser for a boolean parameter.
+
+    :param parser: parser obtained by get_settings_parser
+    :param name: name of the parameter without "--"
+    :param default: default value
+    :param kwargs: further parameters such as help
+    """
+    parser.add_argument('--' + name, dest=name, action='store_true', default=default, **kwargs)
+    parser.add_argument('--no-' + name, dest=name, action='store_false')
 
 
 def parse_settings(args=None, return_unknown=False, default_config_files=None):
@@ -57,7 +71,7 @@ def parse_settings(args=None, return_unknown=False, default_config_files=None):
     seed_random_generators()
 
 
-def set_settings(s: configargparse.Namespace):
+def set_settings(s: Namespace):
     """Adopt given settings.
 
     Used, for example in child processes to adopt settings from parent process.
