@@ -166,9 +166,10 @@ class PermutationSolution(VectorSolution, ABC):
         This is a classical recombination operator for the traveling salesman problem, for example.
         It creates an adjacency list, i.e., a list of neighbors in the cyclically viewed parent permutations,
         for each element.
-        A start element is randomly chosen and removed from the adjacency lists.
-        From this current element the next is iteratively determined by either choosing an element randomly
-        from the element's adjacency list, or, if the list is empty, by choosing some other not yet visited element.
+        A start element is randomly chosen.
+        From this current element the next is iteratively determined by either choosing a neighbor with the smallest
+        adjacency list (ties are broken randomly), or, if the list is of remaining neighbors is empty,
+        by choosing some other not yet visited element at random.
 
         :param other: second parent
         :return new offspring solution
