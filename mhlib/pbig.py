@@ -33,8 +33,8 @@ class PBIG(Scheduler):
         :param meths_dr: list of destruct and recreate methods
         :param own_settings: optional dictionary with specific settings
         """
-        population = Population(sol, meths_ch, self.own_settings)
-        super().__init__(sol, meths_ch+meths_dr, own_settings, population=population)
+        population = Population(sol, meths_ch, own_settings)
+        super().__init__(sol, meths_ch+meths_dr, self.own_settings, population=population)
         self.meths_ch = meths_ch
         self.meths_dr = meths_dr
 
