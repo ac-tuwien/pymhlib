@@ -66,6 +66,9 @@ class SteadyStateGeneticAlgorithm(Scheduler):
             # Create a new solution
             p1 = population[population.select()].copy()
 
+            # Methods to perform in this iteration
+            methods: List[Method] = []
+
             # Optionally crossover
             if random.random() < self.own_settings.mh_ssga_cross_prob:
                 p2 = population[population.select()].copy()
@@ -77,14 +80,16 @@ class SteadyStateGeneticAlgorithm(Scheduler):
                 meth_cx_with_p2_bound = partial(meth_cx, self.meth_cx, p2)
 
                 meth = Method("cx", meth_cx_with_p2_bound, None)
-                self.perform_method(meth, p1)
+                methods.append(meth)
 
+            # Mutation
+            methods.append(self.meth_mu)
+
+            # Optionally local search
             if self.meth_ls and random.random() < self.own_settings.mh_ssga_loc_prob:
-                # Mutation and local improve
-                res = self.perform_method_pair(self.meth_mu, self.meth_ls, p1)
-            else:
-                # Mutation only
-                res = self.perform_method(self.meth_mu, p1)
+                methods.append(self.meth_ls)
+
+            res = self.perform_methods(methods, p1)
 
             if res.terminate:
                 break
