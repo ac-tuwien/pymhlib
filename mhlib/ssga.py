@@ -69,18 +69,15 @@ class SteadyStateGeneticAlgorithm(Scheduler):
                 p2 = population[population.select()].copy()
                 p1 = self.meth_cx(p1, p2)
 
-            # Mutation
-            res = self.perform_method(self.meth_mu, p1)
+            if self.meth_ls and random.random() < self.own_settings.mh_ssga_loc_prob:
+                # Mutation and local improve
+                res = self.perform_method_pair(self.meth_mu, self.meth_ls, p1)
+            else:
+                # Mutation only
+                res = self.perform_method(self.meth_mu, p1)
 
             if res.terminate:
                 break
-
-            # Optionally locally improve
-            if self.meth_ls and random.random() < self.own_settings.mh_ssga_loc_prob:
-                res = self.perform_method(self.meth_ls, p1)
-
-                if res.terminate:
-                    break
 
             # Replace in population
             worst = population.worst()
