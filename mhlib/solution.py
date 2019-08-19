@@ -17,6 +17,7 @@ from mhlib.settings import settings, get_settings_parser, add_bool_arg
 
 parser = get_settings_parser()
 add_bool_arg(parser, "mh_maxi", default=True, help='maximize the objective function, else minimize')
+parser.add_argument("--mh_xover_pts", type=int, default=1, help='number of crossover points in multi-point crossover')
 
 TObj = TypeVar('TObj', int, float)  # Type of objective value
 
@@ -187,6 +188,23 @@ class VectorSolution(Solution, ABC):
         for i in range(len(self.x)):
             if random.getrandbits(1):
                 child.x[i] = other.x[i]
+        child.invalidate()
+        return child
+
+    def multi_point_crossover(self, other: 'VectorSolution') -> 'VectorSolution':
+        """Multi-point crossover of current and other given solution.
+
+        The number of crossover points is passed in settings.mh_xover_pts.
+        """
+        child = self.copy()
+        size = len(self.x)
+        points = np.random.choice(size, settings.mh_xover_pts, replace=False)
+        points.sort()
+        if len(points) % 2:
+            points.append(size)
+        points = points.reshape(len(points)/2, 2)
+        for a, b in points:
+            child.x[a:b] = other.x[a:b]
         child.invalidate()
         return child
 
