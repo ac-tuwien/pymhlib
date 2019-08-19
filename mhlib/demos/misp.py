@@ -136,4 +136,4 @@ if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
     # from mhlib.settings import settings
     # settings.meths_li = 0
-    run_optimization('MISP', MISPInstance, MISPSolution, data_dir + "misp-simple.clq")
+    run_optimization('MISP', MISPInstance, MISPSolution, data_dir + "frb40-19-1.mis")
