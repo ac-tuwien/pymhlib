@@ -220,6 +220,39 @@ class Scheduler(ABC):
                                           t_destroyed - t_start, t_end - t_destroyed)
         return res
 
+    def perform_methods(self, methods: [Method], sol: Solution) -> Result:
+        """Performs all methods on given solution and returns Results object.
+
+        Also updates incumbent, iteration and the method's statistics in method_stats.
+        Furthermore checks the termination condition and eventually sets terminate in the returned Results object.
+
+        :param methods: list of methods to perform
+        :param sol: solution to which the method is applied
+        :returns: Results object
+        """
+        res = Result()
+        obj_old = sol.obj()
+        method_name = ""
+        for method in methods:
+            if method_name != "":
+                method_name += "+"
+            method_name += method.name
+
+            method.func(sol, method.par, res)
+            if res.terminate:
+                break
+        t_end = time.process_time()
+
+        self.iteration += 1
+        new_incumbent = self.update_incumbent(sol, t_end - self.time_start)
+        terminate = self.check_termination()
+        self.log_iteration(method_name, obj_old, sol, new_incumbent, terminate, res.log_info)
+        if terminate:
+            self.run_time = time.process_time() - self.time_start
+            res.terminate = True
+
+        return res
+
     def update_stats_for_method_pair(self, destroy: Method, repair: Method, sol: Solution, res: Result, obj_old: TObj,
                                      t_destroy: float, t_repair: float):
         """Update statistics, incumbent and check termination condition after having performed a destroy+repair."""

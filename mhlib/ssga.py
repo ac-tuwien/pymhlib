@@ -1,10 +1,11 @@
 """A steady-state genetic algorithm (SSGA)."""
 
-from typing import List, Callable
+from typing import List, Callable, Any
 import random
 
+from functools import partial
 from mhlib.population import Population
-from mhlib.scheduler import Method, Scheduler
+from mhlib.scheduler import Method, Scheduler, Result, MethodStatistics
 from mhlib.settings import get_settings_parser
 from mhlib.solution import Solution
 
@@ -49,6 +50,7 @@ class SteadyStateGeneticAlgorithm(Scheduler):
         """
         population = Population(sol, meths_ch, own_settings)
         super().__init__(sol, meths_ch + [meth_mu] + [meth_li], own_settings, population=population)
+        self.method_stats["cx"] = MethodStatistics()
         self.meth_cx = meth_cx
         self.meth_mu = meth_mu
         self.meth_ls = meth_li
@@ -64,23 +66,33 @@ class SteadyStateGeneticAlgorithm(Scheduler):
             # Create a new solution
             p1 = population[population.select()].copy()
 
+            # Methods to perform in this iteration
+            methods: List[Method] = []
+
             # Optionally crossover
             if random.random() < self.own_settings.mh_ssga_cross_prob:
                 p2 = population[population.select()].copy()
-                p1 = self.meth_cx(p1, p2)
+
+                # Workaround for Method not allowing a second Solution as parameter
+                def meth_cx(crossover, p2: Solution, p1 : Solution, par: Any, res: Result):
+                    crossover(p1, p2)
+
+                meth_cx_with_p2_bound = partial(meth_cx, self.meth_cx, p2)
+
+                meth = Method("cx", meth_cx_with_p2_bound, None)
+                methods.append(meth)
 
             # Mutation
-            res = self.perform_method(self.meth_mu, p1)
+            methods.append(self.meth_mu)
+
+            # Optionally local search
+            if self.meth_ls and random.random() < self.own_settings.mh_ssga_loc_prob:
+                methods.append(self.meth_ls)
+
+            res = self.perform_methods(methods, p1)
 
             if res.terminate:
                 break
-
-            # Optionally locally improve
-            if self.meth_ls and random.random() < self.own_settings.mh_ssga_loc_prob:
-                res = self.perform_method(self.meth_ls, p1)
-
-                if res.terminate:
-                    break
 
             # Replace in population
             worst = population.worst()
