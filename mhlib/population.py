@@ -25,27 +25,31 @@ class Population(np.ndarray):
     """
 
     def __new__(cls, sol: Solution, meths_ch: List[Method], own_settings: dict = None):
-        # TODO revise, docstring
+        """Create population of mh_pop_size solutions using the list of construction heuristics if given.
+
+        If sol is None or no constructors are given, the population is initialized empty.
+        sol itself is just used as template for obtaining further solutions.
+        """
         own_settings = OwnSettings(own_settings) if own_settings else settings
         size = own_settings.mh_pop_size
         obj = super(Population, cls).__new__(cls, size, Solution)
         obj.own_settings = own_settings
-        meths_cycle = cycle(meths_ch)
-        # cycle through construction heuristics to generate population
-        # perform all construction heuristics, take best solution
-        idx = 0
-        while idx < size:
-            m = next(meths_cycle)
-            sol = sol.copy()
-            res = Result()
-            m.func(sol, m.par, res)
-            if obj.own_settings.mh_pop_dupelim and obj.duplicates_of(sol) != []:
-                #  do not add this duplicate individual
-                continue
-            obj[idx] = sol
-            if res.terminate:
-                break
-            idx += 1
+        if sol is not None and meths_ch:
+            # cycle through construction heuristics to generate population
+            # perform all construction heuristics, take best solution
+            meths_cycle = cycle(meths_ch)
+            idx = 0
+            while idx < size:
+                m = next(meths_cycle)
+                sol = sol.copy()
+                res = Result()
+                m.func(sol, m.par, res)
+                if own_settings.mh_pop_dupelim and obj.duplicates_of(sol) != []:
+                    continue  # do not add this duplicate
+                obj[idx] = sol
+                if res.terminate:
+                    break
+                idx += 1
         return obj
 
     def best(self) -> int:

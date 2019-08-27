@@ -63,7 +63,7 @@ class SubsetVectorSolution(VectorSolution, ABC):
         self.invalidate()
 
     def __eq__(self, other: 'SubsetVectorSolution') -> bool:
-        return self.obj() == other.obj() and self.x[:self.sel] == other.x[:other.sel]
+        return self.obj() == other.obj() and np.array_equal(self.x[:self.sel], other.x[:other.sel])
 
     def initialize(self, k):
         """Random construction of a new solution by applying fill to an initially empty solution."""
