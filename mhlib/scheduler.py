@@ -220,7 +220,7 @@ class Scheduler(ABC):
                                           t_destroyed - t_start, t_end - t_destroyed)
         return res
 
-    def perform_methods(self, methods: [Method], sol: Solution) -> Result:
+    def perform_methods(self, methods: List[Method], sol: Solution) -> Result:
         """Performs all methods on given solution and returns Results object.
 
         Also updates incumbent, iteration and the method's statistics in method_stats.
