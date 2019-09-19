@@ -38,8 +38,7 @@ class PermutationSolution(VectorSolution, ABC):
         """Perform the systematic search of the 2-exchange neighborhood, in which two elements are exchanged.
 
         The neighborhood is searched in a randomized ordering.
-        Note that frequently, a more problem-specific neighborhood search with delta-evaluation is
-        much more efficient!
+        A problem-specific delta-evaluation can be performed by overloading two_exchange_delta_eval.
 
         :param best_improvement:  if set, the neighborhood is completely searched and a best neighbor is kept;
             otherwise the search terminates in a first-improvement manner, i.e., keeping a first encountered
@@ -76,6 +75,8 @@ class PermutationSolution(VectorSolution, ABC):
     def two_exchange_delta_eval(self, p1: int, p2: int, update_obj_val=True, allow_infeasible=False) -> bool:
         """A 2-exchange move was performed, if feasible update other solution data accordingly, else revert.
 
+        This is a helper function for delta-evaluating solutions when searching a neighborhood that needs
+        to be overloaded for a concrete problem.
         It can be assumed that the solution was in a correct state with a valid objective value in obj_val
         *before* the already applied move, obj_val_valid therefore is True.
         The default implementation just calls invalidate() and returns True.

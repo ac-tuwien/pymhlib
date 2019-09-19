@@ -156,7 +156,8 @@ class SubsetVectorSolution(VectorSolution, ABC):
         Each selected location is tried to be exchanged with each unselected one followed by a fill().
 
         The neighborhood is searched in a randomized fashion.
-        Overload delta_eval-methods for problem-specific efficient delta evaluation.
+        Overload the methods element_removed_delta_eval and element_added_delta_eval for an efficient problem-specific
+        delta evaluation.
         Returns True if the solution could be improved, otherwise the solution remains unchanged.
         """
         sel = self.sel
@@ -254,6 +255,8 @@ class SubsetVectorSolution(VectorSolution, ABC):
         """Element x[sel] has been removed in the solution, if feasible update other solution data,
         else revert.
 
+        This is a helper function for delta-evaluating solutions when searching a neighborhood that needs
+        to be overloaded for a concrete problem.
         It can be assumed that the solution was in a correct state with a valid objective value in obj_val
         *before* the already applied move, obj_val_valid therefore is True.
         The default implementation just calls invalidate() and returns True.
@@ -270,6 +273,8 @@ class SubsetVectorSolution(VectorSolution, ABC):
     def element_added_delta_eval(self, update_obj_val=True, allow_infeasible=False) -> bool:
         """Element x[sel-1] was added to a solution, if feasible update further solution data, else revert.
 
+        This is a helper function for delta-evaluating solutions when searching a neighborhood that needs
+        to be overloaded for a concrete problem.
         It can be assumed that the solution was in a correct state with a valid objective value in obj_val
         *before* the already applied move, obj_val_valid therefore is True.
         The default implementation just calls invalidate() and returns True.
