@@ -4,6 +4,8 @@ Provides configuration file and command line argument parsing functionality to a
 Parameters can be decentrally defined in any module by getting the global parser via get_settings_parser
 and registering them by add_argument(). parse_settings() needs to be called one in the main program, then
 all parameters are available under the global Namespace settings.
+If sys.argv shall not be used, e.g., because pymhlib is embedded in some framework like Django or
+a Jupyter notebook, pass "" as args (or some meaningful initialization parameters).
 
 For the usage of config files see the documentation of configargparse or call the program with -h.
 """
@@ -51,8 +53,11 @@ def add_bool_arg(parser: ArgParser, name: str, default: bool, **kwargs):
 def parse_settings(args=None, return_unknown=False, default_config_files=None):
     """Parses the config files and command line arguments and initializes settings and unknown_parameters.
 
-    Needs to be called once in the main program (or more generally after all arguments have been added to the parser.
+    Needs to be called once in the main program, or more generally after all arguments have been added to the parser
+    and before they are used.
     Also seeds the random number generators based on parameter seed.
+    If sys.argv shall not be used, e.g., because pymhlib is embedded in some framework like Django or
+    a Jupyter notebook, pass "" as args (or some meaningful initialization parameters).
 
     :param args: optional sequence of string arguments; if None sys.argv is used
     :param return_unknown: return unknown parameters as list in global variable unknown_args; otherwise raise exception
