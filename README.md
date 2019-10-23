@@ -32,8 +32,11 @@ Vienna, Austria, since 2019.
 
 - **solution.py**:
     An abstract base class `Solution`that represents a candidate solution to an optimization problem and
-    derived classes `VectorSolution`, `BoolVectorSolution`, and `SetSolution` for solutions which are
+    derived classes `VectorSolution`, `BinaryVectorSolution`, and `SetSolution` for solutions which are
     represented bei general fixed-length vectors, boolean vectors or sets of arbitrary elements.
+- **binvec_solution.py**:
+    A more specific solution class `BinaryVectorSolution` for problems in which solutions are represented by
+    fixed-length binary vectors.
 - **subsetvec_solution.py**:
     A more specific solution class `SubsetVectorSolution` for problems in which solutions are subsets of a 
     larger set. The set is realized by an efficient numpy array which is split into two parts, 
@@ -89,11 +92,11 @@ Modules/scripts for analyzing results of many runs:
 
 #### Demos
 
-For demonstration purposes, simple metaheuristic approaches are provided for the following
+For demonstration purposes, simple metaheuristic approaches are provided in the `demo` subdirectory for the following
 well-known combinatorial optimization problems. It is recommended to take such a demo as template 
 for solving your own new problem.
 
-- Maximum satisfiability problem (MAXSAT) based on `BoolVectorSolution`
+- Maximum satisfiability problem (MAXSAT) based on `BinaryVectorSolution`
 - Graph Coloring Problem (GCP) based on `VectorSolution`
 - Traveling Salesman Problem (TSP) based on `PermutationSolution`
 - Quadratic assignment problem (QAP) based on `PermutationSolution`
@@ -102,7 +105,11 @@ for solving your own new problem.
 - Multidimensional 0-1 knapsack problem (MKP) based on `SubsetVectorSolution`
 
 Shared code of these demos is found in the modules `demos.common` and `demos.graphs`.
-         
+
+Moreover, `julia-maxsat.py` and `julia-maxsat.jl` demonstrate the integration with the Julia programming language.
+Implementing time-critical parts of an application in Julia may accelerate the code substantially.
+To run this demo, Julia must be set up correctly and Python's `julia` package must be installed.
+ 
 
 ### Changelog
 

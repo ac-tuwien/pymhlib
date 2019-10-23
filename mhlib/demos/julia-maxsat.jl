@@ -1,7 +1,7 @@
 """Demo application for showing the integration with the Julia language, solving the MAXSAT problem.
 
 The Julia module julia-maxsat.jl is used via Python's julia interface package.
-Julia and Pythpon's julia package must be installed properly.
+Julia and Python's julia package must be installed properly.
 This Julia module provides a concrete Solution class for solving the MAXSAT problem in essentially
 the same way as maxsat.py. The goal is to maximize the number of clauses satisfied in a
 boolean function given in conjunctive normal form.
@@ -10,13 +10,14 @@ boolean function given in conjunctive normal form.
 module JuliaMAXSAT
 
 using PyCall
+using Random
 # using StatsBase
 
 # math = pyimport("math")
 # println("JuliaMAXSAT initialized", math.sin(3))
 
 py_instance = pyimport("mhlib.demos.maxsat")
-py_solution = pyimport("mhlib.solution")
+py_solution = pyimport("mhlib.binvec_solution")
 
 """Solution to a MAXSAT instance.
 
@@ -33,12 +34,10 @@ Attributes
     Clauses are stored in a 2D array, where values 0 indicate an earlier end of the clause.
 """
 struct JuliaMAXSATInstance
-    m::Int
-    n::Int
     clauses::Array{Int,2}
 end
 
-@pydef mutable struct JuliaMAXSATSolution <: (py_solution.BoolVectorSolution)
+@pydef mutable struct JuliaMAXSATSolution <: (py_solution.BinaryVectorSolution)
 
     function __init__(self, inst)
         pybuiltin(:super)(JuliaMAXSATSolution,self).__init__(inst.n, inst=inst)
@@ -49,7 +48,7 @@ end
         for i in 1:inst.m
             clauses_array[i,1:length(clauses[i])] = clauses[i]
         end
-        self.julia_inst = JuliaMAXSATInstance(inst.m, inst.n, clauses_array)
+        self.julia_inst = JuliaMAXSATInstance(clauses_array)
     end
 
     function calc_objective(self)
@@ -79,7 +78,7 @@ end
 
     function check(self)
         x = PyArray(self."x")
-        if length(x) != self.julia_inst.n
+        if length(x) != self.inst.n
             throw(DomainError("Invalid length of solution"))
         end
         pybuiltin(:super)(JuliaMAXSATSolution,self).check()
@@ -103,7 +102,7 @@ end
         """Scheduler method that performs shaking by flipping par random positions."""
         x = PyArray(self."x")
         for i in 1:par
-            p = rand(1:self.julia_inst.n)
+            p = rand(1:length(x))
             x[p] = !x[p]
         end
         self.invalidate()
@@ -146,6 +145,7 @@ end
         @assert 0 < k <= len_x
         better_found = false
         best_sol = self.copy()
+        perm = randperm(len_x)  # random permutation for randomizing enumeration order
         p = fill(-1, k)  # flipped positions
         # initialize
         i = 1  # current index in p to consider
@@ -165,17 +165,17 @@ end
                 if p[i] == -1
                     # this index has not yet been placed
                     p[i] = (i>1 ? p[i-1] : 0) + 1
-                    x[p[i]] = 1-x[p[i]]
+                    x[perm[p[i]]] = 1-x[perm[p[i]]]
                     i += 1  # continue with next position (if any)
                 elseif p[i] < len_x - (k - i)
                     # further positions to explore with this index
-                    x[p[i]] = !x[p[i]]
+                    x[perm[p[i]]] = !x[perm[p[i]]]
                     p[i] += 1
-                    x[p[i]] = !x[p[i]]
+                    x[perm[p[i]]] = !x[perm[p[i]]]
                     i += 1
                 else
                     # we are at the last position with the i-th index, backtrack
-                    x[p[i]] = !x[p[i]]
+                    x[perm[p[i]]] = !x[perm[p[i]]]
                     p[i] = -1  # unset position
                     i -= 1
                 end
@@ -191,7 +191,7 @@ end
 end
 
 function crossover(self, other)
-    """ Preform uniform crossover as crossover."""
+    """ Perform uniform crossover as crossover."""
     return self.uniform_crossover(other)
 end
 

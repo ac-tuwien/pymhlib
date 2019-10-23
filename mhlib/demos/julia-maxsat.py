@@ -6,12 +6,12 @@ It provides a concrete Solution class for solving the MAXSAT problem in essentia
 The goal is to maximize the number of clauses satisfied in a boolean function given in conjunctive normal form.
 """
 
-from julia import Julia
-#jl = Julia(sysimage="/home/guenther/s.so")  # only use when compiled Julia system image available
+# from julia import Julia
+# jl = Julia(sysimage="/home/guenther/s.so")  # only use when compiled Julia system image available
 from julia import Base, Main
 import os
 
-from mhlib.demos.maxsat import MAXSATInstance, MAXSATSolution
+from mhlib.demos.maxsat import MAXSATInstance
 
 Main.eval(r'include("'+os.path.dirname(__file__)+r'/julia-maxsat.jl")')
 

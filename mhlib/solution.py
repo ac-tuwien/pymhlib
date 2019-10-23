@@ -2,7 +2,7 @@
 Abstract base class representing a candidate solution to an optimization problem and some derived still generic classes.
 
 The abstract base class Solution represents a candidate solution to an optimization problem.
-Derived classes VectorSolution, BoolVectorSolution, and SetSolution are for solutions which are
+Derived classes VectorSolution, BinaryVectorSolution, and SetSolution are for solutions which are
 represented bei general fixed-length vectors, boolean fixed-length vectors and sets of arbitrary elements.
 
 For a concrete optimization problem to solve you have to derive from one of these classes.
@@ -160,7 +160,7 @@ class Solution(ABC):
 
 
 class VectorSolution(Solution, ABC):
-    """Abstract solution class with integer vector as solution representation.
+    """Abstract solution class with fixed-length integer vector as solution representation.
 
     Attributes
         - x: vector representing a solution, realized ba a numpy.ndarray
@@ -207,33 +207,6 @@ class VectorSolution(Solution, ABC):
             child.x[a:b] = other.x[a:b]
         child.invalidate()
         return child
-
-
-class BoolVectorSolution(VectorSolution, ABC):
-    """Abstract solution class with 0/1 vector as solution representation.
-
-    Attributes
-        - x: 0/1 vector representing a solution
-    """
-
-    def __init__(self, length, **kwargs):
-        """Initializes the solution vector with zeros."""
-        super().__init__(length, dtype=bool, **kwargs)
-
-    def initialize(self, k):
-        """Random initialization."""
-        self.x = np.random.randint(0, 2, len(self.x))
-        self.invalidate()
-
-    def check(self):
-        """Check if valid solution.
-
-        Raises ValueError if problem detected.
-        """
-        super().check()
-        for v in self.x:
-            if not 0 <= v <= 1:
-                raise ValueError("Invalid value in BoolVectorSolution: {self.x}")
 
 
 class SetSolution(Solution, ABC):

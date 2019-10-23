@@ -7,7 +7,7 @@ import numpy as np
 import random
 from typing import Any
 
-from mhlib.solution import BoolVectorSolution
+from mhlib.binvec_solution import BinaryVectorSolution
 from mhlib.alns import ALNS
 from mhlib.scheduler import Result
 
@@ -61,10 +61,10 @@ class MAXSATInstance:
             raise ValueError(f"Number of clauses should be {self.m}, but {len(self.clauses)} read")
 
     def __repr__(self):
-        return f"m={self.m}, n={self.n}\n"  #,\nclauses={self.clauses!r}\n"
+        return f"m={self.m}, n={self.n}\n"  # , clauses={self.clauses!r}\n"
 
 
-class MAXSATSolution(BoolVectorSolution):
+class MAXSATSolution(BinaryVectorSolution):
     """Solution to a MAXSAT instance.
 
     Attributes
@@ -135,59 +135,8 @@ class MAXSATSolution(BoolVectorSolution):
         self.destroyed = None
         self.invalidate()
 
-    def k_flip_neighborhood_search(self, k: int, best_improvement: bool) -> bool:
-        """Perform one major iteration of a k-flip local search, i.e., search one neighborhood.
-
-        If best_improvement is set, the neighborhood is completely searched and a best neighbor is kept;
-        otherwise the search terminates in a first-improvement manner, i.e., keeping a first encountered
-        better solution.
-
-        :returns: True if an improved solution has been found.
-
-        TODO randomize search order
-        TODO allow incremental evaluation, and put it more generically into BoolVectorSolution, making it an own module
-        """
-        x = self.x
-        assert 0 < k <= len(x)
-        better_found = False
-        best_sol = self.copy()
-        p = np.full(k, -1)  # flipped positions
-        # initialize
-        i = 0  # current index in p to consider
-        while i >= 0:
-            # evaluate solution
-            if i == k:
-                self.invalidate()
-                if self.is_better(best_sol):
-                    if not best_improvement:
-                        return True
-                    best_sol.copy_from(self)
-                    better_found = True
-                i -= 1  # backtrack
-            else:
-                if p[i] == -1:
-                    # this index has not yet been placed
-                    p[i] = (p[i-1] if i > 0 else -1) + 1
-                    x[p[i]] = not x[p[i]]
-                    i += 1  # continue with next position (if any)
-                elif p[i] < len(x) - (k - i):
-                    # further positions to explore with this index
-                    x[p[i]] = not x[p[i]]
-                    p[i] += 1
-                    x[p[i]] = not x[p[i]]
-                    i += 1
-                else:
-                    # we are at the last position with the i-th index, backtrack
-                    x[p[i]] = not x[p[i]]
-                    p[i] = -1  # unset position
-                    i -= 1
-        if better_found:
-            self.copy_from(best_sol)
-            self.invalidate()
-        return better_found
-
     def crossover(self, other: 'MAXSATSolution'):
-        """ Preform uniform crossover as crossover."""
+        """ Perform uniform crossover as crossover."""
         return self.uniform_crossover(other)
 
 
