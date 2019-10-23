@@ -48,7 +48,7 @@ class MAXSATInstance:
                     if not fields[-1].startswith("0"):
                         raise ValueError(f"Last field in clause line must be 0, but is not: {line}, {fields[-1]!r}")
                     try:
-                        self.clauses.append([int(s) for s in fields[:-1]])
+                        self.clauses.append(np.array([int(s) for s in fields[:-1]]))
                     except ValueError:
                         raise ValueError(f"Invalid clause: {line}")
 
@@ -61,7 +61,7 @@ class MAXSATInstance:
             raise ValueError(f"Number of clauses should be {self.m}, but {len(self.clauses)} read")
 
     def __repr__(self):
-        return f"n={self.n},\nclauses={self.clauses!r}\n"
+        return f"m={self.m}, n={self.n}\n"  #,\nclauses={self.clauses!r}\n"
 
 
 class MAXSATSolution(BoolVectorSolution):
@@ -143,6 +143,9 @@ class MAXSATSolution(BoolVectorSolution):
         better solution.
 
         :returns: True if an improved solution has been found.
+
+        TODO randomize search order
+        TODO allow incremental evaluation, and put it more generically into BoolVectorSolution, making it an own module
         """
         x = self.x
         assert 0 < k <= len(x)
@@ -171,7 +174,7 @@ class MAXSATSolution(BoolVectorSolution):
                     # further positions to explore with this index
                     x[p[i]] = not x[p[i]]
                     p[i] += 1
-                    x[p[i]] = x[p[i]]
+                    x[p[i]] = not x[p[i]]
                     i += 1
                 else:
                     # we are at the last position with the i-th index, backtrack
@@ -181,7 +184,7 @@ class MAXSATSolution(BoolVectorSolution):
         if better_found:
             self.copy_from(best_sol)
             self.invalidate()
-            return better_found
+        return better_found
 
     def crossover(self, other: 'MAXSATSolution'):
         """ Preform uniform crossover as crossover."""
