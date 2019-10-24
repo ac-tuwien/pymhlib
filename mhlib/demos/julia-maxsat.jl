@@ -35,7 +35,25 @@ Attributes
 """
 struct JuliaMAXSATInstance
     clauses::Array{Int,2}
+    variable_usage::Array{Int,2}
 end
+
+
+"""
+    make_2d_array(a, fill)
+
+Turns an Array of Arrays of Ints into a 2D array, filling up with zeros.
+"""
+function make_2d_array(a::Array{Array{Int,1}})::Array{Int,2}
+    size1 = length(a)
+    size2 = maximum(length(a[i]) for i in 1:size1)
+    a2 = zeros(Int, size1, size2)
+    for i in 1:size1
+        a2[i,1:length(a[i])] = a[i]
+    end
+    return a2
+end
+
 
 @pydef mutable struct JuliaMAXSATSolution <: (py_solution.BinaryVectorSolution)
 
@@ -43,12 +61,11 @@ end
         pybuiltin(:super)(JuliaMAXSATSolution,self).__init__(inst.n, inst=inst)
         self.destroyed = nothing
         clauses::Array{Array{Int,1},1} = inst."clauses"
-        clause_size = maximum(length(clauses[i]) for i in 1:inst.m)
-        clauses_array = zeros(Int, inst.m, clause_size)
-        for i in 1:inst.m
-            clauses_array[i,1:length(clauses[i])] = clauses[i]
-        end
-        self.julia_inst = JuliaMAXSATInstance(clauses_array)
+        clauses_2d = make_2d_array(clauses)
+        variable_usage::Array{Array{Int,1},1} = inst."variable_usage"
+        for clauses in variable_usage clauses .+= 1 end
+        variable_usage_2d = make_2d_array(variable_usage)
+        self.julia_inst = JuliaMAXSATInstance(clauses_2d, variable_usage_2d)
     end
 
     function calc_objective(self)
@@ -133,15 +150,15 @@ end
     function k_flip_neighborhood_search(self, k, best_improvement)
         """Perform one major iteration of a k-flip local search, i.e., search one neighborhood.
 
-        If best_improvement is set, the neighborhood is completely searched and a best neighbor is kept;
-        otherwise the search terminates in a first-improvement manner, i.e., keeping a first encountered
-        better solution.
+        If best_improvement is set, the neighborhood is completely searched and a best neighbor is
+        kept; otherwise the search terminates in a first-improvement manner, i.e., keeping a first
+        encountered better solution.
 
         :returns: True if an improved solution has been found.
         """
         x = PyArray(self."x")
         len_x = length(x)
-        # print(len_x);exit()
+        julia_inst = self.julia_inst
         @assert 0 < k <= len_x
         better_found = false
         best_sol = self.copy()
@@ -152,7 +169,6 @@ end
         while i >= 1
             # evaluate solution
             if i == k + 1
-                self.invalidate()
                 if self.is_better(best_sol)
                     if !best_improvement
                         return true
@@ -165,17 +181,17 @@ end
                 if p[i] == -1
                     # this index has not yet been placed
                     p[i] = (i>1 ? p[i-1] : 0) + 1
-                    x[perm[p[i]]] = 1-x[perm[p[i]]]
+                    self.obj_val = flip_variable(x, perm[p[i]], julia_inst, self.obj_val)
                     i += 1  # continue with next position (if any)
                 elseif p[i] < len_x - (k - i)
                     # further positions to explore with this index
-                    x[perm[p[i]]] = !x[perm[p[i]]]
+                    self.obj_val = flip_variable(x, perm[p[i]], julia_inst, self.obj_val)
                     p[i] += 1
-                    x[perm[p[i]]] = !x[perm[p[i]]]
+                    self.obj_val = flip_variable(x, perm[p[i]], julia_inst, self.obj_val)
                     i += 1
                 else
                     # we are at the last position with the i-th index, backtrack
-                    x[perm[p[i]]] = !x[perm[p[i]]]
+                    self.obj_val = flip_variable(x, perm[p[i]], julia_inst, self.obj_val)
                     p[i] = -1  # unset position
                     i -= 1
                 end
@@ -188,11 +204,39 @@ end
         return better_found
     end
 
-end
-
-function crossover(self, other)
-    """ Perform uniform crossover as crossover."""
-    return self.uniform_crossover(other)
-end
+    function crossover(self, other)
+        """ Perform uniform crossover as crossover."""
+        return self.uniform_crossover(other)
+    end
 
 end
+
+
+function flip_variable(x::PyArray, pos::Int, julia_inst::JuliaMAXSATInstance, obj_val::Int)::Int
+    val = !x[pos]
+    x[pos] = val
+    for clause in julia_inst.variable_usage[pos,:]
+        if clause == 0 break end
+        fulfilled_by_other = false
+        val_fulfills_now = false
+        for v in julia_inst.clauses[clause,:]
+            if v == 0 break end
+            if abs(v) == pos
+                val_fulfills_now = (v>0 ? val : !val)
+            elseif x[abs(v)] == (v>0 ? 1 : 0)
+                fulfilled_by_other = true
+                break  # clause fulfilled by other variable, no change
+            end
+        end
+        if !fulfilled_by_other
+            obj_val += (val_fulfills_now ? 1 : -1)
+        end
+    end
+    return obj_val
+end
+
+
+# using Random
+# Random.seed!(3)
+
+end  # module JuliaMAXSAT

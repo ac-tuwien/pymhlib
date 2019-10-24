@@ -2,8 +2,12 @@
 
 Julia and Python's julia package must be installed properly.
 The Julia module julia-maxsat.jl is used via Python's julia interface package.
-It provides a concrete Solution class for solving the MAXSAT problem in essentially the same way as maxsat.py.
-The goal is to maximize the number of clauses satisfied in a boolean function given in conjunctive normal form.
+It provides a concrete solution class for solving the MAXSAT problem in essentially the same way as maxsat.py.
+
+Note that there is the alternative Julia main module julia-maxsat.py.
+
+The goal in the MAXSAT problem is to maximize the number of clauses satisfied in a boolean function given in
+conjunctive normal form.
 """
 
 # from julia import Julia
@@ -17,5 +21,8 @@ Main.eval(r'include("'+os.path.dirname(__file__)+r'/julia-maxsat.jl")')
 
 if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
-    print(Main, Base)
-    run_optimization('Julia-MAXSAT', MAXSATInstance, Main.JuliaMAXSAT.JuliaMAXSATSolution, data_dir+"advanced.cnf")
+    from mhlib.settings import get_settings_parser
+    parser = get_settings_parser()
+    parser.set_defaults(mh_titer=1000)
+    run_optimization('Julia-MAXSAT', MAXSATInstance, Main.JuliaMAXSAT.JuliaMAXSATSolution,
+                     data_dir+"maxsat-adv1.cnf")

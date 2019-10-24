@@ -40,8 +40,6 @@ class BinaryVectorSolution(VectorSolution, ABC):
         better solution.
 
         :returns: True if an improved solution has been found.
-
-        TODO allow incremental evaluation
         """
         x = self.x
         assert 0 < k <= len(x)
@@ -54,7 +52,6 @@ class BinaryVectorSolution(VectorSolution, ABC):
         while i >= 0:
             # evaluate solution
             if i == k:
-                self.invalidate()
                 if self.is_better(best_sol):
                     if not best_improvement:
                         return True
@@ -65,20 +62,27 @@ class BinaryVectorSolution(VectorSolution, ABC):
                 if p[i] == -1:
                     # this index has not yet been placed
                     p[i] = (p[i-1] if i > 0 else -1) + 1
-                    x[perm[p[i]]] = not x[perm[p[i]]]
+                    self.flip_variable(perm[p[i]])
                     i += 1  # continue with next position (if any)
                 elif p[i] < len(x) - (k - i):
                     # further positions to explore with this index
-                    x[perm[p[i]]] = not x[perm[p[i]]]
+                    self.flip_variable(perm[p[i]])
                     p[i] += 1
-                    x[perm[p[i]]] = not x[perm[p[i]]]
+                    self.flip_variable(perm[p[i]])
                     i += 1
                 else:
                     # we are at the last position with the i-th index, backtrack
-                    x[perm[p[i]]] = not x[perm[p[i]]]
+                    self.flip_variable(perm[p[i]])
                     p[i] = -1  # unset position
                     i -= 1
         if better_found:
             self.copy_from(best_sol)
             self.invalidate()
         return better_found
+
+    def flip_variable(self, pos: int):
+        """Flip the variable at position pos and possibly incrementally update objective value or invalidate.
+
+        This generic implementation just calls invalidate() after flipping the variable."""
+        self.x[pos] = not self.x[pos]
+        self.invalidate()
