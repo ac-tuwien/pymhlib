@@ -11,7 +11,7 @@ from mhlib.alns import ALNS
 from mhlib.par_alns import ParallelALNS
 from mhlib.pbig import PBIG
 from mhlib.ssga import SteadyStateGeneticAlgorithm
-
+from mhlib.sa import SA
 
 data_dir = resource_filename("mhlib", "demos/data/")
 
@@ -78,6 +78,12 @@ def run_optimization(problem_name: str, Instance, Solution, default_inst_file: s
                                           Method(f"mu", Solution.shaking, 1),
                                           Method(f"ls", Solution.local_improve, 1),
                                           own_settings)
+    elif settings.alg == 'sa':
+        alg = SA(solution,
+                   [Method(f"ch{i}", Solution.construct, i) for i in range(settings.meths_ch)],
+                   [Method(f"np", Solution.neighbor_proposal, 0)],
+                   [],
+                   own_settings)
     else:
         raise ValueError('Invalid optimization algorithm selected (settings.alg): ', settings.alg)
 

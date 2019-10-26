@@ -203,6 +203,18 @@ class TSPSolution(PermutationSolution):
 
         return True
 
+    def neighbor_proposal(self, _par, _result):
+        """Perform random move in 2-opt neighborhood."""
+
+        n = self.inst.n
+        order = np.arange(n)
+        np.random.shuffle(order)
+        p1 = order[0]
+        p2 = order[1]
+        self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
+
+        self.invalidate()
+
     def crossover(self, other: 'TSPSolution') -> 'TSPSolution':
         """Perform edge recombination."""
         return self.edge_recombination(other)
