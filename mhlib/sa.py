@@ -31,27 +31,27 @@ class SA(Scheduler):
         - sol: solution object, in which final result will be returned
         - meths_ch: list of construction heuristic methods
         - meths_np: list of neighbor proposal methods
-        - meths_cb: list of callbacks after each iteration
+        - iter_cb: callback for each iteration passing iteration number, proposed sol, accepted sol, and temperature
         - temperature: current temperature
         - equi_iter: iterations until equilibrium
     """
 
-    def __init__(self, sol: Solution, meths_ch: List[Method], meths_np: List[Method], meths_cb: List[Method],
+    def __init__(self, sol: Solution, meths_ch: List[Method], meths_np: List[Method], iter_cb,
                  own_settings: dict = None, consider_initial_sol=False):
         """Initialization.
 
         :param sol: solution to be improved
         :param meths_ch: list of construction heuristic methods
         :param meths_np: list of neighbor proposal methods
-        :param meths_cb: list of callbacks after each iteration
+        :param iter_cb: callback for each iteration passing iteration number, proposed sol, accepted sol, and temperature
         :param own_settings: optional dictionary with specific settings
         :param consider_initial_sol: if true consider sol as valid solution that should be improved upon; otherwise
             sol is considered just a possibly uninitialized of invalid solution template
         """
-        super().__init__(sol, meths_ch + meths_np + meths_cb, own_settings, consider_initial_sol)
+        super().__init__(sol, meths_ch + meths_np, own_settings, consider_initial_sol)
         self.meths_ch = meths_ch
         self.meths_np = meths_np
-        self.meths_cb = meths_cb
+        self.iter_cb = iter_cb
         self.temperature = self.own_settings.mh_sa_T_init
         self.equi_iter = self.own_settings.mh_sa_equi_iter
 
@@ -75,10 +75,14 @@ class SA(Scheduler):
                 res = self.perform_method(neighbor_proposal_method, sol2)
                 terminate = res.terminate
                 if self.metropolis_criterion(sol2, sol):
+                    if self.iter_cb is not None:
+                        self.iter_cb(self.iteration, sol2, sol2, self.temperature)
                     sol.copy_from(sol2)
                     if terminate or res.terminate:
                         return
                 else:
+                    if self.iter_cb is not None:
+                        self.iter_cb(self.iteration, sol2, sol, self.temperature)
                     if terminate or res.terminate:
                         return
                     sol2.copy_from(sol)

@@ -16,7 +16,7 @@ from mhlib.sa import SA
 data_dir = resource_filename("mhlib", "demos/data/")
 
 
-def run_optimization(problem_name: str, Instance, Solution, default_inst_file: str, own_settings=None, embedded=False):
+def run_optimization(problem_name: str, Instance, Solution, default_inst_file: str, own_settings=None, embedded=False, iter_cb=None):
     """Run optimization algorithm given by parameter alg on given problem instance."""
     if not embedded:
         parser = get_settings_parser()
@@ -83,7 +83,7 @@ def run_optimization(problem_name: str, Instance, Solution, default_inst_file: s
         alg = SA(solution,
                    [Method(f"ch{i}", Solution.construct, i) for i in range(settings.meths_ch)],
                    [Method(f"np", Solution.neighbor_proposal, 0)],
-                   [],
+                   iter_cb,
                    own_settings)
     else:
         raise ValueError('Invalid optimization algorithm selected (settings.alg): ', settings.alg)
