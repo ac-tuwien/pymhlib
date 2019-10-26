@@ -16,26 +16,27 @@ from mhlib.sa import SA
 data_dir = resource_filename("mhlib", "demos/data/")
 
 
-def run_optimization(problem_name: str, Instance, Solution, default_inst_file: str, own_settings=None):
+def run_optimization(problem_name: str, Instance, Solution, default_inst_file: str, own_settings=None, embedded=False):
     """Run optimization algorithm given by parameter alg on given problem instance."""
-    parser = get_settings_parser()
-    parser.add("--alg", type=str, default='gvns', help='optimization algorithm to be used '
-                                                       '(gvns, alns, parallel_alns, ssga)')
-    parser.add("--inst_file", type=str, default=default_inst_file,
-               help='problem instance file')
-    parser.add("--meths_ch", type=int, default=1,
-               help='number of construction heuristics to be used')
-    parser.add("--meths_li", type=int, default=1,
-               help='number of local improvement methods to be used')
-    parser.add("--meths_sh", type=int, default=5,
-               help='number of shaking methods to be used')
-    parser.add("--meths_de", type=int, default=3,
-               help='number of destroy methods to be used')
-    parser.add("--meths_re", type=int, default=3,
-               help='number of repair methods to be used')
-    # parser.set_defaults(seed=3)
+    if not embedded:
+        parser = get_settings_parser()
+        parser.add("--alg", type=str, default='gvns', help='optimization algorithm to be used '
+                                                           '(gvns, alns, parallel_alns, ssga)')
+        parser.add("--inst_file", type=str, default=default_inst_file,
+                   help='problem instance file')
+        parser.add("--meths_ch", type=int, default=1,
+                   help='number of construction heuristics to be used')
+        parser.add("--meths_li", type=int, default=1,
+                   help='number of local improvement methods to be used')
+        parser.add("--meths_sh", type=int, default=5,
+                   help='number of shaking methods to be used')
+        parser.add("--meths_de", type=int, default=3,
+                   help='number of destroy methods to be used')
+        parser.add("--meths_re", type=int, default=3,
+                   help='number of repair methods to be used')
+        # parser.set_defaults(seed=3)
+        parse_settings()
 
-    parse_settings()
     init_logger()
     logger = logging.getLogger("mhlib")
     logger.info(f"mhlib demo for solving {problem_name}")
