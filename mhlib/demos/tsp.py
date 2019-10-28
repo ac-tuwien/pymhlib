@@ -211,6 +211,8 @@ class TSPSolution(PermutationSolution):
         np.random.shuffle(order)
         p1 = order[0]
         p2 = order[1]
+        if p1 > p2:
+            p1, p2 = p2, p1
         self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
 
         self.invalidate()

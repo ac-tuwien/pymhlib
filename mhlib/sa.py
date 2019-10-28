@@ -31,7 +31,7 @@ class SA(Scheduler):
         - sol: solution object, in which final result will be returned
         - meths_ch: list of construction heuristic methods
         - meths_np: list of neighbor proposal methods
-        - iter_cb: callback for each iteration passing iteration number, proposed sol, accepted sol, and temperature
+        - iter_cb: callback for each iteration passing iteration number, proposed sol, accepted sol, temperature, and acceptance
         - temperature: current temperature
         - equi_iter: iterations until equilibrium
     """
@@ -43,7 +43,7 @@ class SA(Scheduler):
         :param sol: solution to be improved
         :param meths_ch: list of construction heuristic methods
         :param meths_np: list of neighbor proposal methods
-        :param iter_cb: callback for each iteration passing iteration number, proposed sol, accepted sol, and temperature
+        :param iter_cb: callback for each iteration passing iteration number, proposed sol, accepted sol, temperature, and acceptance
         :param own_settings: optional dictionary with specific settings
         :param consider_initial_sol: if true consider sol as valid solution that should be improved upon; otherwise
             sol is considered just a possibly uninitialized of invalid solution template
@@ -76,13 +76,13 @@ class SA(Scheduler):
                 terminate = res.terminate
                 if self.metropolis_criterion(sol2, sol):
                     if self.iter_cb is not None:
-                        self.iter_cb(self.iteration, sol2, sol2, self.temperature)
+                        self.iter_cb(self.iteration, sol2, sol2, self.temperature, True)
                     sol.copy_from(sol2)
                     if terminate or res.terminate:
                         return
                 else:
                     if self.iter_cb is not None:
-                        self.iter_cb(self.iteration, sol2, sol, self.temperature)
+                        self.iter_cb(self.iteration, sol2, sol, self.temperature, False)
                     if terminate or res.terminate:
                         return
                     sol2.copy_from(sol)
