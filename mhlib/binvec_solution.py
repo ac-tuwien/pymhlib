@@ -19,7 +19,7 @@ class BinaryVectorSolution(VectorSolution, ABC):
 
     def initialize(self, k):
         """Random initialization."""
-        self.x = np.random.randint(0, 2, len(self.x))
+        self.x = np.random.randint(0, 2, len(self.x), dtype=bool)
         self.invalidate()
 
     def check(self):

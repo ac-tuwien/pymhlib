@@ -24,5 +24,5 @@ if __name__ == '__main__':
     from mhlib.settings import get_settings_parser
     parser = get_settings_parser()
     parser.set_defaults(mh_titer=1000)
-    run_optimization('Julia-MAXSAT', MAXSATInstance, Main.JuliaMAXSAT.JuliaMAXSATSolution,
+    run_optimization('Julia-MAXSAT',Main.JuliaMAXSAT.JuliaMAXSATInstance, Main.JuliaMAXSAT.JuliaMAXSATSolution,
                      data_dir+"maxsat-adv1.cnf")
