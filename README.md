@@ -61,6 +61,8 @@ Vienna, Austria, since 2019.
     A population based iterated greedy (PBIG) algorithm.
 - **ssga.py**:
     A steady-state genetic algorithm (SSGA).
+- **sa.py**:
+    A simulated annealing (SA) algorithm with geometric cooling.
 - **decision_diag.py**:
     A generic class for (relaxed) decision diagrams for combinatorial optimization.
 - **log.py**:
@@ -119,6 +121,7 @@ Major changes over major releases:
 - ALNS and parallel ALNS added
 - graph coloring, TSP, and minimum vertex cover demos added
 - population based iterated greedy and steady state genetic algorithms added
+- SA with geometric cooling added
 - demos.graphs introduced
 - many smaller improvements, bug fixes, improvements in documentation 
 
