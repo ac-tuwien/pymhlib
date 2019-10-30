@@ -6,7 +6,7 @@ Python `mhlib` is a collection of modules supporting the efficient implementatio
 and certain hybrid optimization approaches for solving primarily combinatorial optimization 
 problems in Python.
 
-![ ](mh.png =8x)
+![ ](mh.png)
 
 This Python `mhlib` version emerged from the 
 [C++ `mhlib`](https://bitbucket.org/ads-tuwien/mhlib) to which it has certain similarities 
