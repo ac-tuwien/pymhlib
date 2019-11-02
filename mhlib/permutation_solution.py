@@ -5,6 +5,7 @@ from abc import ABC
 from typing import List
 
 from mhlib.solution import VectorSolution
+from mhlib.settings import settings
 import random
 
 
@@ -72,7 +73,7 @@ class PermutationSolution(VectorSolution, ABC):
         self.obj_val = orig_obj
         return False
 
-    def two_exchange_delta_eval(self, p1: int, p2: int, update_obj_val=True, allow_infeasible=False) -> bool:
+    def two_exchange_delta_eval(self, p1: int, p2: int, update_obj_val=True) -> bool:
         """A 2-exchange move was performed, if feasible update other solution data accordingly, else revert.
 
         This is a helper function for delta-evaluating solutions when searching a neighborhood that needs
@@ -84,12 +85,65 @@ class PermutationSolution(VectorSolution, ABC):
         :param p1: first position
         :param p2: second position
         :param update_obj_val: if set, the objective value should also be updated or invalidate needs to be called
-        :param allow_infeasible: if set and the solution is infeasible, the move is nevertheless accepted and
-            the update of other data done
         """
         if update_obj_val:
             self.invalidate()
         return True
+
+    def two_opt_neighborhood_search(self, best_improvement) -> bool:
+        """Systematic search of the 2-opt neighborhood, i.e., consider all inversions of subsequences.
+
+        The neighborhood is searched in a randomized ordering.
+
+        :param best_improvement:  if set, the neighborhood is completely searched and a best neighbor is kept;
+            otherwise the search terminates in a first-improvement manner, i.e., keeping a first encountered
+            better solution.
+
+        :return: True if an improved solution has been found
+        """
+        n = self.inst.n
+        maxi = settings.maxi
+        best_delta = 0
+        best_p1 = None
+        best_p2 = None
+        order = np.arange(n)
+        np.random.shuffle(order)
+        for idx, p1 in enumerate(order[:n - 1]):
+            for p2 in order[idx + 1:]:
+                if p1 > p2:
+                    p1, p2 = p2, p1
+                # consider the move that self.x from position p1 to position p2
+                delta = self.two_opt_move_delta_eval(p1, p2)
+                if self.is_better_obj(delta, 0):
+                        if not best_improvement:
+                            self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
+                            self.obj_val += delta
+                            return True
+                        if self.is_better_obj(delta, best_delta):
+                            best_delta = delta
+                            best_p1 = p1
+                            best_p2 = p2
+        if best_p1:
+            self.x[best_p1:(best_p2 + 1)] = self.x[best_p1:(best_p2 + 1)][::-1]
+            self.obj_val += best_delta
+            return True
+        return False
+
+    def two_opt_move_delta_eval(self, p1: int, p2: int) -> int:
+        """ Return the delta in the objective value when inverting self.x from position p1 to position p2.
+
+        The function returns the difference in the objective function if the move would be performed,
+        the solution, however, is not changed.
+        This function should be overwritten in a concrete class.
+        Here we actually perform a less efficient complete evaluation of the modified solution.
+        """
+        orig_obj = self.obj_val
+        self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
+        self.invalidate()
+        delta = self.obj() - orig_obj
+        self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
+        self.obj_val = orig_obj
+        return delta
 
     def partially_mapped_crossover(self, other: 'PermutationSolution') -> 'PermutationSolution':
         """Partially mapped crossover (PMX).

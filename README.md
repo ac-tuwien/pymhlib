@@ -1,10 +1,10 @@
 ## Python `mhlib` - A Toolbox for Metaheuristics and Hybrid Optimization Methods
 
-_This project is still in its early phase of development, please come back later!_
+_This project is still in early development, any feedback is much appreciated!_
 
 Python `mhlib` is a collection of modules supporting the efficient implementation of metaheuristics 
 and certain hybrid optimization approaches for solving primarily combinatorial optimization 
-problems in Python.
+problems in Python 3.7+.
 
 ![ ](mh.png)
 
@@ -22,7 +22,7 @@ implementation lies in the expected faster implementation.
 Vienna, Austria, since 2019.
 
 #### Contributors:
-- [Günther Raidl](https://www.ac.tuwien.ac.at/raidl) (mainly responsible)
+- [Günther Raidl](https://www.ac.tuwien.ac.at/raidl) (primarily responsible)
 - [Nikolaus Frohner](https://www.ac.tuwien.ac.at/nfrohner)
 - Thomas Jatschka
 - Daniel Obszelka
@@ -111,6 +111,8 @@ Shared code of these demos is found in the modules `demos.common` and `demos.gra
 Moreover, `julia-maxsat.py` and `julia-maxsat.jl` demonstrate the integration with the Julia programming language.
 Implementing time-critical parts of an application in Julia may accelerate the code substantially.
 To run this demo, Julia must be set up correctly and Python's `julia` package must be installed.
+While this demo derives a whole solution class in Julia, `julia-maxsat2.py` is a variant where only two functions 
+are realized in Julia.
  
 
 ### Changelog
@@ -123,6 +125,7 @@ Major changes over major releases:
 - population based iterated greedy and steady state genetic algorithms added
 - SA with geometric cooling added
 - demos.graphs introduced
+- demo for interfacing with Julia added
 - many smaller improvements, bug fixes, improvements in documentation 
 
 #### Version 0.0.1 

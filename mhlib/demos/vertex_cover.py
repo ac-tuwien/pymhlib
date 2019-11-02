@@ -222,6 +222,6 @@ class VertexCoverSolution(SetSolution):
 if __name__ == '__main__':
     from mhlib.demos.common import run_optimization
     from mhlib.settings import settings, get_settings_parser
-
-    settings.mh_maxi = False
+    parser = get_settings_parser()
+    parser.set_defaults(mh_maxi=False)
     run_optimization('Minimum Vertex Cover', VertexCoverInstance, VertexCoverSolution, "gnm-1000-2000")

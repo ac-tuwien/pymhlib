@@ -95,7 +95,7 @@ class QAPSolution(PermutationSolution):
             self.x[p1], self.x[p2] = self.x[p2], self.x[p1]
         self.invalidate()
 
-    def two_exchange_delta_eval(self, p1: int, p2: int, update_obj_val=True, allow_infeasible=False) -> bool:
+    def two_exchange_delta_eval(self, p1: int, p2: int, update_obj_val=True) -> bool:
         if update_obj_val:
             x = self.x
             a = self.inst.a
@@ -119,4 +119,7 @@ class QAPSolution(PermutationSolution):
 
 if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
+    from mhlib.settings import get_settings_parser
+    parser = get_settings_parser()
+    parser.set_defaults(mh_maxi=False)
     run_optimization('QAP', QAPInstance, QAPSolution, data_dir+'bur26a.dat')

@@ -134,6 +134,7 @@ class MISPSolution(SubsetVectorSolution):
 
 if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
-    # from mhlib.settings import settings
-    # settings.meths_li = 0
+    from mhlib.settings import get_settings_parser
+    parser = get_settings_parser()
+    parser.set_defaults(mh_maxi=True)
     run_optimization('MISP', MISPInstance, MISPSolution, data_dir + "frb40-19-1.mis")

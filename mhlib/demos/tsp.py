@@ -113,99 +113,43 @@ class TSPSolution(PermutationSolution):
         self.initialize(par)
 
     def shaking(self, par, result):
-        """Scheduler method that performs shaking by 'par'-times swapping a pair of randomly chosen cities.
-        """
+        """Scheduler method that performs shaking by 'par'-times swapping a pair of randomly chosen cities."""
         for _ in range(par):
             a = random.randint(0, self.inst.n - 1)
             b = random.randint(0, self.inst.n - 1)
             self.x[a], self.x[b] = self.x[b], self.x[a]
-
         self.invalidate()
         result.changed = True
 
     def local_improve(self, _par, _result):
         self.two_opt_neighborhood_search(True)
 
-    def two_opt_neighborhood_search(self, best_improvement) -> bool:
-        """Perform the systematic search of the 2-opt neighborhood, in which two edges are exchanged.
+    def two_opt_move_delta_eval(self, p1: int, p2: int) -> int:
+        """ This method performs the delta evaluation for inverting self.x from position p1 to position p2.
 
-        The neighborhood is searched in a randomized ordering.
-        Note that frequently, a more problem-specific neighborhood search with delta-evaluation is
-        much more efficient!
-
-        :param best_improvement:  if set, the neighborhood is completely searched and a best neighbor is kept;
-            otherwise the search terminates in a first-improvement manner, i.e., keeping a first encountered
-            better solution.
-
-        :return: True if an improved solution has been found
+        The function returns the difference in the objective function if the move would be performed,
+        the solution, however, is not changed.
         """
-        n = self.inst.n
-        best_obj = orig_obj = self.obj()
-        best_p1 = None
-        best_p2 = None
-        order = np.arange(n)
-        np.random.shuffle(order)
-        for idx, p1 in enumerate(order[:n - 1]):
-            for p2 in order[idx + 1:]:
-
-                if p1 > p2:
-                    p1, p2 = p2, p1
-
-                self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
-                if self.two_opt_delta_eval(p1, p2):
-                    if self.is_better_obj(self.obj(), best_obj):
-                        if not best_improvement:
-                            return True
-                        best_obj = self.obj()
-                        best_p1 = p1
-                        best_p2 = p2
-                    self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
-                    self.obj_val = orig_obj
-                    assert self.two_opt_delta_eval(p1, p2, False)
-        if best_p1:
-            self.x[best_p1:(best_p2 + 1)] = self.x[best_p1:(best_p2 + 1)][::-1]
-            self.obj_val = best_obj
-            return True
-        self.obj_val = orig_obj
-        return False
-
-    def two_opt_delta_eval(self, p1: int, p2: int, update_obj_val=True, _allow_infeasible=False) -> bool:
-        """ This method performs the delta evaluation for an edge exchange move """
         assert (p1 < p2)
-
-        if not update_obj_val:
-            # All Permutations are valid, nothing to do here.
-            return True
-
-        if p1 == 0 and p2 == len(self.x) - 1:
-            # Reversing the whole solution has no effect
-            return True
-
-        # The solution looks as follows:
-        # .... prev, p1, ... p2, nxt ...
-        prev = p1 - 1
-        nxt = p2 + 1 if p2 + 1 < len(self.x) else 0
-
-        p1_city = self.x[p1]
-        p2_city = self.x[p2]
-        prev_city = self.x[prev]
-        next_city = self.x[nxt]
-
-        # Current order
-        dist_now = self.inst.distances[prev_city][p1_city] + self.inst.distances[p2_city][next_city]
-
-        # Reversed order
-        dist_rev = self.inst.distances[prev_city][p2_city] + self.inst.distances[p1_city][next_city]
-
-        # Update objective value
-        self.obj_val += dist_now
-        self.obj_val -= dist_rev
-
-        return True
+        n = len(self.x)
+        if p1 == 0 and p2 == n - 1:
+            # reversing the whole solution has no effect
+            return 0
+        prev = (p1 - 1) % n
+        nxt = (p2 + 1) % n
+        x_p1 = self.x[p1]
+        x_p2 = self.x[p2]
+        x_prev = self.x[prev]
+        x_next = self.x[nxt]
+        d = self.inst.distances
+        delta = d[x_prev][x_p2] + d[x_p1][x_next] - d[x_prev][x_p1] - d[x_p2][x_next]
+        return delta
 
     def neighbor_proposal(self, _par, _result):
         """Perform random move in 2-opt neighborhood."""
-
+        # TODO inefficient, a neighbor must in general be evaluated in O(1) time!
+        # TODO give more meaningful method names! -> split this into two functions, a generic one available for all problems and a problem specific one, similarly to local_improve, crossover
+        # TODO implement relevant method(s) for SA also for all other demo problems
         n = self.inst.n
         order = np.arange(n)
         np.random.shuffle(order)
@@ -224,5 +168,7 @@ class TSPSolution(PermutationSolution):
 
 if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
-
+    from mhlib.settings import get_settings_parser
+    parser = get_settings_parser()
+    parser.set_defaults(mh_maxi=False)
     run_optimization('TSP', TSPInstance, TSPSolution, data_dir + "xqf131.tsp")
