@@ -158,7 +158,6 @@ class TSPSolution(PermutationSolution):
         if p1 > p2:
             p1, p2 = p2, p1
         self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
-
         self.invalidate()
 
     def crossover(self, other: 'TSPSolution') -> 'TSPSolution':

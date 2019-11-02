@@ -13,6 +13,7 @@ from typing import Any
 
 from mhlib.permutation_solution import PermutationSolution
 from mhlib.scheduler import Result
+from mhlib.solution import TObj
 
 
 class QAPInstance:
@@ -95,21 +96,23 @@ class QAPSolution(PermutationSolution):
             self.x[p1], self.x[p2] = self.x[p2], self.x[p1]
         self.invalidate()
 
-    def two_exchange_delta_eval(self, p1: int, p2: int, update_obj_val=True) -> bool:
-        if update_obj_val:
-            x = self.x
-            a = self.inst.a
-            b = self.inst.b
-            d = np.inner(a[:, p1] - a[:, p2], b[x, x[p2]] - b[x, x[p1]]) - \
-                (a[p1, p1] - a[p1, p2]) * (b[x[p1], x[p2]] - b[x[p1], x[p1]]) - \
-                (a[p2, p1] - a[p2, p2]) * (b[x[p2], x[p2]] - b[x[p2], x[p1]])
-            d += np.inner(a[p1, :] - a[p2, :], b[x[p2], x] - b[x[p1], x]) - \
-                (a[p1, p1] - a[p2, p1]) * (b[x[p2], x[p1]] - b[x[p1], x[p1]]) - \
-                (a[p1, p2] - a[p2, p2]) * (b[x[p2], x[p2]] - b[x[p1], x[p2]])
-            d += (a[p1, p1] - a[p2, p2]) * (b[x[p2], x[p2]] - b[x[p1], x[p1]]) + \
-                 (a[p1, p2] - a[p2, p1]) * (b[x[p2], x[p1]] - b[x[p1], x[p2]])
-            self.obj_val -= d
-        return True
+    def two_exchange_move_delta_eval(self, p1: int, p2: int) -> TObj:
+        """Return delta value in objective when exchanging positions p1 and p2 in self.x.
+
+        The solution is not changed.
+        """
+        x = self.x
+        a = self.inst.a
+        b = self.inst.b
+        d = np.inner(a[:, p1] - a[:, p2], b[x, x[p2]] - b[x, x[p1]]) - \
+            (a[p1, p1] - a[p1, p2]) * (b[x[p1], x[p2]] - b[x[p1], x[p1]]) - \
+            (a[p2, p1] - a[p2, p2]) * (b[x[p2], x[p2]] - b[x[p2], x[p1]])
+        d += np.inner(a[p1, :] - a[p2, :], b[x[p2], x] - b[x[p1], x]) - \
+            (a[p1, p1] - a[p2, p1]) * (b[x[p2], x[p1]] - b[x[p1], x[p1]]) - \
+            (a[p1, p2] - a[p2, p2]) * (b[x[p2], x[p2]] - b[x[p1], x[p2]])
+        d += (a[p1, p1] - a[p2, p2]) * (b[x[p2], x[p2]] - b[x[p1], x[p1]]) + \
+             (a[p1, p2] - a[p2, p1]) * (b[x[p2], x[p1]] - b[x[p1], x[p2]])
+        return d
 
     def crossover(self, other: 'QAPSolution') -> 'QAPSolution':
         """Perform cycle crossover."""
