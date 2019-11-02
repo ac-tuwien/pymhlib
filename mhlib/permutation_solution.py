@@ -102,7 +102,6 @@ class PermutationSolution(VectorSolution, ABC):
         :return: True if an improved solution has been found
         """
         n = self.inst.n
-        maxi = settings.maxi
         best_delta = 0
         best_p1 = None
         best_p2 = None
@@ -115,14 +114,14 @@ class PermutationSolution(VectorSolution, ABC):
                 # consider the move that self.x from position p1 to position p2
                 delta = self.two_opt_move_delta_eval(p1, p2)
                 if self.is_better_obj(delta, 0):
-                        if not best_improvement:
-                            self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
-                            self.obj_val += delta
-                            return True
-                        if self.is_better_obj(delta, best_delta):
-                            best_delta = delta
-                            best_p1 = p1
-                            best_p2 = p2
+                    if not best_improvement:
+                        self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
+                        self.obj_val += delta
+                        return True
+                    if self.is_better_obj(delta, best_delta):
+                        best_delta = delta
+                        best_p1 = p1
+                        best_p2 = p2
         if best_p1:
             self.x[best_p1:(best_p2 + 1)] = self.x[best_p1:(best_p2 + 1)][::-1]
             self.obj_val += best_delta
