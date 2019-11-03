@@ -77,7 +77,7 @@ class SA(Scheduler):
             acceptance = self.metropolis_criterion(sol, delta_f)
             if acceptance:
                 self.meth_apply_neighborhood_move(sol, neighborhood_move)
-                sol.obj_val = sol.obj() + delta_f
+                sol.obj_val = sol.obj_val + delta_f
                 result.changed = True
             if self.iter_cb is not None:
                 self.iter_cb(self.iteration, sol, self.temperature, acceptance)

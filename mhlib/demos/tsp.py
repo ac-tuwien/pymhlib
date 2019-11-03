@@ -153,7 +153,8 @@ class TSPSolution(PermutationSolution):
         return self.propose_random_2_opt_move()
 
     def apply_neighborhood_move(self, move):
-        """This method applies a given neighborhood move accepted by SA."""
+        """This method applies a given neighborhood move accepted by SA,
+            without updating the obj_val or invalidating, since obj_val is updated incrementally by the SA scheduler."""
         self.apply_2_opt_move(move)
 
     def propose_random_2_opt_move(self):
