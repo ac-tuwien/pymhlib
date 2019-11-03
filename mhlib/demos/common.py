@@ -82,9 +82,7 @@ def run_optimization(problem_name: str, Instance, Solution, default_inst_file: s
     elif settings.alg == 'sa':
         alg = SA(solution,
                    [Method(f"ch{i}", Solution.construct, i) for i in range(settings.meths_ch)],
-                   [Method(f"np", Solution.neighbor_proposal, 0)],
-                   iter_cb,
-                   own_settings)
+                   Solution.propose_neighborhood_move, Solution.apply_neighborhood_move, iter_cb, own_settings)
     else:
         raise ValueError('Invalid optimization algorithm selected (settings.alg): ', settings.alg)
 

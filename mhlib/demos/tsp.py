@@ -145,21 +145,27 @@ class TSPSolution(PermutationSolution):
         delta = d[x_prev][x_p2] + d[x_p1][x_next] - d[x_prev][x_p1] - d[x_p2][x_next]
         return delta
 
-    def neighbor_proposal(self, _par, _result):
-        """Perform random move in 2-opt neighborhood."""
-        # TODO inefficient, a neighbor must in general be evaluated in O(1) time!
-        # TODO give more meaningful method names! -> split this into two functions, a generic one available for all problems and a problem specific one, similarly to local_improve, crossover
-        # TODO implement relevant method(s) for SA also for all other demo problems
-        n = self.inst.n
-        order = np.arange(n)
-        np.random.shuffle(order)
-        p1 = order[0]
-        p2 = order[1]
-        if p1 > p2:
-            p1, p2 = p2, p1
-        self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
+    # TODO implement the following two methods methods relevant for SA also for all other demo problems
+    def propose_neighborhood_move(self):
+        """This method returns a tuple (move, delta_f) to be used for SA."""
+        return self.propose_random_2_opt_move()
 
-        self.invalidate()
+    def apply_neighborhood_move(self, move):
+        """This method applies a given neighborhood move accepted by SA."""
+        self.apply_2_opt_move(move)
+
+    def propose_random_2_opt_move(self):
+        """Propose random move in 2-opt neighborhood by returning (move, delta_f)"""
+        p1 = random.randint(0, len(self.x)-2)
+        p2 = random.randint(p1+1, len(self.x)-1)
+        move = (p1, p2)
+        delta_f = self.two_opt_move_delta_eval(*move)
+        return move, delta_f
+
+    def apply_2_opt_move(self, move):
+        p1 = move[0]
+        p2 = move[1]
+        self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
 
     def crossover(self, other: 'TSPSolution') -> 'TSPSolution':
         """Perform edge recombination."""
