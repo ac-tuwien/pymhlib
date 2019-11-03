@@ -83,6 +83,8 @@ class MAXSATSolution(BinaryVectorSolution):
         - destroyed: list of indices of variables that have been destroyed by the ALNS's destroy operator
     """
 
+    to_maximize = True
+
     def __init__(self, inst: MAXSATInstance):
         super().__init__(inst.n, inst=inst)
         self.destroyed = None
@@ -168,6 +170,5 @@ if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
     from mhlib.settings import get_settings_parser
     parser = get_settings_parser()
-    parser.set_defaults(mh_maxi=True)
     parser.set_defaults(mh_titer=1000)
     run_optimization('MAXSAT', MAXSATInstance, MAXSATSolution, data_dir+"maxsat-adv1.cnf")

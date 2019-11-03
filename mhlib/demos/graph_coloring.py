@@ -48,6 +48,8 @@ class GCSolution(VectorSolution):
         - x: for each node the color that is assigned to it
     """
 
+    to_maximize = False
+
     def __init__(self, inst: GCInstance):
         super().__init__(inst.n, inst=inst)
 

@@ -61,6 +61,8 @@ class QAPSolution(PermutationSolution):
         - x: integer vector representing a permutation
     """
 
+    to_maximize = False
+
     def __init__(self, inst: QAPInstance, **kwargs):
         """Initializes the solution with 0,...,n-1 if init is set."""
         super().__init__(inst.n, inst=inst, **kwargs)
@@ -124,5 +126,4 @@ if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
     from mhlib.settings import get_settings_parser
     parser = get_settings_parser()
-    parser.set_defaults(mh_maxi=False)
     run_optimization('QAP', QAPInstance, QAPSolution, data_dir+'bur26a.dat')

@@ -78,6 +78,8 @@ Attributes
 """
 @pydef mutable struct JuliaMAXSATSolution <: py_solution.BinaryVectorSolution
 
+    to_maximize = true
+
     function __init__(self, inst)
         pybuiltin(:super)(JuliaMAXSATSolution,self).__init__(inst.n, inst=inst)
         self.destroyed = nothing

@@ -2,4 +2,4 @@ networkx
 configargparse
 numpy
 pandas
-
+seaborn
