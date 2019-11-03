@@ -5,9 +5,9 @@ the number of adjacent nodes having the same color is minimized.
 """
 
 import numpy as np
-from typing import Any
+from typing import Any, Tuple
 
-from mhlib.solution import VectorSolution
+from mhlib.solution import VectorSolution, TObj
 from mhlib.scheduler import Result
 from mhlib.settings import get_settings_parser
 from mhlib.demos.graphs import create_or_read_simple_graph
@@ -148,6 +148,15 @@ class GCSolution(VectorSolution):
         """Initialize solution vector with random colors."""
         self.x = np.random.randint(self.inst.colors, size=len(self.x))
         self.invalidate()
+
+    def random_move_delta_eval(self) -> Tuple[int, int, TObj]:
+        """Choose a random move and perform delta evaluation for it, return (move, delta_obj)."""
+        raise NotImplementedError
+
+    def apply_neighborhood_move(self, pos, color: int):
+        """This method applies a given neighborhood move accepted by SA,
+            without updating the obj_val or invalidating, since obj_val is updated incrementally by the SA scheduler."""
+        self.x[pos] = color
 
     def crossover(self, other: 'GCSolution') -> 'GCSolution':
         """ Preform uniform crossover."""

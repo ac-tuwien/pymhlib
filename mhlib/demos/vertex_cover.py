@@ -9,8 +9,9 @@ import random
 from typing import Any
 import heapq
 from itertools import combinations
+from typing import Tuple
 
-from mhlib.solution import SetSolution
+from mhlib.solution import SetSolution, TObj
 from mhlib.settings import get_settings_parser
 from mhlib.scheduler import Result
 from mhlib.demos.graphs import create_or_read_simple_graph
@@ -219,6 +220,18 @@ class VertexCoverSolution(SetSolution):
         # self.two_approximation_construction()
         # self.remove_redundant()
         self.check()
+
+    def random_move_delta_eval(self) -> Tuple[int, TObj]:
+        """Choose a random move and perform delta evaluation for it, return (move, delta_obj)."""
+        raise NotImplementedError
+
+    def apply_neighborhood_move(self, pos: int):
+        """This method applies a given neighborhood move accepted by SA,
+            without updating the obj_val or invalidating, since obj_val is updated incrementally by the SA scheduler."""
+        raise NotImplementedError
+
+    def crossover(self, other: 'VertexCoverSolution') -> 'VertexCoverSolution':
+        raise NotImplementedError
 
 
 if __name__ == '__main__':

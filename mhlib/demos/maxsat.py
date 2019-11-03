@@ -5,7 +5,7 @@ The goal is to maximize the number of clauses satisfied in a boolean function gi
 
 import numpy as np
 import random
-from typing import Any
+from typing import Any, Tuple
 
 from mhlib.solution import TObj
 from mhlib.binvec_solution import BinaryVectorSolution
@@ -148,17 +148,13 @@ class MAXSATSolution(BinaryVectorSolution):
         self.destroyed = None
         self.invalidate()
 
-    def crossover(self, other: 'MAXSATSolution'):
-        """ Perform uniform crossover as crossover."""
-        return self.uniform_crossover(other)
-
     def flip_variable(self, pos: int):
         delta_obj = self.flip_move_delta_eval(pos)
         self.obj_val += delta_obj
         self.x[pos] = not self.x[pos]
 
     def flip_move_delta_eval(self, pos: int) -> TObj:
-        """Determine delta in objective value when flipping position p."""
+        """Determine delta in objective value when flipping position pos."""
         assert self.obj_val_valid
         val = not self.x[pos]
         delta = 0
@@ -172,6 +168,19 @@ class MAXSATSolution(BinaryVectorSolution):
             else:
                 delta += 1 if val_fulfills_now else -1
         return delta
+
+    def random_move_delta_eval(self) -> Tuple[int, TObj]:
+        """Choose a random move and perform delta evaluation for it, return (move, delta_obj)."""
+        return self.random_flip_move_delta_eval()
+
+    def apply_neighborhood_move(self, pos):
+        """This method applies a given neighborhood move accepted by SA,
+            without updating the obj_val or invalidating, since obj_val is updated incrementally by the SA scheduler."""
+        self.x[pos] = not self.x[pos]
+
+    def crossover(self, other: 'MAXSATSolution'):
+        """ Perform uniform crossover as crossover."""
+        return self.uniform_crossover(other)
 
 
 if __name__ == '__main__':

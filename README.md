@@ -28,6 +28,14 @@ Vienna, Austria, since 2019.
 - Daniel Obszelka
 - Andreas Windbichler
 
+### Installation
+
+Major versions of `mhlib` can be installed from `PyPI` via
+
+    python3 -m pip install -U mhlib
+    
+and development versions are available at https://github.com/ac-tuwien/pymhlib.
+
 ### Major Components
 
 - **solution.py**:
@@ -95,18 +103,25 @@ Modules/scripts for analyzing results of many runs:
 #### Demos
 
 For demonstration purposes, simple metaheuristic approaches are provided in the `demo` subdirectory for the following
-well-known combinatorial optimization problems. It is recommended to take such a demo as template 
-for solving your own new problem.
+well-known combinatorial optimization problems. They can be startet by
 
-- Maximum satisfiability problem (MAXSAT) based on `BinaryVectorSolution`
-- Graph Coloring Problem (GCP) based on `VectorSolution`
-- Traveling Salesman Problem (TSP) based on `PermutationSolution`
-- Quadratic assignment problem (QAP) based on `PermutationSolution`
-- Minimum vertex cover problem (MVCP) based on `SetSolution`
-- Maximum (weighted) independent set problem (MISP) based on `SubsetVectorSolution`
-- Multidimensional 0-1 knapsack problem (MKP) based on `SubsetVectorSolution`
+    python3 -m mhlib.demos.<problem> ...
 
-Shared code of these demos is found in the modules `demos.common` and `demos.graphs`.
+where `<problem>` is one of the following and `...` represents further parameters that can be seen by providing 
+the option `-h`.
+It is recommended to take such a demo as template 
+for solving your own problem.
+
+- **`maxsat`**: maximum satisfiability problem based on `BinaryVectorSolution`
+- **`tsp`**: traveling salesperson problem based on `PermutationSolution`
+- **`qap`**: quadratic assignment problem based on `PermutationSolution`
+- **`vertex_cover`**: minimum vertex cover problem based on `SetSolution`
+- **`graph_coloring`**: graph coloring problem based on `VectorSolution`
+- **`misp`**: maximum (weighted) independent set problem based on `SubsetVectorSolution`
+- **`mkp`**: multidimensional 0-1 knapsack problem based on `SubsetVectorSolution`
+
+Shared code of these demos is found in the submodules `mhlib.demos.common` and `mhlib.demos.graphs`,
+test instance data in `mhlib.demos.data`.
 
 Moreover, `julia-maxsat.py` and `julia-maxsat.jl` demonstrate the integration with the Julia programming language.
 Implementing time-critical parts of an application in Julia may accelerate the code substantially.

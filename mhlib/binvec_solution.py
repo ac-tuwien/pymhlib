@@ -90,7 +90,7 @@ class BinaryVectorSolution(VectorSolution, ABC):
         self.x[pos] = not self.x[pos]
         self.invalidate()
 
-    def flip_move_delta_eval(self, pos:int) -> TObj:
+    def flip_move_delta_eval(self, pos: int) -> TObj:
         """Determine delta in objective value when flipping position p.
 
         Here the solution is evaluated from scratch. If possible, it should be overloaded by a more
@@ -104,7 +104,7 @@ class BinaryVectorSolution(VectorSolution, ABC):
         self.obj_val = obj
         return delta
 
-    def random_flip_delta_eval(self) -> Tuple[int, TObj]:
+    def random_flip_move_delta_eval(self) -> Tuple[int, TObj]:
         """Choose random move in the flip neighborhood and perform delta evaluation, returning (move, delta_obj).
 
         The solution is not changed here yet.
@@ -113,4 +113,3 @@ class BinaryVectorSolution(VectorSolution, ABC):
         p = random.randrange(len(self.x))
         delta_obj = self.flip_move_delta_eval(p)
         return p, delta_obj
-

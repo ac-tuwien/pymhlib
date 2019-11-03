@@ -6,8 +6,9 @@ Find a subset of the items with maximum total price that does not exceed the res
 """
 
 import numpy as np
-from typing import Any
+from typing import Any, Tuple
 
+from mhlib.solution import TObj
 from mhlib.subsetvec_solution import SubsetVectorSolution
 from mhlib.scheduler import Result
 
@@ -139,6 +140,15 @@ class MKPSolution(SubsetVectorSolution):
         # revert
         self.sel -= 1
         return False
+
+    def random_move_delta_eval(self) -> Tuple[int, TObj]:
+        """Choose a random move and perform delta evaluation for it, return (move, delta_obj)."""
+        raise NotImplementedError
+
+    def apply_neighborhood_move(self, pos: int):
+        """This method applies a given neighborhood move accepted by SA,
+            without updating the obj_val or invalidating, since obj_val is updated incrementally by the SA scheduler."""
+        raise NotImplementedError
 
     def crossover(self, other: 'MKPSolution') -> 'MKPSolution':
         """Apply subset_crossover."""
