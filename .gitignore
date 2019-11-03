@@ -3,3 +3,6 @@
 *.pyc
 .ipynb_checkpoints
 venv/
+build/
+dist/
+mhlib.egg-info/
