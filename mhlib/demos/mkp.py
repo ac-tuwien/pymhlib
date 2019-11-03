@@ -1,19 +1,30 @@
-"""Demo application solving the multi-dimensional knapsack problem (MKP)."""
+"""Demo application solving the multi-dimensional knapsack problem (MKP).
+
+Given are a set of n items, m resources, and a capacity for each resource.
+Each item has a price and requires from each resource a certain amount.
+Find a subset of the items with maximum total price that does not exceed the resources' capacities.
+"""
 
 import numpy as np
+from typing import Any
 
-from mhlib.subset_solution import SubsetSolution
+from mhlib.subsetvec_solution import SubsetVectorSolution
+from mhlib.scheduler import Result
 
 
 class MKPInstance:
-    """MKP problem instance.
+    """Multi-dimensional knapsack problem (MKP) instance.
+
+    Given are a set of n items, m resources, and a capacity for each resource.
+    Each item has a price and requires from each resource a certain amount.
+    Find a subset of the items with maximum total price that does not exceed the resources' capacities.
 
     Attributes
         - n: number of items
         - m: number of resources, i.e., constraints
         - p: prices of items
         - r: resource consumption values
-        - b: resource limits
+        - b: resource capacities
         - obj_opt: optimal objective value or 0 if not known
         - r_min: minimal resource consumption value over all elements for each resource
     """
@@ -43,16 +54,17 @@ class MKPInstance:
         self.r_min = np.min(self.r, 1)
 
     def __repr__(self):
-        """Write out the instance data."""
         return f"n={self.n} m={self.m},\np={self.p},\nr={self.r},\nb={self.b}\n"
 
 
-class MKPSolution(SubsetSolution):
+class MKPSolution(SubsetVectorSolution):
     """Solution to an MKP instance.
 
     Additional attributes
         - y: amount of each resource used
     """
+
+    to_maximize = True
 
     def __init__(self, inst: MKPInstance):
         super().__init__(range(inst.n), inst=inst)
@@ -87,25 +99,22 @@ class MKPSolution(SubsetSolution):
         self.y.fill(0)
         super().clear()
 
-    def construct(self, par, result):
+    def construct(self, par: Any, _result: Result):
         """Scheduler method that constructs a new solution.
 
         Here we just call initialize.
         """
-        del result
         self.initialize(par)
 
-    def local_improve(self, par, result):
+    def local_improve(self, _par: Any, result: Result):
         """Scheduler method that performs one iteration of the exchange neighborhood."""
-        del par
         if not self.two_exchange_random_fill_neighborhood_search(False):
             result.changed = False
 
-    def shaking(self, par, result):
+    def shaking(self, par: Any, _result: Result):
         """Scheduler method that performs shaking by remove_some(par) and random_fill()."""
-        del result
         self.remove_some(par)
-        self.random_fill(self.x[self.sel:])
+        self.fill()
 
     def may_be_extendible(self) -> bool:
         return np.all(self.y + self.inst.r_min <= self.inst.b) and self.sel < len(self.x)
@@ -131,7 +140,13 @@ class MKPSolution(SubsetSolution):
         self.sel -= 1
         return False
 
+    def crossover(self, other: 'MKPSolution') -> 'MKPSolution':
+        """Apply subset_crossover."""
+        return self.subset_crossover(other)
+
 
 if __name__ == '__main__':
-    from mhlib.demos.common import run_gvns_demo, data_dir
-    run_gvns_demo('MKP', MKPInstance, MKPSolution, data_dir + "mknapcb5-01.txt")
+    from mhlib.demos.common import run_optimization, data_dir
+    from mhlib.settings import get_settings_parser
+    parser = get_settings_parser()
+    run_optimization('MKP', MKPInstance, MKPSolution, data_dir + "mknapcb5-01.txt")

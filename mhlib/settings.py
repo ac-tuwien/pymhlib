@@ -4,6 +4,8 @@ Provides configuration file and command line argument parsing functionality to a
 Parameters can be decentrally defined in any module by getting the global parser via get_settings_parser
 and registering them by add_argument(). parse_settings() needs to be called one in the main program, then
 all parameters are available under the global Namespace settings.
+If sys.argv shall not be used, e.g., because pymhlib is embedded in some framework like Django or
+a Jupyter notebook, pass "" as args (or some meaningful initialization parameters).
 
 For the usage of config files see the documentation of configargparse or call the program with -h.
 """
@@ -11,15 +13,15 @@ For the usage of config files see the documentation of configargparse or call th
 import pickle
 import numpy as np
 import random
-import configargparse
+from configargparse import ArgParser, Namespace, ArgumentDefaultsRawHelpFormatter
 
 
-settings = configargparse.Namespace()  # global Namespace with all settings
+settings = Namespace()  # global Namespace with all settings
 unknown_args = []  # global list with all unknown parameters
 _parser = None  # single global settings parser
 
 
-def get_settings_parser():
+def get_settings_parser() -> ArgParser:
     """Returns the single global argument parser for adding parameters.
 
     Parameters can be added in all modules by add_argument.
@@ -28,18 +30,36 @@ def get_settings_parser():
     """
     global _parser
     if not _parser:
-        _parser = configargparse.ArgParser(  # default_config_files=["default.cfg"],
-                                           formatter_class=configargparse.ArgumentDefaultsRawHelpFormatter)
+        _parser = ArgParser(  # default_config_files=["default.cfg"],
+                                           formatter_class=ArgumentDefaultsRawHelpFormatter)
         _parser.set_defaults(seed=0)
     return _parser
 
 
-def parse_settings(return_unknown=False, default_config_files=None):
+def add_bool_arg(parser: ArgParser, name: str, default: bool, **kwargs):
+    """Add a boolean parameter to the settings parser.
+
+    This helper function add two arguments "--"+name and "--no-"+name to the settings parser for a boolean parameter.
+
+    :param parser: parser obtained by get_settings_parser
+    :param name: name of the parameter without "--"
+    :param default: default value
+    :param kwargs: further parameters such as help
+    """
+    parser.add_argument('--' + name, dest=name, action='store_true', default=default, **kwargs)
+    parser.add_argument('--no-' + name, dest=name, action='store_false')
+
+
+def parse_settings(args=None, return_unknown=False, default_config_files=None):
     """Parses the config files and command line arguments and initializes settings and unknown_parameters.
 
-    Needs to be called once in the main program (or more generally after all arguments have been added to the parser.
+    Needs to be called once in the main program, or more generally after all arguments have been added to the parser
+    and before they are used.
     Also seeds the random number generators based on parameter seed.
+    If sys.argv shall not be used, e.g., because pymhlib is embedded in some framework like Django or
+    a Jupyter notebook, pass "" as args (or some meaningful initialization parameters).
 
+    :param args: optional sequence of string arguments; if None sys.argv is used
     :param return_unknown: return unknown parameters as list in global variable unknown_args; otherwise raise exception
     :param default_config_files: list of default config files to read
     """
@@ -49,12 +69,26 @@ def parse_settings(return_unknown=False, default_config_files=None):
     p.add_argument('-c', '--config', is_config_file=True, help='config file to be read')
     p._default_config_files = default_config_files if default_config_files else []
     if return_unknown:
-        _, unknown_args[:] = p.parse_known_args(namespace=settings)
+        _, unknown_args[:] = p.parse_known_args(args=args, namespace=settings)
     else:
-        p.parse_args(namespace=settings)
+        p.parse_args(args=args, namespace=settings)
 
-    # random seed; per default a random seed is generated
+    seed_random_generators()
+
+
+def set_settings(s: Namespace):
+    """Adopt given settings.
+
+    Used, for example in child processes to adopt settings from parent process.
+    """
+    settings.__dict__ = s.__dict__
+    seed_random_generators()
+
+
+def seed_random_generators():
+    """Initialize random number generators with settings.seed. If zero, a random seed is generated."""
     if settings.seed == 0:
+        np.random.seed()
         settings.seed = np.random.randint(np.iinfo(np.int32).max)
     np.random.seed(settings.seed)
     random.seed(settings.seed)
@@ -71,6 +105,7 @@ def load_settings(filename):
     with open(filename, 'rb') as f:
         global settings
         settings.__dict__ = vars(pickle.load(f))
+        seed_random_generators()
 
 
 def get_settings_as_str():

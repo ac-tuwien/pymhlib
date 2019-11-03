@@ -1,21 +1,22 @@
 """
-Abstract class representing a candidate solution to an optimization problem.
+Abstract base class representing a candidate solution to an optimization problem and some derived still generic classes.
 
-For an optimization problem to solve you have to derive from this class.
+The abstract base class Solution represents a candidate solution to an optimization problem.
+Derived classes VectorSolution, BinaryVectorSolution, and SetSolution are for solutions which are
+represented bei general fixed-length vectors, boolean fixed-length vectors and sets of arbitrary elements.
+
+For a concrete optimization problem to solve you have to derive from one of these classes.
 """
 
 from abc import ABC, abstractmethod
 import numpy as np
 from typing import TypeVar
+import random
 
 from mhlib.settings import settings, get_settings_parser
 
-
 parser = get_settings_parser()
-parser.add("--mh_maxi", default=True, action='store_true',
-           help='maximize the objective function, else minimize')
-parser.add("--no_mh_maxi", dest='mh_maxi', action='store_false')
-
+parser.add_argument("--mh_xover_pts", type=int, default=1, help='number of crossover points in multi-point crossover')
 
 TObj = TypeVar('TObj', int, float)  # Type of objective value
 
@@ -23,12 +24,17 @@ TObj = TypeVar('TObj', int, float)  # Type of objective value
 class Solution(ABC):
     """Abstract base class for a candidate solution.
 
+    Class variables
+        - to maximize: default is True, i.e., to maximize; override with False if the goal is to minimize
+
     Attributes
         - obj_val: objective value; valid if obj_val_valid is set
         - obj_val_valid: indicates if obj_val has been calculated and is valid
         - inst: optional reference to an problem instance object
         - alg: optional reference to an algorithm object using this solution
     """
+
+    to_maximize = True
 
     def __init__(self, inst=None, alg=None):
         self.obj_val: TObj = -1
@@ -76,7 +82,7 @@ class Solution(ABC):
 
     @abstractmethod
     def initialize(self, k):
-        """Construct an initial solution.
+        """Construct an initial solution in a fast non-sophisticated way.
 
         :param k: is increased from 0 onwards for each call of this method
         """
@@ -88,46 +94,22 @@ class Solution(ABC):
         raise NotImplementedError
 
     def is_better(self, other: "Solution") -> bool:
-        """Return True if the current solution is better in terms of the objective function than the other.
-
-        Considers parameter settings.mh_maxi.
-        """
-        if settings.mh_maxi:
-            return self.obj() > other.obj()
-        else:
-            return self.obj() < other.obj()
+        """Return True if the current solution is better in terms of the objective function than the other."""
+        return self.obj() > other.obj() if self.to_maximize else self.obj() < other.obj()
 
     def is_worse(self, other: "Solution") -> bool:
-        """Return True if the current solution is worse in terms of the objective function than the other.
-
-        Considers parameter settings.mh_maxi.
-        """
-        if settings.mh_maxi:
-            return self.obj() < other.obj()
-        else:
-            return self.obj() > other.obj()
+        """Return True if the current solution is worse in terms of the objective function than the other."""
+        return self.obj() < other.obj() if self.to_maximize else self.obj() > other.obj()
 
     @classmethod
     def is_better_obj(cls, obj1: TObj, obj2: TObj) -> bool:
-        """Return True if the obj1 is a better objective value than obj2.
-
-        Considers parameter settings.mh_maxi.
-        """
-        if settings.mh_maxi:
-            return obj1 > obj2
-        else:
-            return obj1 < obj2
+        """Return True if the obj1 is a better objective value than obj2."""
+        return obj1 > obj2 if cls.to_maximize else obj1 < obj2
 
     @classmethod
     def is_worse_obj(cls, obj1: TObj, obj2: TObj) -> bool:
-        """Return True if obj1 is a worse objective value than obj2.
-
-        Considers parameter settings.mh_maxi.
-        """
-        if settings.mh_maxi:
-            return obj1 < obj2
-        else:
-            return obj1 > obj2
+        """Return True if obj1 is a worse objective value than obj2."""
+        return obj1 < obj2 if cls.to_maximize else obj1 > obj2
 
     def dist(self, other):
         """Return distance of current solution to other solution.
@@ -158,10 +140,10 @@ class Solution(ABC):
 
 
 class VectorSolution(Solution, ABC):
-    """Abstract solution class with integer vector as solution representation.
+    """Abstract solution class with fixed-length integer vector as solution representation.
 
     Attributes
-        - x: vector representing a solution, realized as numpy.array
+        - x: vector representing a solution, realized ba a numpy.ndarray
     """
 
     def __init__(self, length, init=True, dtype=int, init_value=0, **kwargs):
@@ -177,30 +159,58 @@ class VectorSolution(Solution, ABC):
         return str(self.x)
 
     def __eq__(self, other: 'VectorSolution') -> bool:
-        return self.obj() != other.obj() or self.x == other.x
+        return self.obj() == other.obj() and np.array_equal(self.x, other.x)
+
+    def uniform_crossover(self, other: 'VectorSolution') -> 'VectorSolution':
+        """Uniform crossover of the current solution with the given other solution."""
+        child = self.copy()
+        #  randomly replace elements with those from other solution
+        for i in range(len(self.x)):
+            if random.getrandbits(1):
+                child.x[i] = other.x[i]
+        child.invalidate()
+        return child
+
+    def multi_point_crossover(self, other: 'VectorSolution') -> 'VectorSolution':
+        """Multi-point crossover of current and other given solution.
+
+        The number of crossover points is passed in settings.mh_xover_pts.
+        """
+        child = self.copy()
+        size = len(self.x)
+        points = np.random.choice(size, settings.mh_xover_pts, replace=False)
+        points.sort()
+        if len(points) % 2:
+            points.append(size)
+        points = points.reshape(len(points)/2, 2)
+        for a, b in points:
+            child.x[a:b] = other.x[a:b]
+        child.invalidate()
+        return child
 
 
-class BoolVectorSolution(VectorSolution, ABC):
-    """Abstract solution class with 0/1 vector as solution representation.
+class SetSolution(Solution, ABC):
+    """Abstract solution class with a set as solution representation.
 
     Attributes
-        - x: 0/1 vector representing a solution
+        - s: set representing a solution
     """
 
-    def __init__(self, length, **kwargs):
-        """Initializes the solution vector with zeros."""
-        super().__init__(length, dtype=bool, **kwargs)
+    def __init__(self, **kwargs):
+        """Initializes the solution with the empty set."""
+        super().__init__(**kwargs)
+        self.s = set()
+
+    def copy_from(self, other: 'SetSolution'):
+        super().copy_from(other)
+        self.s = other.s.copy()
+
+    def __repr__(self):
+        return str(self.s)
+
+    def __eq__(self, other: 'SetSolution') -> bool:
+        return self.obj() == other.obj() and self.s == other.s
 
     def initialize(self, k):
-        """Random initialization."""
-        self.x = np.random.randint(0, 2, len(self.x))
-
-    def check(self):
-        """Check if valid solution.
-
-        Raises ValueError if problem detected.
-        """
-        super().check()
-        for v in self.x:
-            if not 0 <= v <= 1:
-                raise ValueError("Invalid value in BoolVectorSolution: {self.x}")
+        """Set the solution to the empty set."""
+        self.s.clear()

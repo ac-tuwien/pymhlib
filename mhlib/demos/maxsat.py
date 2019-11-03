@@ -1,20 +1,31 @@
-"""Demo application solving the MAXSAT problem."""
+"""Demo application solving the MAXSAT problem.
+
+The goal is to maximize the number of clauses satisfied in a boolean function given in conjunctive normal form.
+"""
 
 import numpy as np
 import random
+from typing import Any
 
-from mhlib.solution import BoolVectorSolution
+from mhlib.solution import TObj
+from mhlib.binvec_solution import BinaryVectorSolution
+from mhlib.alns import ALNS
+from mhlib.scheduler import Result
 
 
 class MAXSATInstance:
     """MAXSAT problem instance.
 
+    The goal is to maximize the number of clauses satisfied in a boolean function given in conjunctive normal form.
+
     Attributes
         - n: number of variables, i.e., size of incidence vector
         - m: number of clauses
-        - clauses: list of clauses, where each clause is represented by a list of integers;
+        - clauses: list of clauses, where each clause is represented by an array of integers;
             a positive integer v refers to the v-th variable, while a negative integer v refers
             to the negated form of the v-th variable; note that variable indices start with 1 (-1)
+        - variable_usage: array containing for each variable a list with the indices of the clauses in
+            which the variable appears; needed for efficient incremental evaluation
     """
 
     def __init__(self, file_name: str):
@@ -22,6 +33,7 @@ class MAXSATInstance:
         self.n = 0
         self.m = 0
         self.clauses = list()
+        self.variable_usage: np.ndarray
 
         with open(file_name, "r") as file:
             for line in file:
@@ -35,14 +47,21 @@ class MAXSATInstance:
                         self.m = int(fields[3])
                     except ValueError:
                         raise ValueError(f"Invalid values in line 'p cnf': {line}")
+                    self.variable_usage = [list() for _ in range(self.n)]
                 elif len(fields) >= 1:
                     # read clause
                     if not fields[-1].startswith("0"):
                         raise ValueError(f"Last field in clause line must be 0, but is not: {line}, {fields[-1]!r}")
                     try:
-                        self.clauses.append([int(s) for s in fields[:-1]])
+                        clause = [int(s) for s in fields[:-1]]
+                        for v in clause:
+                            self.variable_usage[abs(v)-1].append(len(self.clauses))
+                        self.clauses.append(np.array(clause))
                     except ValueError:
                         raise ValueError(f"Invalid clause: {line}")
+
+        for v, usage in enumerate(self.variable_usage):
+            self.variable_usage[v] = np.array(usage)
 
         # make basic check if instance is meaningful
         if not 1 <= self.n <= 1000000:
@@ -53,20 +72,23 @@ class MAXSATInstance:
             raise ValueError(f"Number of clauses should be {self.m}, but {len(self.clauses)} read")
 
     def __repr__(self):
-        """Write out the instance data."""
-        return f"n={self.n},\nclauses={self.clauses!r}\n"
+        return f"m={self.m}, n={self.n}\n"  # , clauses={self.clauses!r}\n"
 
 
-class MAXSATSolution(BoolVectorSolution):
+class MAXSATSolution(BinaryVectorSolution):
     """Solution to a MAXSAT instance.
 
     Attributes
         - inst: associated MAXSATInstance
         - x: binary incidence vector
+        - destroyed: list of indices of variables that have been destroyed by the ALNS's destroy operator
     """
+
+    to_maximize = True
 
     def __init__(self, inst: MAXSATInstance):
         super().__init__(inst.n, inst=inst)
+        self.destroyed = None
 
     def copy(self):
         sol = MAXSATSolution(self.inst)
@@ -91,76 +113,70 @@ class MAXSATSolution(BoolVectorSolution):
             raise ValueError("Invalid length of solution")
         super().check()
 
-    def construct(self, par, result):
+    def construct(self, par: Any, _result: Result):
         """Scheduler method that constructs a new solution.
 
         Here we just call initialize.
         """
-        del result
         self.initialize(par)
 
-    def local_improve(self, par, result):
-        """Perform k_flip_local_search."""
-        del result
-        self.k_flip_local_search(par, False)
+    def local_improve(self, par: Any, _result: Result):
+        """Perform one k_flip_neighborhood_search."""
+        self.k_flip_neighborhood_search(par, False)
 
-    def shaking(self, par, result):
+    def shaking(self, par, _result):
         """Scheduler method that performs shaking by flipping par random positions."""
-        del result
         for i in range(par):
-            p = random.randrange(0, self.inst.n)
+            p = random.randrange(self.inst.n)
             self.x[p] = not self.x[p]
         self.invalidate()
 
-    def k_flip_local_search(self, k: int, best_improvement) -> bool:
-        """Perform one major iteration of a k-flip local search.
+    def destroy(self, par: Any, _result: Result):
+        """Destroy operator for ALNS selects par*ALNS.get_number_to_destroy positions uniformly at random for removal.
 
-        If best_improvement is set, the neighborhood is completely searched and a best neighbor is kept;
-        otherwise the search terminates in a first-improvement manner, i.e., keeping a first encountered
-        better solution.
-
-        :returns: True if an improved solution has been found.
+        Selected positions are stored with the solution in list self.destroyed.
         """
-        x = self.x
-        assert 0 < k <= len(x)
-        better_found = False
-        best_sol = self.copy()
-        p = np.full(k, -1)  # flipped positions
-        # initialize
-        i = 0  # current index in p to consider
-        while i >= 0:
-            # evaluate solution
-            if i == k:
-                self.invalidate()
-                if self.is_better(best_sol):
-                    if not best_improvement:
-                        return True
-                    best_sol.copy_from(self)
-                    better_found = True
-                i -= 1  # backtrack
+        num = min(ALNS.get_number_to_destroy(len(self.x)) * par, len(self.x))
+        self.destroyed = np.random.choice(range(len(self.x)), num, replace=False)
+        self.invalidate()
+
+    def repair(self, _par: Any, _result: Result):
+        """Repair operator for ALNS assigns new random values to all positions in self.destroyed."""
+        assert self.destroyed is not None
+        for p in self.destroyed:
+            self.x[p] = random.randrange(2)
+        self.destroyed = None
+        self.invalidate()
+
+    def crossover(self, other: 'MAXSATSolution'):
+        """ Perform uniform crossover as crossover."""
+        return self.uniform_crossover(other)
+
+    def flip_variable(self, pos: int):
+        delta_obj = self.flip_move_delta_eval(pos)
+        self.obj_val += delta_obj
+        self.x[pos] = not self.x[pos]
+
+    def flip_move_delta_eval(self, pos: int) -> TObj:
+        """Determine delta in objective value when flipping position p."""
+        assert self.obj_val_valid
+        val = not self.x[pos]
+        delta = 0
+        for clause in self.inst.variable_usage[pos]:
+            val_fulfills_now = False
+            for v in self.inst.clauses[clause]:
+                if abs(v)-1 == pos:
+                    val_fulfills_now = (val if v > 0 else not val)
+                elif self.x[abs(v) - 1] == (1 if v > 0 else 0):
+                    break  # clause fulfilled by other variable, no change
             else:
-                if p[i] == -1:
-                    # this index has not yet been placed
-                    p[i] = (p[i-1] if i > 0 else -1) + 1
-                    x[p[i]] = not x[p[i]]
-                    i += 1  # continue with next position (if any)
-                elif p[i] < len(x) - (k - i):
-                    # further positions to explore with this index
-                    x[p[i]] = not x[p[i]]
-                    p[i] += 1
-                    x[p[i]] = x[p[i]]
-                    i += 1
-                else:
-                    # we are at the last position with the i-th index, backtrack
-                    x[p[i]] = not x[p[i]]
-                    p[i] = -1  # unset position
-                    i -= 1
-        if better_found:
-            self.copy_from(best_sol)
-            self.invalidate()
-            return better_found
+                delta += 1 if val_fulfills_now else -1
+        return delta
 
 
 if __name__ == '__main__':
-    from mhlib.demos.common import run_gvns_demo, data_dir
-    run_gvns_demo('MAXSAT', MAXSATInstance, MAXSATSolution, data_dir+"advanced.cnf")
+    from mhlib.demos.common import run_optimization, data_dir
+    from mhlib.settings import get_settings_parser
+    parser = get_settings_parser()
+    parser.set_defaults(mh_titer=1000)
+    run_optimization('MAXSAT', MAXSATInstance, MAXSATSolution, data_dir+"maxsat-adv1.cnf")
