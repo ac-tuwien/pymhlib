@@ -1,19 +1,20 @@
-"""A simulated annealing class
+"""A class implementing a simulated annealing (SA) metaheuristic.
 
-It extends the more general scheduler module/class by distinguishing between construction heuristics and
-neighborhood structures. Allows for callbacks after each iteration. Parameters for geometric cooling and iterations
-until equilibrium can be provided.
+It extends the more general scheduler module/class. Allows for callbacks after each iteration.
+Parameter mh_sa_equi_iter controls how many random neighbor moves are investigated at each
+temperature level, and such a series of moves is considered one method call of the scheduler.
+
+From the demo applications, only the TSP, QAP and MAXSAT support SA so far.
 """
 
-from typing import List
+from typing import List, Callable
 import time
 import numpy as np
-import random
 from math import exp
 
 from mhlib.scheduler import Method, Scheduler, MethodStatistics
 from mhlib.settings import get_settings_parser
-from mhlib.solution import Solution
+from mhlib.solution import Solution, TObj
 
 parser = get_settings_parser()
 parser.add_argument("--mh_sa_T_init", type=float, default=30,
@@ -25,45 +26,51 @@ parser.add_argument("--mh_sa_equi_iter", type=int, default=10000,
 
 
 class SA(Scheduler):
-    """A simulated annealing (SA).
+    """A simulated annealing metaheuristic (SA).
+
+    Parameter mh_sa_equi_iter controls how many random neighbor moves are investigated at each
+    temperature level, and such a series of moves is considered one method call of the scheduler.
 
     Attributes
         - sol: solution object, in which final result will be returned
         - meths_ch: list of construction heuristic methods
-        - meth_propose_neighborhood_move: propose neighborhood move method
-        - meth_apply_neighborhood_move: apply neighborhood move method return by propose method
-        - iter_cb: callback for each iteration passing iteration number, proposed sol, accepted sol, temperature, and acceptance
+        - random_move_delta_eval: propose neighborhood move method
+        - apply_neighborhood_move: apply neighborhood move method return by propose method
+        - iter_cb: callback for each iteration passing iteration number, proposed sol, accepted sol, temperature,
+            and acceptance
         - temperature: current temperature
         - equi_iter: iterations until equilibrium
     """
 
-    def __init__(self, sol: Solution, meths_ch: List[Method], meth_propose_neighborhood_move,
-                 meth_apply_neighborhood_move, iter_cb, own_settings: dict = None, consider_initial_sol=False):
+    def __init__(self, sol: Solution, meths_ch: List[Method], random_move_delta_eval: Callable,
+                 apply_neighborhood_move: Callable, iter_cb: Callable, own_settings: dict = None,
+                 consider_initial_sol=False):
         """Initialization.
 
         :param sol: solution to be improved
         :param meths_ch: list of construction heuristic methods
-        :param meth_propose_neighborhood_move: list of neighbor proposal methods
-        :param meth_apply_neighborhood_move: apply neighborhood move method return by propose method
-        :param iter_cb: callback for each iteration passing iteration number, proposed sol, accepted sol, temperature, and acceptance
+        :param random_move_delta_eval: function that chooses a random move and determines the delta in the obj_val
+        :param apply_neighborhood_move: apply neighborhood move method return by propose method
+        :param iter_cb: callback for each iteration passing iteration number, proposed sol, accepted sol, temperature,
+            and acceptance
         :param own_settings: optional dictionary with specific settings
         :param consider_initial_sol: if true consider sol as valid solution that should be improved upon; otherwise
             sol is considered just a possibly uninitialized of invalid solution template
         """
         super().__init__(sol, meths_ch, own_settings, consider_initial_sol)
         self.meths_ch = meths_ch
-        self.meth_propose_neighborhood_move = meth_propose_neighborhood_move
-        self.meth_apply_neighborhood_move = meth_apply_neighborhood_move
+        self.random_move_delta_eval = random_move_delta_eval
+        self.apply_neighborhood_move = apply_neighborhood_move
         self.method_stats['sa'] = MethodStatistics()
         self.iter_cb = iter_cb
         self.temperature = self.own_settings.mh_sa_T_init
         self.equi_iter = self.own_settings.mh_sa_equi_iter
 
-    def metropolis_criterion(self, sol, delta_f) -> bool:
-        """Apply Metropolis criterion as acceptance decision determined by delta_f and current temperature."""
-        if sol.is_better_obj(delta_f, 0):
+    def metropolis_criterion(self, sol, delta_obj:TObj) -> bool:
+        """Apply Metropolis criterion as acceptance decision determined by delta_obj and current temperature."""
+        if sol.is_better_obj(delta_obj, 0):
             return True
-        return np.random.random_sample() <= exp(-abs(delta_f) / self.temperature)
+        return np.random.random_sample() <= exp(-abs(delta_obj) / self.temperature)
 
     def cool_down(self):
         """Apply geometric cooling."""
@@ -73,11 +80,11 @@ class SA(Scheduler):
         """Perform simulated annealing with geometric cooling on given solution."""
 
         def sa_iteration(sol: Solution, _par, result):
-            neighborhood_move, delta_f = self.meth_propose_neighborhood_move(sol)
-            acceptance = self.metropolis_criterion(sol, delta_f)
+            neighborhood_move, delta_obj = self.random_move_delta_eval(sol)
+            acceptance = self.metropolis_criterion(sol, delta_obj)
             if acceptance:
-                self.meth_apply_neighborhood_move(sol, neighborhood_move)
-                sol.obj_val = sol.obj_val + delta_f
+                self.apply_neighborhood_move(sol, neighborhood_move)
+                sol.obj_val = sol.obj_val + delta_obj
                 result.changed = True
             if self.iter_cb is not None:
                 self.iter_cb(self.iteration, sol, self.temperature, acceptance)

@@ -89,19 +89,18 @@ class GCSolution(VectorSolution):
         The neighborhood used is defined by all solutions that can be created by changing the color
         of a vertex involved in a conflict.
         """
-
-        for p in range(len(self.x)):
+        n = len(self.x)
+        order = np.arange(n)
+        np.random.shuffle(order)
+        for p in order:
             nbh_col = {}
             for col in range(self.inst.colors):
                 nbh_col[col] = 0
-
             for adj in self.inst.graph.adj[p]:
                 nbh_col[self.x[adj]] += 1
-
             old_col = self.x[p]
             if nbh_col[old_col] > 0:
-                # Violation found
-
+                # violation found
                 for new_col in range(self.inst.colors):
                     if nbh_col[new_col] < nbh_col[old_col]:
                         # Possible improvement found
@@ -110,7 +109,6 @@ class GCSolution(VectorSolution):
                         self.obj_val += nbh_col[new_col]
                         result.changed = True
                         return
-
         result.changed = False
 
     def shaking(self, par: Any, result: Result):

@@ -7,6 +7,7 @@ import numpy as np
 import random
 from typing import Any
 
+from mhlib.solution import TObj
 from mhlib.binvec_solution import BinaryVectorSolution
 from mhlib.alns import ALNS
 from mhlib.scheduler import Result
@@ -152,9 +153,15 @@ class MAXSATSolution(BinaryVectorSolution):
         return self.uniform_crossover(other)
 
     def flip_variable(self, pos: int):
+        delta_obj = self.flip_move_delta_eval(pos)
+        self.obj_val += delta_obj
+        self.x[pos] = not self.x[pos]
+
+    def flip_move_delta_eval(self, pos: int) -> TObj:
+        """Determine delta in objective value when flipping position p."""
         assert self.obj_val_valid
         val = not self.x[pos]
-        self.x[pos] = val
+        delta = 0
         for clause in self.inst.variable_usage[pos]:
             val_fulfills_now = False
             for v in self.inst.clauses[clause]:
@@ -163,7 +170,8 @@ class MAXSATSolution(BinaryVectorSolution):
                 elif self.x[abs(v) - 1] == (1 if v > 0 else 0):
                     break  # clause fulfilled by other variable, no change
             else:
-                self.obj_val += 1 if val_fulfills_now else -1
+                delta += 1 if val_fulfills_now else -1
+        return delta
 
 
 if __name__ == '__main__':

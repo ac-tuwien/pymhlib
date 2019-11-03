@@ -6,8 +6,10 @@ Given n cities and a symmetric distance matrix for all city pairs, find a shorte
 import random
 import numpy as np
 import math
+from typing import Tuple, Any
 
 from mhlib.permutation_solution import PermutationSolution
+from mhlib.solution import TObj
 
 
 class TSPInstance:
@@ -147,28 +149,14 @@ class TSPSolution(PermutationSolution):
         delta = d[x_prev][x_p2] + d[x_p1][x_next] - d[x_prev][x_p1] - d[x_p2][x_next]
         return delta
 
-    # TODO implement the following two methods methods relevant for SA also for all other demo problems
-    def propose_neighborhood_move(self):
-        """This method returns a tuple (move, delta_f) to be used for SA."""
-        return self.propose_random_2_opt_move()
+    def random_move_delta_eval(self) -> Tuple[Any, TObj]:
+        """Choose a random move and perform delta evaluation for it, return (move, delta_obj)."""
+        return self.random_two_opt_move_delta_eval()
 
     def apply_neighborhood_move(self, move):
         """This method applies a given neighborhood move accepted by SA,
             without updating the obj_val or invalidating, since obj_val is updated incrementally by the SA scheduler."""
-        self.apply_2_opt_move(move)
-
-    def propose_random_2_opt_move(self):
-        """Propose random move in 2-opt neighborhood by returning (move, delta_f)"""
-        p1 = random.randint(0, len(self.x)-2)
-        p2 = random.randint(p1+1, len(self.x)-1)
-        move = (p1, p2)
-        delta_f = self.two_opt_move_delta_eval(*move)
-        return move, delta_f
-
-    def apply_2_opt_move(self, move):
-        p1 = move[0]
-        p2 = move[1]
-        self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
+        self.apply_two_opt_move(*move)
 
     def crossover(self, other: 'TSPSolution') -> 'TSPSolution':
         """Perform edge recombination."""

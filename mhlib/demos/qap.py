@@ -9,7 +9,7 @@ the sum of the distances multiplied by the corresponding flows.
 
 import numpy as np
 import random
-from typing import Any
+from typing import Any, Tuple
 
 from mhlib.permutation_solution import PermutationSolution
 from mhlib.scheduler import Result
@@ -115,6 +115,17 @@ class QAPSolution(PermutationSolution):
         d += (a[p1, p1] - a[p2, p2]) * (b[x[p2], x[p2]] - b[x[p1], x[p1]]) + \
              (a[p1, p2] - a[p2, p1]) * (b[x[p2], x[p1]] - b[x[p1], x[p2]])
         return d
+
+    def random_move_delta_eval(self) -> Tuple[Any, TObj]:
+        """Choose a random move and perform delta evaluation for it, return (move, delta_obj)."""
+        return self.random_two_exchange_move_delta_eval()
+
+    def apply_neighborhood_move(self, move):
+        """This method applies a given neighborhood move accepted by SA,
+            without updating the obj_val or invalidating, since obj_val is updated incrementally by the SA scheduler."""
+        p1, p2 = move
+        x = self.x
+        x[p1], x[p2] = x[p2], x[p1]
 
     def crossover(self, other: 'QAPSolution') -> 'QAPSolution':
         """Perform cycle crossover."""

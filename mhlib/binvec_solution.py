@@ -2,8 +2,10 @@
 
 import numpy as np
 from abc import ABC
+import random
+from typing import Tuple
 
-from mhlib.solution import VectorSolution
+from mhlib.solution import VectorSolution, TObj
 
 
 class BinaryVectorSolution(VectorSolution, ABC):
@@ -87,3 +89,28 @@ class BinaryVectorSolution(VectorSolution, ABC):
         """
         self.x[pos] = not self.x[pos]
         self.invalidate()
+
+    def flip_move_delta_eval(self, pos:int) -> TObj:
+        """Determine delta in objective value when flipping position p.
+
+        Here the solution is evaluated from scratch. If possible, it should be overloaded by a more
+        efficient delta evaluation.
+        """
+        obj = self.obj()
+        self.x[pos] = not self.x[pos]
+        self.invalidate()
+        delta = self.obj() - obj
+        self.x[pos] = not self.x[pos]
+        self.obj_val = obj
+        return delta
+
+    def random_flip_delta_eval(self) -> Tuple[int, TObj]:
+        """Choose random move in the flip neighborhood and perform delta evaluation, returning (move, delta_obj).
+
+        The solution is not changed here yet.
+        Primarily used in simulated annealing.
+        """
+        p = random.randrange(len(self.x))
+        delta_obj = self.flip_move_delta_eval(p)
+        return p, delta_obj
+
