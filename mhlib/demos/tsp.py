@@ -80,6 +80,8 @@ class TSPSolution(PermutationSolution):
         - x: order in which cities are visited, i.e., a permutation of 0,...,n-1
     """
 
+    to_maximize = False
+
     def __init__(self, inst: TSPInstance):
         super().__init__(inst.n, inst=inst)
         self.obj_val_valid = False
@@ -176,5 +178,4 @@ if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
     from mhlib.settings import get_settings_parser
     parser = get_settings_parser()
-    parser.set_defaults(mh_maxi=False)
     run_optimization('TSP', TSPInstance, TSPSolution, data_dir + "xqf131.tsp")

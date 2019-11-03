@@ -13,10 +13,9 @@ import numpy as np
 from typing import TypeVar
 import random
 
-from mhlib.settings import settings, get_settings_parser, add_bool_arg
+from mhlib.settings import settings, get_settings_parser
 
 parser = get_settings_parser()
-add_bool_arg(parser, "mh_maxi", default=True, help='maximize the objective function, else minimize')
 parser.add_argument("--mh_xover_pts", type=int, default=1, help='number of crossover points in multi-point crossover')
 
 TObj = TypeVar('TObj', int, float)  # Type of objective value
@@ -25,12 +24,17 @@ TObj = TypeVar('TObj', int, float)  # Type of objective value
 class Solution(ABC):
     """Abstract base class for a candidate solution.
 
+    Class variables
+        - to maximize: default is True, i.e., to maximize; override with False if the goal is to minimize
+
     Attributes
         - obj_val: objective value; valid if obj_val_valid is set
         - obj_val_valid: indicates if obj_val has been calculated and is valid
         - inst: optional reference to an problem instance object
         - alg: optional reference to an algorithm object using this solution
     """
+
+    to_maximize = True
 
     def __init__(self, inst=None, alg=None):
         self.obj_val: TObj = -1
@@ -90,46 +94,22 @@ class Solution(ABC):
         raise NotImplementedError
 
     def is_better(self, other: "Solution") -> bool:
-        """Return True if the current solution is better in terms of the objective function than the other.
-
-        Considers parameter settings.mh_maxi.
-        """
-        if settings.mh_maxi:
-            return self.obj() > other.obj()
-        else:
-            return self.obj() < other.obj()
+        """Return True if the current solution is better in terms of the objective function than the other."""
+        return self.obj() > other.obj() if self.to_maximize else self.obj() < other.obj()
 
     def is_worse(self, other: "Solution") -> bool:
-        """Return True if the current solution is worse in terms of the objective function than the other.
-
-        Considers parameter settings.mh_maxi.
-        """
-        if settings.mh_maxi:
-            return self.obj() < other.obj()
-        else:
-            return self.obj() > other.obj()
+        """Return True if the current solution is worse in terms of the objective function than the other."""
+        return self.obj() < other.obj() if self.to_maximize else self.obj() > other.obj()
 
     @classmethod
     def is_better_obj(cls, obj1: TObj, obj2: TObj) -> bool:
-        """Return True if the obj1 is a better objective value than obj2.
-
-        Considers parameter settings.mh_maxi.
-        """
-        if settings.mh_maxi:
-            return obj1 > obj2
-        else:
-            return obj1 < obj2
+        """Return True if the obj1 is a better objective value than obj2."""
+        return obj1 > obj2 if cls.to_maximize else obj1 < obj2
 
     @classmethod
     def is_worse_obj(cls, obj1: TObj, obj2: TObj) -> bool:
-        """Return True if obj1 is a worse objective value than obj2.
-
-        Considers parameter settings.mh_maxi.
-        """
-        if settings.mh_maxi:
-            return obj1 < obj2
-        else:
-            return obj1 > obj2
+        """Return True if obj1 is a worse objective value than obj2."""
+        return obj1 < obj2 if cls.to_maximize else obj1 > obj2
 
     def dist(self, other):
         """Return distance of current solution to other solution.

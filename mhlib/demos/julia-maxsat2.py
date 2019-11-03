@@ -35,6 +35,8 @@ class JuliaMAXSAT2Solution(BinaryVectorSolution):
         - destroyed: list of indices of variables that have been destroyed by the ALNS's destroy operator
     """
 
+    to_maximize = True
+
     def __init__(self, inst: Main.JuliaMAXSAT.JuliaMAXSATInstance):
         super().__init__(inst.n, inst=inst)
         self.destroyed = None

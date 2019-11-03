@@ -4,8 +4,7 @@ import numpy as np
 from abc import ABC
 from typing import List
 
-from mhlib.solution import VectorSolution
-from mhlib.settings import settings
+from mhlib.solution import VectorSolution, TObj
 import random
 
 
@@ -39,7 +38,7 @@ class PermutationSolution(VectorSolution, ABC):
         """Perform the systematic search of the 2-exchange neighborhood, in which two elements are exchanged.
 
         The neighborhood is searched in a randomized ordering.
-        A problem-specific delta-evaluation can be performed by overloading two_exchange_delta_eval.
+        A problem-specific delta-evaluation can be performed by overloading two_exchange_move_delta_eval.
 
         :param best_improvement:  if set, the neighborhood is completely searched and a best neighbor is kept;
             otherwise the search terminates in a first-improvement manner, i.e., keeping a first encountered
@@ -48,47 +47,47 @@ class PermutationSolution(VectorSolution, ABC):
         :return: True if an improved solution has been found
         """
         n = self.inst.n
-        best_obj = orig_obj = self.obj()
+        best_delta = 0
         best_p1 = None
         best_p2 = None
         order = np.arange(n)
         np.random.shuffle(order)
         for idx, p1 in enumerate(order[:n - 1]):
             for p2 in order[idx + 1:]:
-                self.x[p1], self.x[p2] = self.x[p2], self.x[p1]
-                if self.two_exchange_delta_eval(p1, p2):
-                    if self.is_better_obj(self.obj(), best_obj):
-                        if not best_improvement:
-                            return True
-                        best_obj = self.obj()
-                        best_p1 = p1
-                        best_p2 = p2
-                    self.x[p1], self.x[p2] = self.x[p2], self.x[p1]
-                    self.obj_val = orig_obj
-                    assert self.two_exchange_delta_eval(p1, p2, False)
+                # consider exchange of positions p1 and p2
+                delta = self.two_exchange_move_delta_eval(p1, p2)
+                if self.is_better_obj(delta, best_delta):
+                    if not best_improvement:
+                        self.x[p1], self.x[p2] = self.x[p2], self.x[p1]
+                        self.obj_val += delta
+                        return True
+                    best_delta = delta
+                    best_p1 = p1
+                    best_p2 = p2
         if best_p1:
             self.x[best_p1], self.x[best_p2] = self.x[best_p2], self.x[best_p1]
-            self.obj_val = best_obj
+            self.obj_val += best_delta
             return True
-        self.obj_val = orig_obj
         return False
 
-    def two_exchange_delta_eval(self, p1: int, p2: int, update_obj_val=True) -> bool:
-        """A 2-exchange move was performed, if feasible update other solution data accordingly, else revert.
+    def two_exchange_move_delta_eval(self, p1: int, p2: int) -> TObj:
+        """Return delta value in objective when exchanging positions p1 and p2 in self.x.
 
-        This is a helper function for delta-evaluating solutions when searching a neighborhood that needs
-        to be overloaded for a concrete problem.
-        It can be assumed that the solution was in a correct state with a valid objective value in obj_val
-        *before* the already applied move, obj_val_valid therefore is True.
-        The default implementation just calls invalidate() and returns True.
+        The solution is not changed.
+        This is a helper function for delta-evaluating solutions when searching a neighborhood that should
+        be overloaded with a more efficient implementation for a concrete problem.
+        Here we perform the move, calculate the objective value from scratch and revert the move.
 
         :param p1: first position
         :param p2: second position
-        :param update_obj_val: if set, the objective value should also be updated or invalidate needs to be called
         """
-        if update_obj_val:
-            self.invalidate()
-        return True
+        obj = self.obj()
+        self.x[p1], self.x[p2] = self.x[p2], self.x[p1]
+        self.invalidate()
+        delta = self.obj() - obj
+        self.x[p1], self.x[p2] = self.x[p2], self.x[p1]
+        self.obj_val = obj
+        return delta
 
     def two_opt_neighborhood_search(self, best_improvement) -> bool:
         """Systematic search of the 2-opt neighborhood, i.e., consider all inversions of subsequences.
@@ -113,15 +112,14 @@ class PermutationSolution(VectorSolution, ABC):
                     p1, p2 = p2, p1
                 # consider the move that self.x from position p1 to position p2
                 delta = self.two_opt_move_delta_eval(p1, p2)
-                if self.is_better_obj(delta, 0):
+                if self.is_better_obj(delta, best_delta):
                     if not best_improvement:
                         self.x[p1:(p2 + 1)] = self.x[p1:(p2 + 1)][::-1]
                         self.obj_val += delta
                         return True
-                    if self.is_better_obj(delta, best_delta):
-                        best_delta = delta
-                        best_p1 = p1
-                        best_p2 = p2
+                    best_delta = delta
+                    best_p1 = p1
+                    best_p2 = p2
         if best_p1:
             self.x[best_p1:(best_p2 + 1)] = self.x[best_p1:(best_p2 + 1)][::-1]
             self.obj_val += best_delta

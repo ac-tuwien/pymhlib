@@ -83,6 +83,7 @@ class BinaryVectorSolution(VectorSolution, ABC):
     def flip_variable(self, pos: int):
         """Flip the variable at position pos and possibly incrementally update objective value or invalidate.
 
-        This generic implementation just calls invalidate() after flipping the variable."""
+        This generic implementation just calls invalidate() after flipping the variable.
+        """
         self.x[pos] = not self.x[pos]
         self.invalidate()

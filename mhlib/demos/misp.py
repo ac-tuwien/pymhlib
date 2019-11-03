@@ -46,6 +46,8 @@ class MISPSolution(SubsetVectorSolution):
         - covered: for each node the number of selected neighbor nodes plus one if the node itself is selected
     """
 
+    to_maximize = True
+
     def __init__(self, inst: MISPInstance):
         super().__init__(range(inst.n), inst=inst)
         self.covered = np.zeros(inst.n, dtype=int)
@@ -136,5 +138,4 @@ if __name__ == '__main__':
     from mhlib.demos.common import run_optimization, data_dir
     from mhlib.settings import get_settings_parser
     parser = get_settings_parser()
-    parser.set_defaults(mh_maxi=True)
     run_optimization('MISP', MISPInstance, MISPSolution, data_dir + "frb40-19-1.mis")
