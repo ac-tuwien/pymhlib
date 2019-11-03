@@ -59,9 +59,9 @@ class SA(Scheduler):
         self.temperature = self.own_settings.mh_sa_T_init
         self.equi_iter = self.own_settings.mh_sa_equi_iter
 
-    def metropolis_criterion(self, delta_f) -> bool:
+    def metropolis_criterion(self, sol, delta_f) -> bool:
         """Apply Metropolis criterion as acceptance decision determined by delta_f and current temperature."""
-        if Solution.is_better_obj(delta_f, 0):
+        if sol.is_better_obj(delta_f, 0):
             return True
         return np.random.random_sample() <= exp(-abs(delta_f) / self.temperature)
 
@@ -74,7 +74,7 @@ class SA(Scheduler):
 
         def sa_iteration(sol: Solution, _par, result):
             neighborhood_move, delta_f = self.meth_propose_neighborhood_move(sol)
-            acceptance = self.metropolis_criterion(delta_f)
+            acceptance = self.metropolis_criterion(sol, delta_f)
             if acceptance:
                 self.meth_apply_neighborhood_move(sol, neighborhood_move)
                 sol.obj_val = sol.obj() + delta_f
@@ -85,7 +85,10 @@ class SA(Scheduler):
 
         while True:
             for it_ in range(self.equi_iter):
-                res = self.perform_method(sa_method, sol)
+                t_start = time.process_time()
+                obj_old = self.incumbent.obj()
+                res = self.perform_method(sa_method, sol, delayed_success=True)
+                self.delayed_success_update(sa_method, obj_old, t_start, sol)
                 if res.terminate:
                     return True
             self.cool_down()

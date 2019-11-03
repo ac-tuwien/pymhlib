@@ -285,7 +285,7 @@ class Scheduler(ABC):
         """Update an earlier performed method's success information in method_stats.
 
         :param method: earlier performed method
-        :param obj_old: objective value of solution to which method had been applied
+        :param obj_old: objective value of solution with which to compare to determine success
         :param t_start: time when the application of method dad started
         :param sol: current solution considered the final result of the method
         """
