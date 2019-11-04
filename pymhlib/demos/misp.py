@@ -1,51 +1,53 @@
-"""Demo application solving the maximum (weighted) independent set problem (MISP)."""
+"""Demo application solving the maximum (weighted) independent set problem (MISP).
+
+Give an undirected (weighted) graph, find a maximum cardinality subset of nodes where
+no pair of nodes is adjacent in the graph.
+"""
 
 import numpy as np
-import networkx as nx
+from typing import Any, Tuple
 
-from mhlib.subset_solution import SubsetSolution
+from pymhlib.solution import TObj
+from pymhlib.subsetvec_solution import SubsetVectorSolution
+from pymhlib.scheduler import Result
+from pymhlib.demos.graphs import create_or_read_simple_graph
 
 
 class MISPInstance:
-    """MISP problem instance.
+    """Maximum (weighted) independent set problem (MISP) instance.
+
+    Give an undirected (weighted) graph, find a maximum cardinality subset of nodes where
+    no pair of nodes is adjacent in the graph.
 
     Attributes
+        - graph: undirected unweighted graph to consider
         - n: number of nodes
         - m number of edges
         - p: prices (weights) of items
     """
 
-    def __init__(self, file_name: str):
-        """Read an instance from the specified file."""
-        self.n = 0
-        self.m = 0
-        self.graph = nx.Graph()
-        with open(file_name, "r") as f:
-            for line in f:
-                flag = line[0]
-                if flag == 'p':
-                    split_line = line.split(' ')
-                    self.n = int(split_line[2])
-                    self.m = int(split_line[3])
-                    self.graph.add_nodes_from(range(self.n))
-                elif flag == 'e':
-                    split_line = line.split(' ')
-                    u = int(split_line[1]) - 1
-                    v = int(split_line[2]) - 1
-                    self.graph.add_edge(u, v)
-        self.p = np.ones(self.n, dtype=int)  # here we only read unweighted MISP instances
+    def __init__(self, name: str):
+        """Create or read graph with given name.
+
+        So far we only create unweighted MISP instances here.
+        """
+        self.graph = create_or_read_simple_graph(name)
+        self.n = self.graph.number_of_nodes()
+        self.m = self.graph.number_of_edges()
+        self.p = np.ones(self.n, dtype=int)
 
     def __repr__(self):
-        """Write out the instance data."""
         return f"n={self.n} m={self.m}\n"
 
 
-class MISPSolution(SubsetSolution):
+class MISPSolution(SubsetVectorSolution):
     """Solution to a MISP instance.
 
     Additional attributes
         - covered: for each node the number of selected neighbor nodes plus one if the node itself is selected
     """
+
+    to_maximize = True
 
     def __init__(self, inst: MISPInstance):
         super().__init__(range(inst.n), inst=inst)
@@ -85,25 +87,22 @@ class MISPSolution(SubsetSolution):
         super().clear()
         self.covered.fill(0)
 
-    def construct(self, par, result):
+    def construct(self, par: Any, _result: Result):
         """Scheduler method that constructs a new solution.
 
         Here we just call initialize.
         """
-        del result
         self.initialize(par)
 
-    def local_improve(self, par, result):
+    def local_improve(self, _par: Any, result: Result):
         """Scheduler method that performs one iteration of the exchange neighborhood."""
-        del par
         if not self.two_exchange_random_fill_neighborhood_search(False):
             result.changed = False
 
-    def shaking(self, par, result):
+    def shaking(self, par: Any, _result: Result):
         """Scheduler method that performs shaking by remove_some(par) and random_fill()."""
-        del result
         self.remove_some(par)
-        self.random_fill(list(np.nonzero(self.covered == 0)[0]))
+        self.fill(list(np.nonzero(self.covered == 0)[0]))
 
     def may_be_extendible(self) -> bool:
         return np.any(self.covered == 0)
@@ -131,9 +130,22 @@ class MISPSolution(SubsetSolution):
         self.sel -= 1
         return False
 
+    def random_move_delta_eval(self) -> Tuple[int, TObj]:
+        """Choose a random move and perform delta evaluation for it, return (move, delta_obj)."""
+        raise NotImplementedError
+
+    def apply_neighborhood_move(self, pos: int):
+        """This method applies a given neighborhood move accepted by SA,
+            without updating the obj_val or invalidating, since obj_val is updated incrementally by the SA scheduler."""
+        raise NotImplementedError
+
+    def crossover(self, other: 'MISPSolution') -> 'MISPSolution':
+        """Apply subset_crossover."""
+        return self.subset_crossover(other)
+
 
 if __name__ == '__main__':
-    from mhlib.demos.common import run_gvns_demo, data_dir
-    # from mhlib.settings import settings
-    # settings.meths_li = 0
-    run_gvns_demo('MISP', MISPInstance, MISPSolution, data_dir + "misp-simple.clq")
+    from pymhlib.demos.common import run_optimization, data_dir
+    from pymhlib.settings import get_settings_parser
+    parser = get_settings_parser()
+    run_optimization('MISP', MISPInstance, MISPSolution, data_dir + "frb40-19-1.mis")

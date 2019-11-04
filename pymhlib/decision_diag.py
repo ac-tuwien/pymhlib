@@ -6,8 +6,8 @@ from itertools import count
 from dataclasses import dataclass
 from collections import defaultdict
 
-from mhlib.solution import VectorSolution, TObj
-from mhlib.settings import settings
+from pymhlib.solution import VectorSolution, TObj
+from pymhlib.settings import settings
 
 
 @dataclass

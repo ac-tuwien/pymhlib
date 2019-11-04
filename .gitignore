@@ -1,2 +1,8 @@
 **/__pycache__
 .idea
+*.pyc
+.ipynb_checkpoints
+venv/
+build/
+dist/
+pymhlib.egg-info/
