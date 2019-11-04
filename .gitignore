@@ -5,4 +5,4 @@
 venv/
 build/
 dist/
-mhlib.egg-info/
+pymhlib.egg-info/

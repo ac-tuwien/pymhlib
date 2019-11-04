@@ -1,8 +1,8 @@
-## Python `mhlib` - A Toolbox for Metaheuristics and Hybrid Optimization Methods
+## `pymhlib` - A Toolbox for Metaheuristics and Hybrid Optimization Methods
 
 _This project is still in early development, any feedback is much appreciated!_
 
-Python `mhlib` is a collection of modules supporting the efficient implementation of metaheuristics 
+`pymhlib` is a collection of modules supporting the efficient implementation of metaheuristics 
 and certain hybrid optimization approaches for solving primarily combinatorial optimization 
 problems in Python 3.7+.
 
@@ -17,7 +17,7 @@ While ultimately efficient implementations of such algorithms in compiled
 languages like C++ will likely be faster, the expected advantage of the Python
 implementation lies in the expected faster implementation.
 
-`mhlib` is developed primarily by the 
+`pymhlib` is developed primarily by the 
 [Algorithms and Complexity Group of TU Wien](https://www.ac.tuwien.ac.at), 
 Vienna, Austria, since 2019.
 
@@ -30,9 +30,9 @@ Vienna, Austria, since 2019.
 
 ### Installation
 
-Major versions of `mhlib` can be installed from `PyPI` via
+Major versions of `pymhlib` can be installed from `PyPI` via
 
-    python3 -m pip install -U mhlib
+    python3 -m pip install -U pymhlib
     
 and development versions are available at https://github.com/ac-tuwien/pymhlib.
 
@@ -89,7 +89,7 @@ and development versions are available at https://github.com/ac-tuwien/pymhlib.
 Modules/scripts for analyzing results of many runs:
 
 - **multi_run_summary.py**:
-    Collects essential information from multiple mhlib algorithm runs found in the respective out and log files
+    Collects essential information from multiple `pymhlib` algorithm runs found in the respective out and log files
     and returns a corresponding pandas dataframe if used as a module or as a plain ASCII table when used as
     independent script. The module can be easily configured to extract also arbitrary application-specific data.
     
@@ -105,7 +105,7 @@ Modules/scripts for analyzing results of many runs:
 For demonstration purposes, simple metaheuristic approaches are provided in the `demo` subdirectory for the following
 well-known combinatorial optimization problems. They can be startet by
 
-    python3 -m mhlib.demos.<problem> ...
+    python3 -m pymhlib.demos.<problem> ...
 
 where `<problem>` is one of the following and `...` represents further parameters that can be seen by providing 
 the option `-h`.
@@ -120,8 +120,8 @@ for solving your own problem.
 - **`misp`**: maximum (weighted) independent set problem based on `SubsetVectorSolution`
 - **`mkp`**: multidimensional 0-1 knapsack problem based on `SubsetVectorSolution`
 
-Shared code of these demos is found in the submodules `mhlib.demos.common` and `mhlib.demos.graphs`,
-test instance data in `mhlib.demos.data`.
+Shared code of these demos is found in the submodules `pymhlib.demos.common` and `pymhlib.demos.graphs`,
+test instance data in `pymhlib.demos.data`.
 
 Moreover, `julia-maxsat.py` and `julia-maxsat.jl` demonstrate the integration with the Julia programming language.
 Implementing time-critical parts of an application in Julia may accelerate the code substantially.
@@ -140,6 +140,7 @@ Major changes over major releases:
 - population based iterated greedy and steady state genetic algorithms added
 - SA with geometric cooling added
 - demos.graphs introduced
+- mhlib renamed to pymhlib
 - demo for interfacing with Julia added
 - many smaller improvements, bug fixes, improvements in documentation 
 
