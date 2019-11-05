@@ -50,7 +50,7 @@ class QAPInstance:
                 self.b[i] = [int(bij) for bij in line.split()]
 
     def __repr__(self):
-        return f"n={self.n},\na={self.a},\nb={self.b}\n"
+        return f"n={self.n}\n"  #,\na={self.a},\nb={self.b}\n"
 
 
 class QAPSolution(PermutationSolution):

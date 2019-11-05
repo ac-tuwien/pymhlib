@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pymhlib",
-    version="0.1.0a",
+    version="0.1.1",
     author="Günther Raidl et al.",
     author_email="raidl@ac.tuwien.ac.at",
     description="pymhlib - a toolbox for metaheuristics and hybrid optimization methods",

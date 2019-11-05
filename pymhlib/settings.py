@@ -50,7 +50,7 @@ def add_bool_arg(parser: ArgParser, name: str, default: bool, **kwargs):
     parser.add_argument('--no-' + name, dest=name, action='store_false')
 
 
-def parse_settings(args=None, return_unknown=False, default_config_files=None):
+def parse_settings(args=None, return_unknown=False, default_config_files=None, seed=0):
     """Parses the config files and command line arguments and initializes settings and unknown_parameters.
 
     Needs to be called once in the main program, or more generally after all arguments have been added to the parser
@@ -62,10 +62,12 @@ def parse_settings(args=None, return_unknown=False, default_config_files=None):
     :param args: optional sequence of string arguments; if None sys.argv is used
     :param return_unknown: return unknown parameters as list in global variable unknown_args; otherwise raise exception
     :param default_config_files: list of default config files to read
+    :param seed: Seed value for initializing random number generators, 0: random
     """
     global settings, unknown_args
     p = get_settings_parser()
-    p.add_argument('--seed', type=int, help='seed for the random number generators (0: random init)')
+    p.add_argument('--seed', type=int, help='seed for the random number generators (0: random init)',
+                   default=seed)
     p.add_argument('-c', '--config', is_config_file=True, help='config file to be read')
     p._default_config_files = default_config_files if default_config_files else []
     if return_unknown:
@@ -85,10 +87,15 @@ def set_settings(s: Namespace):
     seed_random_generators()
 
 
-def seed_random_generators():
-    """Initialize random number generators with settings.seed. If zero, a random seed is generated."""
+def seed_random_generators(seed=None):
+    """Initialize random number generators with settings.seed. If zero, a random seed is generated.
+
+    If a seed is given as argument, it is used instead of settings.seed, which is set accordingly.
+    """
+    if seed is not None:
+        settings.seed = seed
     if settings.seed == 0:
-        np.random.seed()
+        np.random.seed(None)
         settings.seed = np.random.randint(np.iinfo(np.int32).max)
     np.random.seed(settings.seed)
     random.seed(settings.seed)

@@ -9,11 +9,11 @@ from typing import Any, Tuple
 
 from pymhlib.solution import VectorSolution, TObj
 from pymhlib.scheduler import Result
-from pymhlib.settings import get_settings_parser
+from pymhlib.settings import get_settings_parser, settings
 from pymhlib.demos.graphs import create_or_read_simple_graph
 
 parser = get_settings_parser()
-parser.add("--mh_gcp_colors", type=int, default=3, help='number of colors available')
+parser.add_argument("--mh_gcp_colors", type=int, default=3, help='number of colors available')
 
 
 class GCInstance:
