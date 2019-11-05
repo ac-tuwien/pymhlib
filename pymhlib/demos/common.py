@@ -44,7 +44,7 @@ def add_general_arguments_and_parse_settings(default_inst_file: str = 'inst.dat'
 
 
 def run_optimization(problem_name: str, instance_class, solution_class, default_inst_file: str = "inst.dat",
-                     own_settings: dict = None, setup_settings: bool = True, iter_cb: Callable = None,
+                     own_settings: dict = None, embedded: bool = False, iter_cb: Callable = None,
                      seed: int = 0) -> Solution:
     """Initialize and run optimization algorithm given by parameter alg on given problem instance.
 
@@ -58,11 +58,12 @@ def run_optimization(problem_name: str, instance_class, solution_class, default_
     :param solution_class: concrete solution class to be used
     :param default_inst_file: default instance file to be loaded and solved
     :param own_settings: optional run-specific settings dictionary
-    :param setup_settings: if set do not register parameters and parse them
+    :param embedded: if set it is assumed that the call is embedded in a Notebook or other larger framework,
+        and therefore, the parameters are assumed to be already registered and parsed
     :param iter_cb: optional callback function that is called each iteration by some of the algorithms
     :param seed: optional seed value for the random number generators; 0: random initialization
     """
-    if setup_settings:
+    if embedded:
         add_general_arguments_and_parse_settings(default_inst_file, seed)
 
     init_logger()
