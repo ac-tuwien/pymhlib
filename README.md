@@ -134,7 +134,13 @@ are realized in Julia.
 
 Major changes over major releases:
 
-#### Version 0.1 
+#### Version 0.1.1
+
+- basic functionality test `tests/test_all.py` for all problems and
+  algorithms added
+- polishing, minor fixes
+
+#### Version 0.1.0 
 - ALNS and parallel ALNS added
 - graph coloring, TSP, and minimum vertex cover demos added
 - population based iterated greedy and steady state genetic algorithms added
