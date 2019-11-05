@@ -61,7 +61,7 @@ class PBIG(Scheduler):
 
                     # Update population best
                     if modified.is_better(self.incumbent):
-                        self.incumbent = modified  # Update best solution
+                        self.incumbent = modified  # update best solution
 
             # Add new individuals to population and take the best
             for individual in changed:

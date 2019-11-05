@@ -63,29 +63,29 @@ class SteadyStateGeneticAlgorithm(Scheduler):
         population = self.population
 
         while True:
-            # Create a new solution
+            # create a new solution
             p1 = population[population.select()].copy()
 
-            # Methods to perform in this iteration
+            # methods to perform in this iteration
             methods: List[Method] = []
 
-            # Optionally crossover
+            # optional crossover
             if random.random() < self.own_settings.mh_ssga_cross_prob:
                 p2 = population[population.select()].copy()
 
-                # Workaround for Method not allowing a second Solution as parameter
-                def meth_cx(crossover, p2: Solution, p1 : Solution, par: Any, res: Result):
-                    crossover(p1, p2)
+                # workaround for Method not allowing a second Solution as parameter
+                def meth_cx(crossover, par2: Solution, par1: Solution, _par: Any, _res: Result):
+                    crossover(par1, par2)
 
                 meth_cx_with_p2_bound = partial(meth_cx, self.meth_cx, p2)
 
                 meth = Method("cx", meth_cx_with_p2_bound, None)
                 methods.append(meth)
 
-            # Mutation
+            # mutation
             methods.append(self.meth_mu)
 
-            # Optionally local search
+            # optionally local search
             if self.meth_ls and random.random() < self.own_settings.mh_ssga_loc_prob:
                 methods.append(self.meth_ls)
 
@@ -100,4 +100,4 @@ class SteadyStateGeneticAlgorithm(Scheduler):
 
             # Update best solution
             if p1.is_better(self.incumbent):
-                self.incumbent = p1
+                self.incumbent.copy_from(p1)

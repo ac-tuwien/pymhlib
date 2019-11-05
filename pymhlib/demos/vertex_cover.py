@@ -238,4 +238,4 @@ if __name__ == '__main__':
     from pymhlib.demos.common import run_optimization
     from pymhlib.settings import get_settings_parser
     parser = get_settings_parser()
-    run_optimization('Minimum Vertex Cover', VertexCoverInstance, VertexCoverSolution, "gnm-1000-2000")
+    run_optimization('Minimum Vertex Cover', VertexCoverInstance, VertexCoverSolution, "frb40-19-1.mis")
