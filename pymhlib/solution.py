@@ -30,7 +30,7 @@ class Solution(ABC):
     Attributes
         - obj_val: objective value; valid if obj_val_valid is set
         - obj_val_valid: indicates if obj_val has been calculated and is valid
-        - inst: optional reference to an problem instance object
+        - inst: optional reference to a problem instance object
         - alg: optional reference to an algorithm object using this solution
     """
 
