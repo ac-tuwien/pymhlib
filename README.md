@@ -1,5 +1,8 @@
 ## `pymhlib` - A Toolbox for Metaheuristics and Hybrid Optimization Methods
 
+Build status:
+[![travis][travis-img]](https://travis-ci.org/ac-tuwien/pymhlib)
+
 _This project is still in early development, any feedback is much appreciated!_
 
 `pymhlib` is a collection of modules supporting the efficient implementation of metaheuristics 
