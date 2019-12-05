@@ -19,9 +19,20 @@ class BinaryVectorSolution(VectorSolution, ABC):
         """Initializes the solution vector with zeros."""
         super().__init__(length, dtype=bool, **kwargs)
 
+    def dist(self, other: 'BinaryVectorSolution'):
+        """Return Hamming distance of current solution to other solution."""
+        return sum(np.logical_xor(self.x, other.x))
+
     def initialize(self, k):
         """Random initialization."""
         self.x = np.random.randint(0, 2, len(self.x), dtype=bool)
+        self.invalidate()
+
+    def k_random_flips(self, k):
+        """Perform k random flips and call invalidate()."""
+        for i in range(k):
+            p = random.randrange(self.inst.n)
+            self.x[p] = not self.x[p]
         self.invalidate()
 
     def check(self):

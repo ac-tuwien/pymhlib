@@ -135,13 +135,14 @@ class Scheduler(ABC):
         self.own_settings = OwnSettings(own_settings) if own_settings else settings
 
     def update_incumbent(self, sol, current_time):
-        """If the given solution is better than incumbent (or we do not have an incumbent yet) update it."""
+        """If the given solution is better than the incumbent (or we do not have an incumbent yet) update it."""
         if not self.incumbent_valid or sol.is_better(self.incumbent):
             self.incumbent.copy_from(sol)
             self.incumbent_iteration = self.iteration
             self.incumbent_time = current_time
             self.incumbent_valid = True
             return True
+        return False
 
     @staticmethod
     def next_method(meths: List, *, randomize: bool = False, repeat: bool = False):
@@ -162,7 +163,7 @@ class Scheduler(ABC):
                 break
 
     def perform_method(self, method: Method, sol: Solution, delayed_success=False) -> Result:
-        """Performs method on given solution and returns Results object.
+        """Perform method on given solution and returns Results object.
 
         Also updates incumbent, iteration and the method's statistics in method_stats.
         Furthermore checks the termination condition and eventually sets terminate in the returned Results object.
@@ -297,7 +298,7 @@ class Scheduler(ABC):
             ms.successes += 1
             ms.obj_gain += obj_new - obj_old
 
-    def check_termination(self):
+    def check_termination(self) -> bool:
         """Check termination conditions and return True when to terminate."""
         t = time.process_time()
         if 0 <= self.own_settings.mh_titer <= self.iteration or \
@@ -307,6 +308,7 @@ class Scheduler(ABC):
                 0 <= self.own_settings.mh_tobj and not self.incumbent.is_worse_obj(self.incumbent.obj(),
                                                                                    self.own_settings.mh_tobj):
             return True
+        return False
 
     def log_iteration_header(self):
         """Write iteration log header."""
@@ -424,4 +426,4 @@ class Scheduler(ABC):
             res = self.perform_method(m, sol)
             if res.terminate:
                 break
-            self.update_incumbent(sol, time.process_time())
+            self.update_incumbent(sol, time.process_time() - self.time_start)

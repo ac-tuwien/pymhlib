@@ -88,9 +88,7 @@ def set_settings(s: Namespace):
 
 
 def seed_random_generators(seed=None):
-    """Initialize random number generators with settings.seed. If zero, a random seed is generated.
-
-    If a seed is given as argument, it is used instead of settings.seed, which is set accordingly.
+    """Initialize random number generators with settings.seed or the given value; if zero, a random seed is generated.
     """
     if seed is not None:
         settings.seed = seed
