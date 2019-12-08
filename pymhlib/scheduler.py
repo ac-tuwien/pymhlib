@@ -12,7 +12,7 @@ import time
 import logging
 from math import log10
 
-from pymhlib.settings import settings, get_settings_parser, OwnSettings, add_bool_arg
+from pymhlib.settings import settings, get_settings_parser, OwnSettings, boolArg
 from pymhlib.solution import Solution, TObj
 from pymhlib.log import LogLevel
 
@@ -25,11 +25,12 @@ parser.add_argument("--mh_ttime", type=int, default=-1, help='time limit [s] (<0
 parser.add_argument("--mh_tctime", type=int, default=-1, help='maximum time [s] without improvement (<0: turned off)')
 parser.add_argument("--mh_tobj", type=float, default=-1,
                     help='objective value at which should be terminated when reached (<0: turned off)')
-add_bool_arg(parser, "mh_lnewinc", default=True, help='write iteration log if new incumbent solution')
+parser.add_argument("--mh_lnewinc", type=boolArg, default=True, help='write iteration log if new incumbent solution')
 parser.add_argument("--mh_lfreq", type=int, default=0,
                     help='frequency of writing iteration logs (0: none, >0: number of iterations, '
                          '-1: iteration 1,2,5,10,20,...')
-add_bool_arg(parser, "mh_checkit", default=False, help='call check() for each solution after each method application')
+parser.add_argument("--mh_checkit", type=boolArg, default=False,
+                    help='call check() for each solution after each method application')
 parser.add_argument("--mh_workers", type=int, default=4, help='number of worker processes when using multiprocessing')
 
 
@@ -282,12 +283,12 @@ class Scheduler(ABC):
             self.run_time = time.process_time() - self.time_start
             res.terminate = True
 
-    def delayed_success_update(self, method: Method, obj_old: TObj, t_start: TObj, sol: Solution):
+    def delayed_success_update(self, method: Method, obj_old: TObj, t_start: float, sol: Solution):
         """Update an earlier performed method's success information in method_stats.
 
         :param method: earlier performed method
         :param obj_old: objective value of solution with which to compare to determine success
-        :param t_start: time when the application of method dad started
+        :param t_start: time when the application of method had started
         :param sol: current solution considered the final result of the method
         """
         t_end = time.process_time()

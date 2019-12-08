@@ -7,14 +7,14 @@ from statistics import stdev
 import numpy as np
 
 from pymhlib.scheduler import Method, Result
-from pymhlib.settings import get_settings_parser, settings, OwnSettings, add_bool_arg
+from pymhlib.settings import get_settings_parser, settings, OwnSettings, boolArg
 from pymhlib.solution import Solution
 
 
 parser = get_settings_parser()
 parser.add_argument("--mh_pop_size", type=int, default=100, help='Population size')
 parser.add_argument("--mh_pop_tournament_size", type=int, default=10, help='Group size in tournament selection')
-add_bool_arg(parser, "mh_pop_dupelim", default=True, help='Prevent duplicates in population')
+parser.add_argument("--mh_pop_dupelim", type=boolArg, default=True, help='Prevent duplicates in population')
 
 
 class Population(np.ndarray):
