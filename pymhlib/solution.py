@@ -88,10 +88,12 @@ class Solution(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
     def __eq__(self, other: "Solution") -> bool:
-        """Return true if the other solution is equal to the current one."""
-        raise NotImplementedError
+        """Return true if the other solution is equal to the current one.
+
+        The default implementation returns True if the objective values are the same.
+        """
+        return self.obj() == other.obj()
 
     def is_better(self, other: "Solution") -> bool:
         """Return True if the current solution is better in terms of the objective function than the other."""
@@ -114,9 +116,9 @@ class Solution(ABC):
     def dist(self, other):
         """Return distance of current solution to other solution.
 
-        The default implementation just returns 0 if the solutions are the same and 1 otherwise.
+        The default implementation just returns 0 if the solutions have the same objective value.
         """
-        return self.obj() == other.obj()
+        return self.obj() != other.obj()
 
     def __hash__(self):
         """Return hash value for solution.

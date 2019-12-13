@@ -9,7 +9,7 @@ from math import exp
 from itertools import chain
 from dataclasses import dataclass
 
-from pymhlib.settings import get_settings_parser, settings, add_bool_arg
+from pymhlib.settings import get_settings_parser, settings, boolArg
 from pymhlib.solution import Solution
 from pymhlib.scheduler import Scheduler, Method
 from pymhlib.log import LogLevel
@@ -31,7 +31,7 @@ parser.add_argument("--mh_alns_dest_min_ratio", type=float, default=0.05,
                     help='ALNS minimum ratio of elements to destroy')
 parser.add_argument("--mh_alns_dest_max_ratio", type=float, default=0.35,
                     help='ALNS maximum ratio of elements to destroy')
-add_bool_arg(parser, "mh_alns_logscores", default=True, help='ALNS write out log information on scores')
+parser.add_argument("--mh_alns_logscores", type=boolArg, default=True, help='ALNS write out log information on scores')
 
 
 @dataclass

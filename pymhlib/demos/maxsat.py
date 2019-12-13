@@ -114,7 +114,7 @@ class MAXSATSolution(BinaryVectorSolution):
         super().check()
 
     def construct(self, par: Any, _result: Result):
-        """Scheduler method that constructs a new solution.
+        """Scheduler method that constructs a new random solution.
 
         Here we just call initialize.
         """
@@ -126,10 +126,7 @@ class MAXSATSolution(BinaryVectorSolution):
 
     def shaking(self, par, _result):
         """Scheduler method that performs shaking by flipping par random positions."""
-        for i in range(par):
-            p = random.randrange(self.inst.n)
-            self.x[p] = not self.x[p]
-        self.invalidate()
+        self.k_random_flips(par)
 
     def destroy(self, par: Any, _result: Result):
         """Destroy operator for ALNS selects par*ALNS.get_number_to_destroy positions uniformly at random for removal.

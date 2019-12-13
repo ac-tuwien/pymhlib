@@ -36,18 +36,19 @@ def get_settings_parser() -> ArgParser:
     return _parser
 
 
-def add_bool_arg(parser: ArgParser, name: str, default: bool, **kwargs):
-    """Add a boolean parameter to the settings parser.
+def boolArg(v):
+    """Own boolean type for arguments, which converts a string into a bool.
 
-    This helper function add two arguments "--"+name and "--no-"+name to the settings parser for a boolean parameter.
-
-    :param parser: parser obtained by get_settings_parser
-    :param name: name of the parameter without "--"
-    :param default: default value
-    :param kwargs: further parameters such as help
+    Provide it as type in add_argument.
     """
-    parser.add_argument('--' + name, dest=name, action='store_true', default=default, **kwargs)
-    parser.add_argument('--no-' + name, dest=name, action='store_false')
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise ValueError('Boolean value expected.')
 
 
 def parse_settings(args=None, return_unknown=False, default_config_files=None, seed=0):
@@ -88,9 +89,7 @@ def set_settings(s: Namespace):
 
 
 def seed_random_generators(seed=None):
-    """Initialize random number generators with settings.seed. If zero, a random seed is generated.
-
-    If a seed is given as argument, it is used instead of settings.seed, which is set accordingly.
+    """Initialize random number generators with settings.seed or the given value; if zero, a random seed is generated.
     """
     if seed is not None:
         settings.seed = seed
