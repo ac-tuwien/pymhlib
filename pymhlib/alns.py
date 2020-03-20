@@ -181,6 +181,10 @@ class ALNS(Scheduler):
         destroy_data.score += score
         repair_data.score += score
 
+    def cool_down(self):
+        """Apply geometric cooling."""
+        self.temperature *= self.own_settings.mh_alns_temp_dec_factor
+
     def log_scores(self):
         """Write information on received scores and weight update to log."""
         indent = ' ' * 32
@@ -204,6 +208,7 @@ class ALNS(Scheduler):
                 sol.copy_from(sol_incumbent)
                 return
             self.update_operator_weights()
+            self.cool_down()
 
     def run(self) -> None:
         """Actually performs the construction heuristics followed by the ALNS."""
