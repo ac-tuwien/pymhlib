@@ -137,10 +137,12 @@ are realized in Julia.
 
 Major changes over major releases:
 
+#### Version 0.1.2
+- directory renamed to pymhlib to correspond to module name
+- bug fix in Metropolis criterion of ALNS
 - boolean arguments must now be specified in the command line as any other parameter
 
 #### Version 0.1.1
-
 - basic functionality test `tests/test_all.py` for all problems and
   algorithms added
 - polishing, minor fixes
