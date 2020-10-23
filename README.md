@@ -15,10 +15,14 @@ This Python `mhlib` version emerged from the
 [C++ `mhlib`](https://bitbucket.org/ads-tuwien/mhlib) to which it has certain similarities 
 but also many differences.
 
+Note that there also exists a more recent efficient **Julia-implementation** of this libraries, 
+following a similar design concept: [Julia MHLib.jl](https://github.com/ac-tuwien/MHLib.jl)
+
 The main purpose of the library is to support rapid prototyping and teaching. 
 While ultimately efficient implementations of such algorithms in compiled 
-languages like C++ will likely be faster, the expected advantage of the Python
-implementation lies in the expected faster implementation.
+languages like Julia or C++ will in general be much faster, an advantage of 
+the Python implementation lies in the possibly quicker development cycle.
+
 
 `pymhlib` is developed primarily by the 
 [Algorithms and Complexity Group of TU Wien](https://www.ac.tuwien.ac.at), 
