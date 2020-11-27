@@ -2,7 +2,7 @@
 
 import numpy as np
 from abc import ABC
-from typing import List, Any, Tuple
+from typing import List, Tuple
 
 from pymhlib.solution import VectorSolution, TObj
 import random
@@ -129,18 +129,17 @@ class PermutationSolution(VectorSolution, ABC):
         np.random.shuffle(order)
         for idx, p1 in enumerate(order[:n - 1]):
             for p2 in order[idx + 1:]:
-                if p1 > p2:
-                    p1, p2 = p2, p1
-                # consider the move that self.x from position p1 to position p2
-                delta = self.two_opt_move_delta_eval(p1, p2)
+                pa, pb = (p1, p2) if p1 < p2 else (p2, p1)
+                # consider the move that self.x is inverted from position p1 to position p2
+                delta = self.two_opt_move_delta_eval(pa, pb)
                 if self.is_better_obj(delta, best_delta):
                     if not best_improvement:
-                        self.apply_two_opt_move(p1, p2)
+                        self.apply_two_opt_move(pa, pb)
                         self.obj_val += delta
                         return True
                     best_delta = delta
-                    best_p1 = p1
-                    best_p2 = p2
+                    best_p1 = pa
+                    best_p2 = pb
         if best_p1:
             self.apply_two_opt_move(best_p1, best_p2)
             self.obj_val += best_delta
