@@ -139,7 +139,10 @@ are realized in Julia.
 
 ### Changelog
 
-Major changes over major releases:
+Major changes in releases:
+
+#### Version 0.1.3
+- bug fix in 2-opt neighborhood search of permutation representation
 
 #### Version 0.1.2
 - directory renamed to pymhlib to correspond to module name
