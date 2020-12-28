@@ -1,7 +1,7 @@
-#!/usr/bin/python3.7
+#!/usr/bin/python3
 """Calculate grouped basic statistics for one or two dataframes/TSV files obtained e.g. from multi-run-summary.
 
-The input data are either given via stdin or in one or two files provided 
+The input data are either given via stdin or in one or two files provided
 as parameters. If two tsv files are given, they are assumed to be results
 from two different algorithms on the same instances, and they are compared
 including a Wilcoxon rank sum test.
@@ -13,18 +13,17 @@ conventions for the filenames encoding instance and run information.
 
 import re
 import sys
-import warnings
+import math
 
 import configargparse as argparse
-import math
-import numpy as np
+import numpy
 import pandas as pd
 import scipy.stats
 
 
 def categ(x):
     """Determine the category name to aggregate over from the given file name.
-    
+
     For aggregating a single table of raw data,  
     return category name for a given file name.
     """
@@ -47,8 +46,8 @@ def categ2(x):
 
 
 def categbase(x):
-    """For aggregating two tables corresponding to two different 
-    configurations that shall be compared, return detailed name of run 
+    """For aggregating two tables corresponding to two different
+    configurations that shall be compared, return detailed name of run
     (basename) that should match a corresponding one of the other configuration.
     """
     # re.sub(r"^.*/(T.*)-(.*)_(.*).res",r"\1-\2-\3",x)
@@ -67,22 +66,22 @@ pd.options.display.precision = 8
 
 def geometric_mean(x, shift=0):
     """Calculates geometric mean with shift parameter."""
-    return math.exp(math.mean(math.log(x + shift))) - shift
+    return math.exp(numpy.mean(math.log(x + shift))) - shift
 
 
-def calculateObj(rawdata, args):
+def calculateObj(raw_data, args):
     if args.times:
-        return (rawdata["obj"] == rawdata["UB"]) * rawdata["ttot"] + (
-                rawdata["obj"] != rawdata["UB"]) * 100000000
+        return (raw_data["obj"] == raw_data["UB"]) * raw_data["ttot"] + (
+                raw_data["obj"] != raw_data["UB"]) * 100000000
     else:
-        return rawdata["obj"]
+        return raw_data["obj"]
 
 
-def aggregate(rawdata, categfactor=categ):
+def aggregate(raw_data, categ_factor=categ):
     """Determine aggregated results for one summary data frame."""
-    rawdata["cat"] = rawdata.apply(lambda row: categfactor(row["file"]), axis=1)
-    rawdata["gap"] = rawdata.apply(lambda row: (row["ub"]-row["obj"])/row["ub"], axis=1)
-    grp = rawdata.groupby("cat")
+    raw_data["cat"] = raw_data.apply(lambda row: categ_factor(row["file"]), axis=1)
+    raw_data["gap"] = raw_data.apply(lambda row: (row["ub"]-row["obj"])/row["ub"], axis=1)
+    grp = raw_data.groupby("cat")
     aggregated = grp.agg({"obj": [size, mean, std],
                           "ittot": median, "ttot": median, "ub":mean,
                           "gap": mean, "tbest": median})[["obj", "ittot", "ttot", "ub"]]
@@ -101,12 +100,12 @@ def aggregate(rawdata, categfactor=categ):
     #                   "ub_mean","gap_mean","tbest_med"]]
 
 
-def aggregatemip(rawdata, categfactor=categ):
+def aggregate_mip(raw_data, categ_factor=categ):
     """Determine aggregated results for one summary data frame for MIP results."""
-    rawdata["cat"] = rawdata.apply(lambda row: categfactor(row["file"]), axis=1)
-    rawdata["gap"] = rawdata.apply(lambda row: (row["Upper_bound"] -
+    raw_data["cat"] = raw_data.apply(lambda row: categ_factor(row["file"]), axis=1)
+    raw_data["gap"] = raw_data.apply(lambda row: (row["Upper_bound"] -
                                                 row["Lower_bound"]) / row["Upper_bound"], axis=1)
-    grp = rawdata.groupby("cat")
+    grp = raw_data.groupby("cat")
     aggregated = pd.DataFrame({"runs": grp["obj"].size(),
                                "ub_mean": grp["Upper_bound"].mean(),
                                "ub_sd": grp["Upper_bound"].std(),
@@ -149,9 +148,9 @@ def roundaggmip(a):
     return a.round({'ub_mean': 6, 'ub_sd': 6, 'lb_mean': 6, 'lb_sd': 6, 'ttot_med': 1, 'gap_mean': 1})
 
 
-def agg_print(rawdata):
+def agg_print(raw_data):
     """Perform aggregation and print results for one summary data frame."""
-    aggregated = aggregate(rawdata)
+    aggregated = aggregate(raw_data)
     aggtotal = totalagg(aggregated)
     print(roundagg(aggregated))
     print("\nTotals:")
@@ -168,7 +167,7 @@ def one_sided_wilcoxon_test(col1, col2) -> float:
     #     return 3
     # with warnings.catch_warnings():
     #   warnings.simplefilter("ignore")
-    msr, p = scipy.stats.wilcoxon(col1, col2, correction=True, zero_method="wilcox", alternative="less")
+    _msr, p = scipy.stats.wilcoxon(col1, col2, correction=True, zero_method="wilcox", alternative="less")
     # s,p = scipy.stats.mannwhitneyu(col1,col2,alternative="less")
     return p
 

@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from collections import defaultdict
 
 from pymhlib.solution import VectorSolution, TObj
-from pymhlib.settings import settings
 
 
 @dataclass
@@ -81,6 +80,8 @@ NodePool = Dict[State, Node]
 class DecisionDiag(ABC):
     """An abstract class for a DD.
 
+    Class attributes
+        - to_maximize: True for maximization, else False
     Attributes
         - inst: problem instance
         - id_generator: yields successive IDs for the nodes
@@ -91,6 +92,8 @@ class DecisionDiag(ABC):
         - NodeType: specific node type to be used determined from r
         - layers dict of dict of nodes at each layer
     """
+
+    to_maximize = True
 
     def __init__(self, inst, r: Node, t_state: State, sol: VectorSolution):
         super().__init__()
@@ -148,7 +151,7 @@ class DecisionDiag(ABC):
             return False
         depth_succ = depth + 1
         further_nodes_remaining = False
-        for s, n in layers[depth].items():
+        for _s, n in layers[depth].items():
             if self.expand_node(n, depth, layers[depth_succ]):
                 further_nodes_remaining = True
         return further_nodes_remaining
@@ -172,7 +175,7 @@ class DecisionDiag(ABC):
     @classmethod
     def get_sorted_nodes(cls, node_pool):
         """Return a sorted list of the nodes in the given node_pool, with the most promising node first."""
-        return sorted(node_pool.values(), key=lambda n: n.z_bp, reverse=settings.mh_maxi)
+        return sorted(node_pool.values(), key=lambda n: n.z_bp, reverse=cls.to_maximize)
 
     def relax_layer(self, node_pool: NodePool, max_width: int = 1):
         """Relax the last created layer at the given depth to the given maximum width."""
@@ -203,7 +206,7 @@ class DecisionDiag(ABC):
         node = self.t
         path = []
         assert node
-        for idx in range(len(self.sol.x)-1, -1, -1):
+        for _ in range(len(self.sol.x)-1, -1, -1):
             for pred in node.pred:
                 # print(pred, node.z_bp, pred.u.z_bp + pred.length)
                 if node.z_bp == pred.u.z_bp + pred.length:
@@ -266,4 +269,3 @@ class DecisionDiag(ABC):
 
         May return directly state1 or state2 if one of this state dominates the other.
         """
-        pass

@@ -4,8 +4,8 @@ Give an undirected (weighted) graph, find a maximum cardinality subset of nodes 
 no pair of nodes is adjacent in the graph.
 """
 
-import numpy as np
 from typing import Any, Tuple
+import numpy as np
 
 from pymhlib.solution import TObj
 from pymhlib.subsetvec_solution import SubsetVectorSolution

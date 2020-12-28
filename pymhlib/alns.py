@@ -4,10 +4,10 @@ The module realizes a classical ALNS based on the scheduler module.
 """
 
 from typing import List, Tuple
-import numpy as np
 from math import exp
 from itertools import chain
 from dataclasses import dataclass
+import numpy as np
 
 from pymhlib.settings import get_settings_parser, settings, boolArg
 from pymhlib.solution import Solution

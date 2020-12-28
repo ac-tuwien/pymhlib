@@ -1,13 +1,15 @@
 """Demo program addressing the MKP with decision diagrams."""
 
-import numpy as np
 from typing import DefaultDict
 from itertools import count
+import logging
+import numpy as np
 
 from pymhlib.settings import parse_settings, settings, get_settings_parser, get_settings_as_str
 from pymhlib.log import init_logger
 from pymhlib.demos.mkp import MKPInstance, MKPSolution
 from pymhlib.decision_diag import State, Node, DecisionDiag
+from pymhlib.demos.common import data_dir
 
 
 class MKPState(State, tuple):
@@ -29,7 +31,6 @@ class MKPState(State, tuple):
 
 class MKPNode(Node):
     """A DD node for the MKP."""
-    pass
 
 
 class MKPDecisionDiag(DecisionDiag):
@@ -58,6 +59,7 @@ class MKPDecisionDiag(DecisionDiag):
         return MKPState(y)
 
     def derive_solution(self) -> MKPSolution:
+        """Derive MKP solution."""
         path = self.derive_best_path()
         # print(path)
         sel_pos = count()
@@ -74,8 +76,8 @@ class MKPDecisionDiag(DecisionDiag):
 
 def main():
     """Test for the DD classes."""
-    import logging
-    from pymhlib.demos.common import data_dir
+    # import logging
+    # from pymhlib.demos.common import data_dir
     parser = get_settings_parser()
     parser.add("--inst_file", type=str, default=data_dir+'mknap-small.txt', help='problem instance file')
     # parser.set_defaults(seed=3)
@@ -83,10 +85,10 @@ def main():
     parse_settings()
     init_logger()
     logger = logging.getLogger("pymhlib")
-    logger.info(f"pymhlib demo for using decision diagrams for the MKP")
+    logger.info("pymhlib demo for using decision diagrams for the MKP")
     logger.info(get_settings_as_str())
     instance = MKPInstance(settings.inst_file)
-    logger.info(f"MKP instance read:\n" + str(instance))
+    logger.info("MKP instance read:\n%s", str(instance))
 
     # solution = MKPSolution(instance)
     # solution.initialize(0)
@@ -95,7 +97,7 @@ def main():
     logger.info(dd)
     sol = dd.derive_solution()
     # sol.check()
-    logger.info(f"Solution: {sol}, obj={sol.obj()}")
+    logger.info("Solution: %s, obj=%f", sol, sol.obj())
 
 
 if __name__ == '__main__':

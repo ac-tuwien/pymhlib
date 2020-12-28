@@ -8,10 +8,10 @@ represented bei general fixed-length vectors, boolean fixed-length vectors and s
 For a concrete optimization problem to solve you have to derive from one of these classes.
 """
 
-from abc import ABC, abstractmethod
-import numpy as np
 from typing import TypeVar
+from abc import ABC, abstractmethod
 import random
+import numpy as np
 
 from pymhlib.settings import settings, get_settings_parser
 

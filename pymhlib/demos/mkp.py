@@ -5,8 +5,8 @@ Each item has a price and requires from each resource a certain amount.
 Find a subset of the items with maximum total price that does not exceed the resources' capacities.
 """
 
-import numpy as np
 from typing import Any, Tuple
+import numpy as np
 
 from pymhlib.solution import TObj
 from pymhlib.subsetvec_solution import SubsetVectorSolution

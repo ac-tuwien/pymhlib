@@ -1,11 +1,11 @@
 """A generic solution class for solutions that are represented by permutations of integers."""
 
-import numpy as np
 from abc import ABC
 from typing import List, Tuple
+import random
+import numpy as np
 
 from pymhlib.solution import VectorSolution, TObj
-import random
 
 
 class PermutationSolution(VectorSolution, ABC):

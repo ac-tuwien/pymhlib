@@ -1,9 +1,9 @@
+"""Population class for population based metaheuristics."""
 
 from typing import List
 from itertools import cycle
 import random
 from statistics import stdev
-
 import numpy as np
 
 from pymhlib.scheduler import Method, Result
@@ -55,32 +55,32 @@ class Population(np.ndarray):
     def best(self) -> int:
         """Get index of best solution."""
         best = 0
-        for i in range(len(self)):
-            if self[i].is_better(self[best]):
+        for i, elem in enumerate(self):
+            if elem.is_better(self[best]):
                 best = i
         return best
 
     def worst(self) -> int:
         """Get index of worst solution."""
         worst = 0
-        for i in range(len(self)):
-            if self[i].is_worse(self[worst]):
+        for i, elem in enumerate(self):
+            if elem.is_worse(self[worst]):
                 worst = i
         return worst
 
     def tournament_selection(self) -> int:
         """Select one solution with tournament selection with replacement and return its index."""
-        k = self.own_settings.mh_pop_tournament_size
+        k = self.own_settings.mh_pop_tournament_size  # pylint: disable=no-member
         best = random.randrange(len(self))
-        for i in range(k - 1):
+        for _ in range(k - 1):
             idx = random.randrange(len(self))
             if self[idx].is_better(self[best]):
                 best = idx
         return best
-    
+
     def select(self) -> int:
         """Select one solution and return its index.
-        
+
         So far calls tournament_selection. May be extended in the future.
         """
         return self.tournament_selection()

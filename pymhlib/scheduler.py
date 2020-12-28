@@ -94,7 +94,7 @@ class Scheduler(ABC):
         - incumbent_valid: True if incumbent is a valid solution to be considered
         - incumbent_iteration: iteration in which incumbent was found
         - incumbent_time: time at which incumbent was found
-        - population: only used in derived population-based metaheurstics and here for logging, otherwise None
+        - population: only used in derived population-based metaheuristics and here for logging, otherwise None
         - methods: list of all Methods
         - method_stats: dict of MethodStatistics for each Method
         - iteration: overall number of method applications
@@ -306,7 +306,7 @@ class Scheduler(ABC):
                 0 <= self.own_settings.mh_tciter <= self.iteration - self.incumbent_iteration or \
                 0 <= self.own_settings.mh_ttime <= t - self.time_start or \
                 0 <= self.own_settings.mh_tctime <= t - self.incumbent_time or \
-                0 <= self.own_settings.mh_tobj and not self.incumbent.is_worse_obj(self.incumbent.obj(),
+                self.own_settings.mh_tobj >= 0 and not self.incumbent.is_worse_obj(self.incumbent.obj(),
                                                                                    self.own_settings.mh_tobj):
             return True
         return False
@@ -323,6 +323,7 @@ class Scheduler(ABC):
 
     @staticmethod
     def is_logarithmic_number(x: int):
+        """Return True for values 1, 2, 5, 10, 20, 50..."""
         lr = log10(x) % 1
         return abs(lr) < Scheduler.eps or abs(lr-Scheduler.log10_2) < Scheduler.eps or \
             abs(lr-Scheduler.log10_5) < Scheduler.eps
@@ -361,7 +362,6 @@ class Scheduler(ABC):
     @abstractmethod
     def run(self):
         """Actually performs the optimization."""
-        pass
 
     @staticmethod
     def sdiv(x, y):
@@ -375,9 +375,9 @@ class Scheduler(ABC):
         """Write overall statistics."""
         if not self.run_time:
             self.run_time = time.process_time() - self.time_start
-        s = f"Method statistics:\n"
-        s += f"S  method    iter   succ succ-rate%    tot-obj-gain    avg-obj-gain rel-succ%  net-time  " \
-             f"net-time%  brut-time  brut-time%\n"
+        s = "Method statistics:\n"
+        s += "S  method    iter   succ succ-rate%    tot-obj-gain    avg-obj-gain rel-succ%  net-time  " \
+             "net-time%  brut-time  brut-time%\n"
 
         total_applications = 0
         total_netto_time = 0.0

@@ -1,9 +1,9 @@
 """A generic class for solutions that are represented by fixed-length binary vectors."""
 
-import numpy as np
 from abc import ABC
 import random
 from typing import Tuple
+import numpy as np
 
 from pymhlib.solution import VectorSolution, TObj
 
@@ -30,7 +30,7 @@ class BinaryVectorSolution(VectorSolution, ABC):
 
     def k_random_flips(self, k):
         """Perform k random flips and call invalidate()."""
-        for i in range(k):
+        for _ in range(k):
             p = random.randrange(self.inst.n)
             self.x[p] = not self.x[p]
         self.invalidate()

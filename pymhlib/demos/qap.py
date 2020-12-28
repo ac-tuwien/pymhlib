@@ -7,9 +7,9 @@ The task is to assign all facilities to different locations with the goal of min
 the sum of the distances multiplied by the corresponding flows.
 """
 
-import numpy as np
 import random
 from typing import Any, Tuple
+import numpy as np
 
 from pymhlib.permutation_solution import PermutationSolution
 from pymhlib.scheduler import Result
@@ -92,7 +92,7 @@ class QAPSolution(PermutationSolution):
 
     def shaking(self, par: Any, _result: Result):
         """Scheduler method that performs shaking by par random 2-exchange moves."""
-        for i in range(par):
+        for _ in range(par):
             p1 = random.randrange(0, self.inst.n)
             p2 = random.randrange(0, self.inst.n)
             self.x[p1], self.x[p2] = self.x[p2], self.x[p1]

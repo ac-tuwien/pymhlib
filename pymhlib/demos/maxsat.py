@@ -3,9 +3,9 @@
 The goal is to maximize the number of clauses satisfied in a boolean function given in conjunctive normal form.
 """
 
-import numpy as np
 import random
 from typing import Any, Tuple
+import numpy as np
 
 from pymhlib.solution import TObj
 from pymhlib.binvec_solution import BinaryVectorSolution
@@ -45,8 +45,8 @@ class MAXSATInstance:
                     try:
                         self.n = int(fields[2])
                         self.m = int(fields[3])
-                    except ValueError:
-                        raise ValueError(f"Invalid values in line 'p cnf': {line}")
+                    except ValueError as val_error:
+                        raise ValueError(f"Invalid values in line 'p cnf': {line}") from val_error
                     self.variable_usage = [list() for _ in range(self.n)]
                 elif len(fields) >= 1:
                     # read clause
@@ -57,8 +57,8 @@ class MAXSATInstance:
                         for v in clause:
                             self.variable_usage[abs(v)-1].append(len(self.clauses))
                         self.clauses.append(np.array(clause))
-                    except ValueError:
-                        raise ValueError(f"Invalid clause: {line}")
+                    except ValueError as val_error:
+                        raise ValueError(f"Invalid clause: {line}") from val_error
 
         for v, usage in enumerate(self.variable_usage):
             self.variable_usage[v] = np.array(usage)

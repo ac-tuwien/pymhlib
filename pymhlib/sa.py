@@ -9,8 +9,8 @@ From the demo applications, only the TSP, QAP and MAXSAT support SA so far.
 
 from typing import List, Callable
 import time
-import numpy as np
 from math import exp
+import numpy as np
 
 from pymhlib.scheduler import Method, Scheduler, MethodStatistics
 from pymhlib.settings import get_settings_parser
@@ -91,7 +91,7 @@ class SA(Scheduler):
         sa_method = Method("sa", sa_iteration, 0)
 
         while True:
-            for it_ in range(self.equi_iter):
+            for _ in range(self.equi_iter):
                 t_start = time.process_time()
                 obj_old = self.incumbent.obj()
                 res = self.perform_method(sa_method, sol, delayed_success=True)

@@ -4,12 +4,11 @@ Given an undirected simple graph, find a minimum subset of the vertices so that 
 least one of its end points is in this subset.
 """
 
-import networkx as nx
 import random
-from typing import Any
-import heapq
+from typing import Any, Tuple
 from itertools import combinations
-from typing import Tuple
+import heapq
+import networkx as nx
 
 from pymhlib.solution import SetSolution, TObj
 from pymhlib.settings import get_settings_parser
@@ -231,11 +230,11 @@ class VertexCoverSolution(SetSolution):
         raise NotImplementedError
 
     def crossover(self, other: 'VertexCoverSolution') -> 'VertexCoverSolution':
+        """Abstract crossover function."""
         raise NotImplementedError
 
 
 if __name__ == '__main__':
-    from pymhlib.demos.common import run_optimization
-    from pymhlib.settings import get_settings_parser
+    from pymhlib.demos.common import run_optimization, data_dir
     parser = get_settings_parser()
-    run_optimization('Minimum Vertex Cover', VertexCoverInstance, VertexCoverSolution, "frb40-19-1.mis")
+    run_optimization('Minimum Vertex Cover', VertexCoverInstance, VertexCoverSolution, data_dir + "frb40-19-1.mis")

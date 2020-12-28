@@ -9,14 +9,14 @@ The goal in the MAXSAT problem is to maximize the number of clauses satisfied in
 conjunctive normal form.
 """
 
-import numpy as np
+import os
 import random
 from typing import Any
+import numpy as np
 
 # from julia import Julia
 # jl = Julia(sysimage="/home/guenther/s.so")  # only use when compiled Julia system image available
 from julia import Base, Main
-import os
 
 from pymhlib.binvec_solution import BinaryVectorSolution
 from pymhlib.alns import ALNS
@@ -78,7 +78,7 @@ class JuliaMAXSAT2Solution(BinaryVectorSolution):
 
     def shaking(self, par, _result):
         """Scheduler method that performs shaking by flipping par random positions."""
-        for i in range(par):
+        for _ in range(par):
             p = random.randrange(self.inst.n)
             self.x[p] = not self.x[p]
         self.invalidate()

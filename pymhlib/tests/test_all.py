@@ -1,9 +1,9 @@
-from unittest import TestCase, main
 """Basic functionality tests.
 
 Note that several of the heuristics would need to run for a longer time in order to get a more reasonable solution,
 nor are all the applied algorithms really meaningful for the considered problem.
 """
+from unittest import TestCase, main
 
 from pymhlib.demos.common import run_optimization, data_dir, add_general_arguments_and_parse_settings
 from pymhlib.settings import get_settings_parser, settings, seed_random_generators
@@ -20,6 +20,8 @@ add_general_arguments_and_parse_settings()
 
 
 class TestAll(TestCase):
+    """Diverse test functions."""
+    # pylint: disable=missing-function-docstring
 
     def test_maxsat_gvns(self):
         seed_random_generators(42)
@@ -98,7 +100,7 @@ class TestAll(TestCase):
         settings.inst_file = data_dir + "maxsat-adv1.cnf"
         settings.alg = 'par_alns'
         settings.mh_titer = 600
-        solution = run_optimization('MAXSAT', MAXSATInstance, MAXSATSolution, embedded=True)
+        _solution = run_optimization('MAXSAT', MAXSATInstance, MAXSATSolution, embedded=True)
         # self.assertEqual(solution.obj(), 728)  # non-deterministic result
 
 

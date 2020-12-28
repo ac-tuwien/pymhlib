@@ -68,14 +68,14 @@ def run_optimization(problem_name: str, instance_class, solution_class, default_
 
     init_logger()
     logger = logging.getLogger("pymhlib")
-    logger.info(f"pymhlib demo for solving {problem_name}")
+    logger.info("pymhlib demo for solving %s", problem_name)
     logger.info(get_settings_as_str())
     instance = instance_class(settings.inst_file)
-    logger.info(f"{problem_name} instance read:\n" + str(instance))
+    logger.info("%s instance read:\n%s", problem_name, str(instance))
     solution = solution_class(instance)
     # solution.initialize(0)
 
-    logger.info(f"Solution: {solution}, obj={solution.obj()}\n")
+    logger.info("Solution: %s, obj=%f\n", solution, solution.obj())
 
     if settings.alg == 'gvns':
         alg = GVNS(solution,
@@ -103,11 +103,11 @@ def run_optimization(problem_name: str, instance_class, solution_class, default_
                            own_settings)
     elif settings.alg == 'ssga':
         alg = SteadyStateGeneticAlgorithm(solution,
-                                          [Method(f"ch{i}", solution_class.construct, i) for i in
+                                          [Method("ch{i}", solution_class.construct, i) for i in
                                            range(settings.meths_ch)],
                                           solution_class.crossover,
-                                          Method(f"mu", solution_class.shaking, 1),
-                                          Method(f"ls", solution_class.local_improve, 1),
+                                          Method("mu", solution_class.shaking, 1),
+                                          Method("ls", solution_class.local_improve, 1),
                                           own_settings)
     elif settings.alg == 'sa':
         alg = SA(solution,

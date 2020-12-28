@@ -1,10 +1,10 @@
 """A generic class for solutions that are arbitrary cardinality subsets of a given set represented in vector form."""
 
-import numpy as np
 import random
 from abc import ABC
 from typing import Union
 from itertools import chain
+import numpy as np
 
 from pymhlib.solution import VectorSolution, Solution
 
@@ -59,6 +59,7 @@ class SubsetVectorSolution(VectorSolution, ABC):
         return str(self.x[:self.sel])
 
     def clear(self):
+        """Reset solution to empty selection."""
         self.sel = 0
         self.invalidate()
 
@@ -71,7 +72,7 @@ class SubsetVectorSolution(VectorSolution, ABC):
         self.fill(None if self.unselected_elems_in_x() else list(self.all_elements))
         self.invalidate()
 
-    def check(self, unsorted=False):
+    def check(self, unsorted=False):  # pylint: disable=arguments-differ
         """Check correctness of solution; throw an exception if error detected.
 
         :param unsorted: if set, it is not checked if s is sorted
@@ -142,7 +143,7 @@ class SubsetVectorSolution(VectorSolution, ABC):
         x = self.x
         k = min(k, self.sel)
         if k > 0:
-            for i in range(k):
+            for _ in range(k):
                 j = random.randrange(self.sel)
                 self.sel -= 1
                 if j != self.sel:
@@ -266,6 +267,7 @@ class SubsetVectorSolution(VectorSolution, ABC):
             the update of other data done
         :return: True if feasible, False if infeasible
         """
+        # pylint: disable=unused-argument
         if update_obj_val:
             self.invalidate()
         return True
@@ -284,6 +286,7 @@ class SubsetVectorSolution(VectorSolution, ABC):
             the update of other data done
         :return: True if feasible, False if infeasible
         """
+        # pylint: disable=unused-argument
         if update_obj_val:
             self.invalidate()
         return True

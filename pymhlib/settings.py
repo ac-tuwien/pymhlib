@@ -11,8 +11,8 @@ For the usage of config files see the documentation of configargparse or call th
 """
 
 import pickle
-import numpy as np
 import random
+import numpy as np
 from configargparse import ArgParser, Namespace, ArgumentDefaultsRawHelpFormatter
 
 
@@ -28,7 +28,7 @@ def get_settings_parser() -> ArgParser:
     After calling parse() once in the main program, all settings
     are available in the global settings dictionary.
     """
-    global _parser
+    global _parser  # pylint: disable=global-statement
     if not _parser:
         _parser = ArgParser(  # default_config_files=["default.cfg"],
                                            formatter_class=ArgumentDefaultsRawHelpFormatter)
@@ -42,7 +42,7 @@ def boolArg(v):
     Provide it as type in add_argument.
     """
     if isinstance(v, bool):
-       return v
+        return v
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
@@ -65,12 +65,16 @@ def parse_settings(args=None, return_unknown=False, default_config_files=None, s
     :param default_config_files: list of default config files to read
     :param seed: Seed value for initializing random number generators, 0: random
     """
-    global settings, unknown_args
+    global settings, unknown_args  # pylint: disable=global-statement
     p = get_settings_parser()
-    p.add_argument('--seed', type=int, help='seed for the random number generators (0: random init)',
-                   default=seed)
-    p.add_argument('-c', '--config', is_config_file=True, help='config file to be read')
-    p._default_config_files = default_config_files if default_config_files else []
+    if not settings.__dict__:
+        p.add_argument('--seed', type=int, help='seed for the random number generators (0: random init)', default=seed)
+        p.add_argument('-c', '--config', is_config_file=True, help='config file to be read')
+    else:
+        # parse_settings has already been called once, reset
+        settings.seed = seed
+
+    p._default_config_files = default_config_files if default_config_files else []  # pylint: disable=protected-access
     if return_unknown:
         _, unknown_args[:] = p.parse_known_args(args=args, namespace=settings)
     else:
@@ -109,7 +113,7 @@ def save_settings(filename):
 def load_settings(filename):
     """Load settings from given binary file."""
     with open(filename, 'rb') as f:
-        global settings
+        global settings  # pylint: disable=global-statement
         settings.__dict__ = vars(pickle.load(f))
         seed_random_generators()
 

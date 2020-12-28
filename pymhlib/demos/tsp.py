@@ -4,9 +4,9 @@ Given n cities and a symmetric distance matrix for all city pairs, find a shorte
 """
 
 import random
-import numpy as np
 import math
 from typing import Tuple, Any
+import numpy as np
 
 from pymhlib.permutation_solution import PermutationSolution
 from pymhlib.solution import TObj
@@ -37,9 +37,9 @@ class TSPInstance:
                 elif line.startswith("EOF"):
                     break
                 elif line.startswith("TYPE"):
-                    assert (line.split()[-1] == "TSP")
+                    assert line.split()[-1] == "TSP"
                 elif line.startswith("EDGE_WEIGHT_TYPE"):
-                    assert (line.split()[-1] == "EUC_2D")
+                    assert line.split()[-1] == "EUC_2D"
                 elif line.startswith("DIMENSION"):
                     dimension = int(line.split()[-1])
                 else:
@@ -50,7 +50,7 @@ class TSPInstance:
 
                     coordinates[num] = (x, y)
 
-        assert (len(coordinates) == dimension)
+        assert len(coordinates) == dimension
 
         # building adjacency matrix
         distances = np.zeros((dimension, dimension))
@@ -126,6 +126,7 @@ class TSPSolution(PermutationSolution):
         result.changed = True
 
     def local_improve(self, _par, _result):
+        """2-opt local search."""
         self.two_opt_neighborhood_search(True)
 
     def two_opt_move_delta_eval(self, p1: int, p2: int) -> int:
@@ -134,7 +135,7 @@ class TSPSolution(PermutationSolution):
         The function returns the difference in the objective function if the move would be performed,
         the solution, however, is not changed.
         """
-        assert (p1 < p2)
+        assert p1 < p2
         n = len(self.x)
         if p1 == 0 and p2 == n - 1:
             # reversing the whole solution has no effect

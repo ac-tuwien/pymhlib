@@ -4,8 +4,8 @@ Given a graph and an number of colors, color each node with one color so that
 the number of adjacent nodes having the same color is minimized.
 """
 
-import numpy as np
 from typing import Any, Tuple
+import numpy as np
 
 from pymhlib.solution import VectorSolution, TObj
 from pymhlib.scheduler import Result
@@ -165,7 +165,6 @@ class GCSolution(VectorSolution):
 
 if __name__ == '__main__':
     from pymhlib.demos.common import run_optimization, data_dir
-    from pymhlib.settings import settings, get_settings_parser
+    # from pymhlib.settings import settings, get_settings_parser
 
-    settings.mh_maxi = False
     run_optimization('Graph Coloring', GCInstance, GCSolution, data_dir + "fpsol2.i.1.col")

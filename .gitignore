@@ -6,3 +6,4 @@ venv/
 build/
 dist/
 pymhlib.egg-info/
+.vscode/.ropeproject/objectdb

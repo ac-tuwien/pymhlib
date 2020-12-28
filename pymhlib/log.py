@@ -92,7 +92,7 @@ class LogLevel:
     def decrease(cls):
         """Decrease indentation level by one."""
         cls.level -= 1
-        assert(cls.level >= 0)
+        assert cls.level >= 0
         cls.set_format()
 
     @classmethod

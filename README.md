@@ -91,7 +91,7 @@ and development versions are available at https://github.com/ac-tuwien/pymhlib.
 - **settings.py**:
     Allows for defining module-specific parameters directly in each module in an independent  distributed
     way, while values for these parameters can be provided as program arguments or in
-    configuration files. Most `pyhmlib` modules rely on this mechanism for their external parameters.
+    configuration files. Most `pymhlib` modules rely on this mechanism for their external parameters.
 
 Modules/scripts for analyzing results of many runs:
 
@@ -110,7 +110,7 @@ Modules/scripts for analyzing results of many runs:
 #### Demos
 
 For demonstration purposes, simple metaheuristic approaches are provided in the `demo` subdirectory for the following
-well-known combinatorial optimization problems. They can be startet by
+well-known combinatorial optimization problems. They can be started by
 
     python3 -m pymhlib.demos.<problem> ...
 
@@ -140,6 +140,10 @@ are realized in Julia.
 ### Changelog
 
 Major changes in releases:
+
+#### Version 0.1.4
+- cleaning according to pylint warnings
+- settings.parse_args may now be called multiple times
 
 #### Version 0.1.3
 - bug fix in 2-opt neighborhood search of permutation representation

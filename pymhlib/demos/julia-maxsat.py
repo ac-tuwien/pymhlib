@@ -10,10 +10,10 @@ The goal in the MAXSAT problem is to maximize the number of clauses satisfied in
 conjunctive normal form.
 """
 
+import os
 # from julia import Julia
 # jl = Julia(sysimage="/home/guenther/s.so")  # only use when compiled Julia system image available
 from julia import Base, Main
-import os
 
 from pymhlib.demos.maxsat import MAXSATInstance
 

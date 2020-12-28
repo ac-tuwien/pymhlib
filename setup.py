@@ -1,3 +1,12 @@
+"""Setup program for installing pymhlib.
+
+To create upload a new version to PyPI:
+    - pip install --upgrade pysetup, wheel, twine
+    - Document changes in README.md
+    - Increment version also below
+    - python setup.py sdist bdist_wheel
+    - twine upload dist/*
+"""
 import setuptools
 
 with open("README.md", "r") as fh:
@@ -5,7 +14,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pymhlib",
-    version="0.1.3",
+    version="0.1.4",
     author="Günther Raidl et al.",
     author_email="raidl@ac.tuwien.ac.at",
     description="pymhlib - a toolbox for metaheuristics and hybrid optimization methods",
