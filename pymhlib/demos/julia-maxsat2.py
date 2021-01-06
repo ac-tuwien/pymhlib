@@ -15,13 +15,12 @@ from typing import Any
 import numpy as np
 
 # from julia import Julia
-# jl = Julia(sysimage="/home/guenther/s.so")  # only use when compiled Julia system image available
 from julia import Base, Main
 
 from pymhlib.binvec_solution import BinaryVectorSolution
 from pymhlib.alns import ALNS
 from pymhlib.scheduler import Result
-from pymhlib.demos.maxsat import MAXSATInstance
+# from pymhlib.demos.maxsat import MAXSATInstance
 
 Main.eval(r'include("'+os.path.dirname(__file__)+r'/julia-maxsat.jl")')
 

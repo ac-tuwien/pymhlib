@@ -206,7 +206,7 @@ class VertexCoverSolution(SetSolution):
     def shaking(self, par: Any, _result: Result):
         """Add par so far unselected nodes and apply remove_redundant."""
         s = self.s
-        x = set(range(self.inst.n)).difference(s)
+        x = list(set(range(self.inst.n)).difference(s))
         to_add = random.sample(x, max(len(x), par))
         for u in to_add:
             s.add(u)

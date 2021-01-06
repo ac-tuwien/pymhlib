@@ -47,6 +47,7 @@
         "stdev",
         "subsetvec",
         "succ",
+        "sysimage",
         "tciter",
         "tctime",
         "tobj",
@@ -55,5 +56,15 @@
         "typecheck",
         "unindented",
         "xover"
-    ]
+    ],
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "pymhlib",
+        "-p",
+        "test_*.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.unittestEnabled": true
 }

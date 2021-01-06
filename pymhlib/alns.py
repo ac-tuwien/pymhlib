@@ -91,8 +91,7 @@ class ALNS(Scheduler):
         """
         if weights is None:
             return np.random.choice(meths)
-        else:
-            return np.random.choice(meths, p=weights/sum(weights))
+        return np.random.choice(meths, p=weights/sum(weights))
 
     def select_method_pair(self) -> Tuple[Method, Method]:
         """Select a destroy and repair method pair according to current weights."""

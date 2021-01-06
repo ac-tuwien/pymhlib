@@ -5,4 +5,7 @@ ignored-classes=Namespace
 max-line-length=120
 
 [MESSAGES]
-disable=C0103
+disable=invalid-name, 
+    too-few-public-methods, too-many-arguments, too-many-nested-blocks, too-many-instance-attributes, 
+    too-many-locals, too-many-boolean-expressions, 
+    duplicate-code

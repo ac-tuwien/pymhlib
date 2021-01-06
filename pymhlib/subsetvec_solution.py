@@ -245,8 +245,7 @@ class SubsetVectorSolution(VectorSolution, ABC):
         """Return a list of yet unselected elements that may possibly be added."""
         if self.unselected_elems_in_x():
             return self.x[self.sel:]
-        else:
-            return list(set(self.all_elements) - set(self.x[:self.sel]))
+        return list(set(self.all_elements) - set(self.x[:self.sel]))
 
     def may_be_extendible(self) -> bool:
         """Quick check if the solution has chances to be extended by adding further elements."""

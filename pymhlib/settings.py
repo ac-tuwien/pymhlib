@@ -45,10 +45,9 @@ def boolArg(v):
         return v
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+    if v.lower() in ('no', 'false', 'f', 'n', '0'):
         return False
-    else:
-        raise ValueError('Boolean value expected.')
+    raise ValueError('Boolean value expected.')
 
 
 def parse_settings(args=None, return_unknown=False, default_config_files=None, seed=0):

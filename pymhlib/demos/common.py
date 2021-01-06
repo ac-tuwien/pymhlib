@@ -19,7 +19,7 @@ from pymhlib.ssga import SteadyStateGeneticAlgorithm
 data_dir = resource_filename("pymhlib", "demos/data/")
 
 
-def add_general_arguments_and_parse_settings(default_inst_file: str = 'inst.dat', seed: int = 0):
+def add_general_arguments_and_parse_settings(default_inst_file: str = 'inst.dat', args=None, seed: int = 0):
     """Some general parameters are registered and the settings are parsed.
 
     :param seed: optional seed value for the random number generators; 0: random initialization
@@ -40,7 +40,7 @@ def add_general_arguments_and_parse_settings(default_inst_file: str = 'inst.dat'
                         help='number of destroy methods to be used')
     parser.add_argument("--meths_re", type=int, default=3,
                         help='number of repair methods to be used')
-    parse_settings(seed=seed)
+    parse_settings(args=args, seed=seed)
 
 
 def run_optimization(problem_name: str, instance_class, solution_class, default_inst_file: str = "inst.dat",

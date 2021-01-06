@@ -16,7 +16,7 @@ from pymhlib.demos.qap import QAPInstance, QAPSolution
 from pymhlib.demos.vertex_cover import VertexCoverInstance, VertexCoverSolution
 
 parser = get_settings_parser()
-add_general_arguments_and_parse_settings()
+add_general_arguments_and_parse_settings(args=[])
 
 
 class TestAll(TestCase):
@@ -100,8 +100,8 @@ class TestAll(TestCase):
         settings.inst_file = data_dir + "maxsat-adv1.cnf"
         settings.alg = 'par_alns'
         settings.mh_titer = 600
-        _solution = run_optimization('MAXSAT', MAXSATInstance, MAXSATSolution, embedded=True)
-        # self.assertEqual(solution.obj(), 728)  # non-deterministic result
+        solution = run_optimization('MAXSAT', MAXSATInstance, MAXSATSolution, embedded=True)
+        self.assertGreaterEqual(solution.obj(), 0)
 
 
 if __name__ == '__main__':

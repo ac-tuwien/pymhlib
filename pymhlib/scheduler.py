@@ -115,7 +115,7 @@ class Scheduler(ABC):
         :param methods: list of scheduler methods to apply
         :param own_settings: an own settings object for locally valid settings that override the global ones
         :param consider_initial_sol: if true consider sol as valid solution that should be improved upon; otherwise
-            sol is considered just a possibly uninitialized of invalid solution template
+            sol is considered just a possibly uninitialized or invalid solution template
         :param population: optional population object used in derived population-based metaheuristic
         """
         self.incumbent = sol
@@ -368,8 +368,7 @@ class Scheduler(ABC):
         """Safe division: return x/y if y!=0 and nan otherwise."""
         if y == 0:
             return float('nan')
-        else:
-            return x/y
+        return x/y
 
     def method_statistics(self):
         """Write overall statistics."""

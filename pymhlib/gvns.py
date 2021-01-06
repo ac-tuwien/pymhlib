@@ -56,11 +56,10 @@ class GVNS(Scheduler):
                     if res.terminate:
                         return True
                     break
-                else:
-                    if res.terminate:
-                        return True
-                    if res.changed:
-                        sol2.copy_from(sol)
+                if res.terminate:
+                    return True
+                if res.changed:
+                    sol2.copy_from(sol)
             else:  # local optimum reached
                 return False
 
@@ -83,10 +82,9 @@ class GVNS(Scheduler):
                     if terminate or res.terminate:
                         return
                     break
-                else:
-                    if terminate or res.terminate:
-                        return
-                    sol2.copy_from(sol)
+                if terminate or res.terminate:
+                    return
+                sol2.copy_from(sol)
             else:
                 break
 

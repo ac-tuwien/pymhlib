@@ -12,10 +12,11 @@ conjunctive normal form.
 
 import os
 # from julia import Julia
-# jl = Julia(sysimage="/home/guenther/s.so")  # only use when compiled Julia system image available
-from julia import Base, Main
+from julia.api import Julia
+jl = Julia(compiled_modules=False)
+from julia import Main  # , Base
 
-from pymhlib.demos.maxsat import MAXSATInstance
+# from pymhlib.demos.maxsat import MAXSATInstance
 
 Main.eval(r'include("'+os.path.dirname(__file__)+r'/julia-maxsat.jl")')
 
