@@ -11,9 +11,9 @@ conjunctive normal form.
 """
 
 import os
-# from julia import Julia
-from julia.api import Julia
-jl = Julia(compiled_modules=False)
+from julia import Julia
+# from julia.api import Julia
+# jl = Julia(compiled_modules=False)
 from julia import Main  # , Base
 
 # from pymhlib.demos.maxsat import MAXSATInstance
