@@ -71,7 +71,8 @@ def parse_settings(args=None, return_unknown=False, default_config_files=None, s
         p.add_argument('-c', '--config', is_config_file=True, help='config file to be read')
     else:
         # parse_settings has already been called once, reset
-        settings.seed = seed
+        settings.__dict__.clear()
+        setattr(settings, "seed", seed)
 
     p._default_config_files = default_config_files if default_config_files else []  # pylint: disable=protected-access
     if return_unknown:
