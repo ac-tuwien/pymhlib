@@ -7,3 +7,4 @@ build/
 dist/
 pymhlib.egg-info/
 .vscode/.ropeproject/objectdb
+pymhlib/aggregate.py.old

@@ -5,6 +5,7 @@
         "MISP",
         "PBIG",
         "SSGA",
+        "andreas",
         "arange",
         "args",
         "binvec",
@@ -22,10 +23,12 @@
         "heapq",
         "iinfo",
         "imap",
+        "inplace",
         "issubset",
         "itbest",
         "iter",
         "itertools",
+        "ittot",
         "lcps",
         "lfreq",
         "lnewinc",
@@ -34,6 +37,7 @@
         "mh",
         "mknap",
         "mknapcb",
+        "nargs",
         "ndarray",
         "netto",
         "networkx",
@@ -48,6 +52,7 @@
         "subsetvec",
         "succ",
         "sysimage",
+        "tbest",
         "tciter",
         "tctime",
         "tobj",
@@ -55,6 +60,7 @@
         "ttot",
         "typecheck",
         "unindented",
+        "windbichler",
         "xover"
     ],
     "python.testing.unittestArgs": [
@@ -66,5 +72,6 @@
     ],
     "python.testing.pytestEnabled": false,
     "python.testing.nosetestsEnabled": false,
-    "python.testing.unittestEnabled": true
+    "python.testing.unittestEnabled": true,
+    "python.linting.pylintEnabled": true
 }

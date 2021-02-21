@@ -1,5 +1,5 @@
-#!/usr/bin/python3.7
-"""Summarizes essential information from multiple pymhlib algorithm runs found in the respective out and log files.
+#!/usr/bin/python3
+r"""Summarizes essential information from multiple pymhlib algorithm runs found in the respective out and log files.
 
 The information to be extracted from each out-file is specified by the list to_fetch containing tuples,
 where the first element is some numeric value indicating the order in which the elements are appearing in each out-file,
@@ -19,16 +19,16 @@ fetch:
     ]'
 """
 
-import configargparse as p
 import glob
 import os
 import re
 from dataclasses import dataclass
 from typing import Any, List
 from pandas import DataFrame
+import configargparse as p
 
 
-"""Configuration of what information to extract from the out/log files."""
+# Configuration of what information to extract from the out/log files.
 fetch = [
     (10, 'obj', r'^T best obj:\s(\d+\.?\d*)'),
     (30, 'ittot', r'^T total iterations:\s(\d+\.?\d*)'),
@@ -42,6 +42,7 @@ fetch = [
 
 @dataclass
 class Data:
+    """Information on data to be collected and collected list of values."""
     nr_to_fetch: int
     name: str
     reg_exp: str
@@ -50,7 +51,7 @@ class Data:
 
 
 def _parse_file(file: str, fetch_item, fetch_iter) -> bool:
-    """Parse file file, looking for fetch_item and when found take next fetch_item from fetch_iter.
+    """Parse `file`, looking for `fetch_item` and when found take next `fetch_item` from `fetch_iter`.
 
     :return: True when all information found, else False
     """
@@ -67,10 +68,9 @@ def _parse_file(file: str, fetch_item, fetch_iter) -> bool:
     return False
 
 
-def parse_files(paths: [List, str], to_fetch=None) -> DataFrame:
+def parse_files(paths: List[str], to_fetch=None) -> DataFrame:
     """Process list of files/directories or a single file/directory and return resulting dataframe."""
     if not to_fetch:
-        global fetch
         to_fetch = fetch[:-2]
     files = []
     if isinstance(paths, str):
@@ -107,19 +107,21 @@ def parse_files(paths: [List, str], to_fetch=None) -> DataFrame:
 
 
 def main():
+    """Main program for summarizing results from .out and .log files."""
     to_fetch = fetch
     parser = p.ArgumentParser(description='Summarize results for multiple pymhlib runs from their .out files.',
-                              config_file_parser_class=p.YAMLConfigFileParser)
+                              config_file_parser_class=p.YAMLConfigFileParser,
+                              default_config_files=['multi-run-summary.cfg'])
     parser.add_argument('paths', type=str, nargs='+',
                         help='a .out file or directory (tree) containing .out files')
     parser.add_argument('--log', type=bool, default=False, help='also process corresponding .log files')
     parser.add_argument('--fetch', type=str, default=None,
                         help='list of tuples specifying what information to fetch')
     parser.add_argument('-c', '--config', is_config_file=True, help='YAML-config file to be read')
-    parser._default_config_files = ['multi-run-summary.cfg']
 
     args = parser.parse_args()
     if args.fetch:
+        # pylint: disable=eval-used
         to_fetch = eval(args.fetch)
     else:
         if not args.log:
