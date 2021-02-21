@@ -97,7 +97,7 @@ Modules/scripts for analyzing results of many runs:
 
 - **multi_run_summary.py**:
     Collects essential information from multiple `pymhlib` algorithm runs found in the respective out and log files
-    and returns a corresponding pandas dataframe if used as a module or as a plain ASCII table when used as
+    and returns a corresponding pandas `DataFrame` if used as a module or as a plain ASCII table when used as
     independent script. The module can be easily configured to extract also arbitrary application-specific data.
     
 - **aggregate_results.py**:

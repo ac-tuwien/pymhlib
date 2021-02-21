@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 r"""Summarizes essential information from multiple pymhlib algorithm runs found in the respective out and log files.
 
 The information to be extracted from each out-file is specified by the list to_fetch containing tuples,
@@ -50,7 +50,7 @@ class Data:
     values: List
 
 
-def _parse_file(file: str, fetch_item, fetch_iter) -> bool:
+def _parse_file(file: str, fetch_item: Data, fetch_iter) -> bool:
     """Parse `file`, looking for `fetch_item` and when found take next `fetch_item` from `fetch_iter`.
 
     :return: True when all information found, else False

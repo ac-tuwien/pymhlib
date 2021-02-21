@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 """Calculate grouped basic statistics for one or two DataFrames/TSV files obtained e.g. from multi-run-summary.
 
 The input data are either given via stdin or in one or two files provided
@@ -26,33 +26,36 @@ def categ(x):
 
     For aggregating a single table of raw data, return category name for a given file name.
     """
+    x[:5]  # re.sub(r"^(.*)$", r"\1", x)
     # re.sub(r"^(.*)/(T.*)-(.*)_(.*).res",r"\1/\2-\3",x)
-    return re.sub(r".*[lcs|lcps]_(\d+)_(\d+)_(\d+)\.(\d+)(\.out)", r"\1/\2-\3",x)
+    # return re.sub(r".*[lcs|lcps]_(\d+)_(\d+)_(\d+)\.(\d+)(\.out)", r"\1/\2-\3",x)
     #return re.sub(r"([^/#_]*)(_.*_)?([^/#_]*)(__\d+)?([^/#_]*)\.out",
     #    r"\1\3\5",x)
 
 
 def categ2(x):
-    """For aggregating two tables corresponding to two different summary files,
+    """Extract category name from file name for aggregating two tables.
+
+    For aggregating two tables corresponding to two different summary files,
     extract category name from the given file names that shall be compared.
     """
+    x[3:]
     # re.sub(r"^(.*)/(T.*)-(.*)_(.*).res",r"\2-\3")
-    return re.sub(r"^.*[lcs|lcps]_(\d+)_(\d+)_(\d+)\.(\d+)(\.out)",
-           r"\1/\2-\3",x)
-    #return re.sub(r"^.*/([^/#_]*)(_.*_)?([^/#_]*)(#\d+)?([^/#_]*)\.out",
-    #       r"\1\2\3\4\5",x)
+    # return re.sub(r"^.*[lcs|lcps]_(\d+)_(\d+)_(\d+)\.(\d+)(\.out)", r"\1/\2-\3", x)
+    #return re.sub(r"^.*/([^/#_]*)(_.*_)?([^/#_]*)(#\d+)?([^/#_]*)\.out", r"\1\2\3\4\5",x)
 
 
 def categbase(x):
-    """For aggregating two tables corresponding to two different
+    """Basename of filename on which two tables should be merged.
+
+    For aggregating two tables corresponding to two different
     configurations that shall be compared, return detailed name of run
     (basename) that should match a corresponding one of the other configuration.
     """
+    x[3:]
     # re.sub(r"^.*/(T.*)-(.*)_(.*).res",r"\1-\2-\3",x)
-    return re.sub(r"^.*[lcs|lcps]_(\d+)_(\d+)_(\d+)\.(\d+)(\.out)",
-           r"\1_\2_\3.\4\5",x)
-    # return re.sub(r"^.*/([^/#_]*)(_.*_)?([^/#_]*)(#\\d+)?([^/#_]*)\\.out",
-    #       r"\1_\2_\3.\4\5",x)
+    # re.sub(r"^.*[lcs|lcps]_(\d+)_(\d+)_(\d+)\.(\d+)(\.out)", r"\1_\2_\3.\4\5", x)
+    # re.sub(r"^.*/([^/#_]*)(_.*_)?([^/#_]*)(#\\d+)?([^/#_]*)\\.out", r"\1_\2_\3.\4\5",x)
 
 def print_table_context():
     """Set display options forprinting tables unabbreviated.
@@ -69,25 +72,17 @@ def geometric_mean(x, shift=0):
     """Calculates geometric mean with shift parameter."""
     return math.exp(numpy.mean(math.log(x + shift))) - shift
 
-
-def calculate_obj(raw_data, args):
-    """Calculate argument times given, then set runtimes for optimal solutions as obj."""
-    if args.times:
-        return (raw_data["obj"] == raw_data["UB"]) * raw_data["ttot"] + (
-                raw_data["obj"] != raw_data["UB"]) * 100000000
-    return raw_data["obj"]
-
 #-------------------------------------------------------------------------
 # Aggregation of one summary data frame
 
-def aggregate(raw_data, categ_factor=categ):
+def aggregate(raw_data: pd.DataFrame, categ_factor=categ):
     """Determine aggregated results for one summary data frame."""
     raw_data["cat"] = raw_data.apply(lambda row: categ_factor(row["file"]), axis=1)
-    raw_data["gap"] = raw_data.apply(lambda row: (row["ub"]-row["obj"])/row["ub"], axis=1)
+    # raw_data["gap"] = raw_data.apply(lambda row: (row["ub"]-row["obj"])/row["ub"], axis=1)
     grp = raw_data.groupby("cat")
-    aggregated = grp.agg({"obj": [size, mean, std],
-                          "ittot": median, "ttot": median, "ub":mean,
-                          "gap": mean, "tbest": median})[["obj", "ittot", "ttot", "ub"]]
+    aggregated=pd.DataFrame({"runs":grp["obj"].size()})
+    aggregated["obj_mean"]=grp["obj"].mean()
+    aggregated["obj_sd"]=grp["obj"].std()
     return aggregated
     # aggregated = pd.DataFrame({"runs":grp["obj"].size(),
     #                           "obj_mean":grp["obj"].mean(),
@@ -106,15 +101,17 @@ def aggregate(raw_data, categ_factor=categ):
 def totalagg(agg):
     """Calculate total values over aggregate data."""
     total = pd.DataFrame({"total": [""],
-               "runs": [agg["runs"].sum()],
-               "obj_mean": [agg["obj_mean"].mean()],
-               # "obj_sd": agg["obj_sd"].mean(),
-               "ittot_med": [agg["ittot_med"].median()],
-               "ttot_med": [agg["ttot_med"].median()],
-               "tbest_med": [agg["tbest_med"].median()],
+               "runs": agg["runs"].sum(),
+               "obj_mean": agg["obj_mean"].mean(),
+               "obj_sd": agg["obj_sd"].mean(),
+               # "ittot_med": [agg["ittot_med"].median()],
+               # "ttot_med": [agg["ttot_med"].median()],
+               # "tbest_med": [agg["tbest_med"].median()],
                # "tbest_sd": agg["tbest"].std(),
             })
-    total = total[["total", "runs", "obj_mean", "ittot_med", "ttot_med", "ttot_med", "tbest_med"]]
+    total = total[["total", "runs", "obj_mean", "obj_sd"
+                    # "ittot_med", "ttot_med", "ttot_med", "tbest_med"
+                 ]]
     total = total.set_index("total")
     total.index.name = None
     return total
@@ -155,13 +152,12 @@ def agg_print(raw_data):
 #-------------------------------------------------------------------------
 # Aggregation and comparison of two summary data frames
 
-
 def one_sided_wilcoxon_test(col1, col2) -> float:
     """Perform one-sided Wilcoxon signed rank-test for the assumption col1 < col2 and return p-value."""
     dif = col1 - col2
     no_ties = len(dif[dif != 0])
     if no_ties < 1:
-        return float(1)
+        return 1.0
     # if (col1==col2).all():
     #     return 3
     # with warnings.catch_warnings():
@@ -176,59 +172,59 @@ def one_sided_wilcoxon_test(col1, col2) -> float:
 stat_test = one_sided_wilcoxon_test
 
 
-def do_aggregate2(raw,fact,criterion):
-    """Aggregate results of differences for the given criterion on
-       two merged summary data frames.
+def do_aggregate2(raw: pd.DataFrame, fact: str, criterion):
+    """Aggregate results of differences for the given criterion on two merged summary data frames.
     """
-    c_diff=criterion+"_diff"
-    c_x=criterion+"_x"
-    c_y=criterion+"_y"
-    raw[c_diff]=raw.apply(lambda row: row[c_x]-row[c_y],axis=1)
-    raw["A_less_B"]=raw.apply(lambda row: int(row[c_x]<row[c_y]),axis=1)
-    raw["B_less_A"]=raw.apply(lambda row: int(row[c_x]>row[c_y]),axis=1)
-    raw["A_eq_B"]=raw.apply(lambda row: int(row[c_x]==row[c_y]),axis=1)
-    # rawdata["gap"]=raw.apply(lambda row: (row["ub"]-row["obj"])/row["ub"],axis=1)
+    c_diff = criterion+"_diff"
+    c_x = criterion+"_x"
+    c_y = criterion+"_y"
+    raw[c_diff] = raw.apply(lambda row: row[c_x]-row[c_y],axis=1)
+    raw["X_less_Y"] = raw.apply(lambda row: int(row[c_x]<row[c_y]), axis=1)
+    raw["Y_less_X"] = raw.apply(lambda row: int(row[c_x]>row[c_y]), axis=1)
+    raw["X_eq_Y"] = raw.apply(lambda row: int(row[c_x]==row[c_y]), axis=1)
+    # rawdata["gap"]=raw.apply(lambda row: (row["ub"]-row["obj"])/row["ub"], axis=1)
     grp = raw.groupby(fact)
-    p_A_less_B=[]
-    p_B_less_A=[]
+    p_X_less_Y = []
+    p_Y_less_X = []
     for _g, d in grp:
-        p_A_less_B.append(stat_test(d[c_x],d[c_y]))
-        p_B_less_A.append(stat_test(d[c_y],d[c_x]))
+        p_X_less_Y.append(stat_test(d[c_x],d[c_y]))
+        p_Y_less_X.append(stat_test(d[c_y],d[c_x]))
     aggregated = pd.DataFrame({"runs":grp[c_x].size()})
-    aggregated["A_"+criterion+"_mean"]=grp[c_x].mean()
-    aggregated["B_"+criterion+"_mean"]=grp[c_y].mean()
-    aggregated["diff_mean"]=grp[c_diff].mean()
-    aggregated["A_less_B"]=grp["A_less_B"].sum()
-    aggregated["B_less_A"]=grp["B_less_A"].sum()
-    aggregated["A_eq_B"]=grp["A_eq_B"].sum()
-    aggregated["p_A_less_B"]=p_A_less_B
-    aggregated["p_B_less_A"]=p_B_less_A
+    aggregated["X_"+criterion+"_mean"] = grp[c_x].mean()
+    aggregated["Y_"+criterion+"_mean"] = grp[c_y].mean()
+    aggregated["diff_mean"] = grp[c_diff].mean()
+    aggregated["X_less_Y"] = grp["X_less_Y"].sum()
+    aggregated["Y_less_X"] = grp["Y_less_X"].sum()
+    aggregated["X_eq_Y"] = grp["X_eq_Y"].sum()
+    aggregated["p_X_less_Y"] = p_X_less_Y
+    aggregated["p_Y_less_X"] = p_Y_less_X
     return aggregated
 
 
-def aggregate2(rawdata1, rawdata2, criterion):
+def aggregate2(rawdata1: pd.DataFrame, rawdata2: pd.DataFrame, criterion):
     """Determine aggregated results for two summarry data frames.
 
     This includes statistical tests for significant differences of results for the
     given criterion.
     """
-    rawdata1["base"]=rawdata1.apply(lambda row: categbase(row["file"]),axis=1)
-    rawdata2["base"]=rawdata2.apply(lambda row: categbase(row["file"]),axis=1)
-    raw = pd.merge(rawdata1,rawdata2,on="base",how="outer")
-    raw["class"]=raw.apply(lambda row: categ2(row["file_x"]),axis=1)
-    aggregated = do_aggregate2(raw,"class",criterion)
-    raw["total"]=raw.apply(lambda row: "total",axis=1)
-    aggtotal = do_aggregate2(raw,"total",criterion)
-    return {"grouped":aggregated,"total":aggtotal}
+    rawdata1["base"] = rawdata1.apply(lambda row: categbase(row["file"]), axis=1)
+    rawdata2["base"] = rawdata2.apply(lambda row: categbase(row["file"]), axis=1)
+    raw = pd.merge(rawdata1, rawdata2, on="base", how="outer")
+    print(rawdata1)
+    raw["class"] = raw.apply(lambda row: categ2(row["file_x"]), axis=1)
+    aggregated = do_aggregate2(raw,"class", criterion)
+    raw["total"] = raw.apply(lambda row: "total", axis=1)
+    aggtotal = do_aggregate2(raw, "total", criterion)
+    return {"grouped": aggregated, "total": aggtotal}
 
 
-def roundagg2(a, criterion):
+def roundagg2(a: pd.DataFrame, criterion):
     """Round aggregated data for two summary data frames for printing."""
-    a["A_less_B"] = a["A_less_B"].map(int)
-    a["B_less_A"] = a["B_less_A"].map(int)
-    a["A_eq_B"] = a["A_eq_B"].map(int)
-    a = a.round({"A_"+criterion+"_mean":6, "B_"+criterion+"_mean":6, "diff_mean":6,
-                    "A_less_B":0, "B_less_A":0, "A_eq_B":0, "p_A_less_B":4, "p_B_less_A":4})
+    a["X_less_Y"] = a["X_less_Y"].map(int)
+    a["Y_less_X"] = a["Y_less_X"].map(int)
+    a["X_eq_Y"] = a["X_eq_Y"].map(int)
+    a = a.round({"X_"+criterion+"_mean":6, "Y_"+criterion+"_mean":6, "diff_mean":6,
+                    "X_less_Y":0, "Y_less_X":0, "X_eq_Y":0, "p_X_less_Y":4, "p_Y_less_X":4})
     return a
 
 
@@ -295,11 +291,12 @@ def print_sig_diffs(agg2):
         print("\np_Y_less_X<=0.05\n", sig_Y_less_X)
 
 
-def agg2_print(rawdata1, rawdata2, criterion):
+def agg2_print(rawdata1: pd.DataFrame, rawdata2: pd.DataFrame, criterion: str):
     """Perform aggregation and print comparative results for two summary DataFrames.
     """
     with print_table_context():
         aggregated = aggregate2(rawdata1,rawdata2,criterion)
+        print(aggregated)
         print(roundagg2(pd.concat([aggregated["grouped"],aggregated["total"]]),
                         criterion))
         #print(roundagg2(aggregated["total"]))
