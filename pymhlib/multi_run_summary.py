@@ -58,13 +58,16 @@ def _parse_file(file: str, fetch_item: Data, fetch_iter) -> bool:
     # print(file)
     with open(file) as f:
         for line in f:
-            m = re.match(fetch_item.reg_exp_compiled, line)
-            if m:
-                fetch_item.values.append(float(m[1]))
-                try:
-                    fetch_item = next(fetch_iter)
-                except StopIteration:
-                    return True
+            while True:
+                m = re.match(fetch_item.reg_exp_compiled, line)
+                if m:
+                    fetch_item.values.append(float(m[1]))
+                    try:
+                        fetch_item = next(fetch_iter)
+                    except StopIteration:
+                        return True
+                else:
+                    break
     return False
 
 
