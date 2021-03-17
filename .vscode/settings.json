@@ -13,6 +13,7 @@
         "categ",
         "categbase",
         "checkit",
+        "codecov",
         "dtype",
         "einsum",
         "elems",
