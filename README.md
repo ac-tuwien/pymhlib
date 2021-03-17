@@ -1,6 +1,6 @@
 ## `pymhlib` - A Toolbox for Metaheuristics and Hybrid Optimization Methods
 
-[![Build Status](https://github.com/ac-tuwien/pymhlib/workflows/CI/badge.svg)](https://github.com/ac-tuwien/pymhlib/actions?query=workflow%3ACI+branch%3Amaster)
+[![BuildStatus](https://github.com/ac-tuwien/pymhlib/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/ac-tuwien/pymhlib?branch=master)
 [![codecov.io](http://codecov.io/github/ac-tuwien/pymhlib/coverage.svg?branch=master)](http://codecov.io/github/ac-tuwien/pymhlib?branch=master)
 
 _This project is still in early development, any feedback is much appreciated!_
