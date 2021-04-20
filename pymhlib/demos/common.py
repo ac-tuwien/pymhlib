@@ -64,7 +64,7 @@ def run_optimization(problem_name: str, instance_class, solution_class, default_
     :param seed: optional seed value for the random number generators; 0: random initialization
     """
     if not embedded:
-        add_general_arguments_and_parse_settings(default_inst_file, seed)
+        add_general_arguments_and_parse_settings(default_inst_file, seed=seed)
 
     init_logger()
     logger = logging.getLogger("pymhlib")
