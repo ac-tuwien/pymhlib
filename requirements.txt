@@ -1,7 +1,1 @@
-networkx
-configargparse
-numpy
-pandas
-matplotlib
-seaborn
-PyYAML
+.

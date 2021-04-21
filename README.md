@@ -144,6 +144,7 @@ Major changes in releases:
 #### Version 0.1.5
 - bug fix in `settings: repeated `parse_settings` now resets former settings correctly
 - bug fix in `common.py/run_optimization`: seed now correctly passed to `add_general_arguments_and_parse_settings`
+- automatic installation of required other packages fixed 
 
 #### Version 0.1.4
 - cleaning according to pylint warnings
