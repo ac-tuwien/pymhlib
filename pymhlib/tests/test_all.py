@@ -15,6 +15,8 @@ from pymhlib.demos.mkp import MKPInstance, MKPSolution
 from pymhlib.demos.qap import QAPInstance, QAPSolution
 from pymhlib.demos.vertex_cover import VertexCoverInstance, VertexCoverSolution
 
+import copy
+
 parser = get_settings_parser()
 add_general_arguments_and_parse_settings(args=[])
 
@@ -30,6 +32,18 @@ class TestAll(TestCase):
         settings.mh_titer = 100
         solution = run_optimization('MAXSAT', MAXSATInstance, MAXSATSolution, embedded=True)
         self.assertEqual(solution.obj(), 769)
+
+    def test_maxsat_k_random_flip(self):
+        seed_random_generators(42)
+        settings.inst_file = data_dir + "maxsat-adv1.cnf"
+        inst = MAXSATInstance(settings.inst_file)
+        sol = MAXSATSolution(inst)
+        k = 30
+        old = copy.deepcopy(sol.x)
+        sol.k_random_flips(k)
+        new = sol.x
+        ndiff = sum(old != new)
+        self.assertEqual(ndiff, k)
 
     def test_tsp_sa(self):
         seed_random_generators(42)
@@ -102,7 +116,6 @@ class TestAll(TestCase):
         settings.mh_titer = 600
         solution = run_optimization('MAXSAT', MAXSATInstance, MAXSATSolution, embedded=True)
         self.assertGreaterEqual(solution.obj(), 0)
-
 
 if __name__ == '__main__':
     main()

@@ -29,10 +29,9 @@ class BinaryVectorSolution(VectorSolution, ABC):
         self.invalidate()
 
     def k_random_flips(self, k):
-        """Perform k random flips and call invalidate()."""
-        for _ in range(k):
-            p = random.randrange(self.inst.n)
-            self.x[p] = not self.x[p]
+        """Perform k random flips (i.e. exactly k bits are flipped) and call invalidate."""
+        p = random.sample(range(self.inst.n), k)
+        self.x[p] = np.invert(self.x[p])
         self.invalidate()
 
     def check(self):
